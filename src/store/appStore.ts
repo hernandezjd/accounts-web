@@ -1,0 +1,24 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import i18n from '@/i18n'
+
+interface AppState {
+  language: string
+  setLanguage: (lang: string) => void
+}
+
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      language: 'en',
+      setLanguage: (lang: string) => {
+        void i18n.changeLanguage(lang)
+        set({ language: lang })
+      },
+    }),
+    {
+      name: 'app-store',
+      partialize: (state) => ({ language: state.language }),
+    },
+  ),
+)
