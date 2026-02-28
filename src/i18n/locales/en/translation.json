@@ -1,0 +1,29 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "search": "Search..."
+  },
+  "nav": {
+    "accounts": "Accounts",
+    "thirdParties": "Third Parties",
+    "transactions": "Transactions",
+    "transactionTypes": "Transaction Types",
+    "reports": "Reports",
+    "setup": "Setup"
+  },
+  "tenant": {
+    "select": "Select Tenant",
+    "switch": "Switch Tenant",
+    "active": "Active Tenant"
+  },
+  "errors": {
+    "networkError": "Network error. Please try again.",
+    "serverError": "Server error. Please try again later."
+  }
+}

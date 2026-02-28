@@ -1,0 +1,29 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Volver",
+    "search": "Buscar..."
+  },
+  "nav": {
+    "accounts": "Cuentas",
+    "thirdParties": "Terceros",
+    "transactions": "Transacciones",
+    "transactionTypes": "Tipos de Transacción",
+    "reports": "Informes",
+    "setup": "Configuración"
+  },
+  "tenant": {
+    "select": "Seleccionar Tenant",
+    "switch": "Cambiar Tenant",
+    "active": "Tenant Activo"
+  },
+  "errors": {
+    "networkError": "Error de red. Por favor, inténtalo de nuevo.",
+    "serverError": "Error del servidor. Por favor, inténtalo más tarde."
+  }
+}
