@@ -1,0 +1,308 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { renderWithProviders } from '@/test-utils/renderWithProviders'
+import { TransactionForm } from './TransactionForm'
+
+// ─── Mock all hooks ────────────────────────────────────────────────────────────
+
+vi.mock('@/hooks/api/useTransactionTypes', () => ({
+  useTransactionTypes: vi.fn(),
+}))
+vi.mock('@/hooks/api/useTenantConfig', () => ({
+  useTenantConfig: vi.fn(),
+}))
+vi.mock('@/hooks/api/useTransactionMutations', () => ({
+  useTransactionMutations: vi.fn(),
+}))
+vi.mock('@/hooks/api/useAccounts', () => ({
+  useAccounts: vi.fn(),
+}))
+vi.mock('@/hooks/api/useThirdParties', () => ({
+  useThirdParties: vi.fn(),
+}))
+vi.mock('@/hooks/api/useAccountMutations', () => ({
+  useAccountMutations: vi.fn(),
+}))
+vi.mock('@/hooks/api/useThirdPartyMutations', () => ({
+  useThirdPartyMutations: vi.fn(),
+}))
+
+import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
+import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
+import { useAccounts } from '@/hooks/api/useAccounts'
+import { useThirdParties } from '@/hooks/api/useThirdParties'
+import { useAccountMutations } from '@/hooks/api/useAccountMutations'
+import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
+
+const mockUseTransactionTypes = vi.mocked(useTransactionTypes)
+const mockUseTenantConfig = vi.mocked(useTenantConfig)
+const mockUseTransactionMutations = vi.mocked(useTransactionMutations)
+const mockUseAccounts = vi.mocked(useAccounts)
+const mockUseThirdParties = vi.mocked(useThirdParties)
+const mockUseAccountMutations = vi.mocked(useAccountMutations)
+const mockUseThirdPartyMutations = vi.mocked(useThirdPartyMutations)
+
+// ─── Default mock return values ────────────────────────────────────────────────
+
+const noOpMutation = {
+  mutate: vi.fn(),
+  isPending: false,
+  isError: false,
+  error: null,
+}
+
+function setupDefaultMocks() {
+  mockUseTransactionTypes.mockReturnValue({
+    data: [{ id: 'type-1', name: 'Invoice' }],
+    isLoading: false,
+    isError: false,
+    error: null,
+  } as ReturnType<typeof useTransactionTypes>)
+
+  mockUseTenantConfig.mockReturnValue({
+    data: { systemInitialDate: '2025-01-01', closedPeriodDate: null },
+    isLoading: false,
+    isError: false,
+    error: null,
+  } as ReturnType<typeof useTenantConfig>)
+
+  mockUseTransactionMutations.mockReturnValue({
+    createTransaction: { ...noOpMutation },
+    editTransaction: { ...noOpMutation },
+    deleteTransaction: { ...noOpMutation },
+    createInitialBalance: { ...noOpMutation },
+  })
+
+  mockUseAccounts.mockReturnValue({
+    data: [
+      {
+        id: 'acc-1',
+        code: '1000',
+        name: 'Cash',
+        hasChildren: false,
+        hasThirdParties: false,
+        level: 2,
+        parentId: null,
+        balance: 0,
+      },
+    ],
+    isLoading: false,
+    isError: false,
+    error: null,
+  } as ReturnType<typeof useAccounts>)
+
+  mockUseThirdParties.mockReturnValue({
+    data: [],
+    isLoading: false,
+    isError: false,
+    isFetching: false,
+    error: null,
+  } as ReturnType<typeof useThirdParties>)
+
+  mockUseAccountMutations.mockReturnValue({
+    createAccount: { ...noOpMutation },
+  })
+
+  mockUseThirdPartyMutations.mockReturnValue({
+    createThirdParty: { ...noOpMutation },
+  })
+}
+
+const defaultProps = {
+  tenantId: 'tenant-1',
+  mode: 'create' as const,
+  onSuccess: vi.fn(),
+  onCancel: vi.fn(),
+}
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+describe('TransactionForm', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setupDefaultMocks()
+  })
+
+  it('renders create mode with type field, date field, and description', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    expect(screen.getByTestId('transaction-form')).toBeInTheDocument()
+    expect(screen.getByLabelText(/transaction type/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/date/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/transaction number/i)).toBeInTheDocument()
+  })
+
+  it('shows one item row by default', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const rows = screen.getAllByTestId('form-item-row')
+    expect(rows).toHaveLength(1)
+  })
+
+  it('adds an item row when "Add Item" is clicked', async () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /add item/i }))
+
+    const rows = screen.getAllByTestId('form-item-row')
+    expect(rows).toHaveLength(2)
+  })
+
+  it('removes an item row when remove button is clicked (only when more than one)', async () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    // Add a second item first
+    await userEvent.click(screen.getByRole('button', { name: /add item/i }))
+    expect(screen.getAllByTestId('form-item-row')).toHaveLength(2)
+
+    // Remove one
+    const removeButtons = screen.getAllByRole('button', { name: /remove item/i })
+    await userEvent.click(removeButtons[0])
+    expect(screen.getAllByTestId('form-item-row')).toHaveLength(1)
+  })
+
+  it('shows "Unbalanced" chip when debits and credits do not match', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const chip = screen.getByTestId('balance-chip')
+    expect(chip).toHaveTextContent(/unbalanced/i)
+  })
+
+  it('calls onCancel when cancel button is clicked', async () => {
+    const onCancel = vi.fn()
+    renderWithProviders(<TransactionForm {...defaultProps} onCancel={onCancel} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
+    expect(onCancel).toHaveBeenCalledOnce()
+  })
+
+  it('shows delete button in edit mode', () => {
+    renderWithProviders(
+      <TransactionForm
+        {...defaultProps}
+        mode="edit"
+        transactionId="txn-1"
+        initialData={{
+          transactionTypeId: 'type-1',
+          transactionTypeName: 'Invoice',
+          transactionNumber: 'INV-001',
+          date: '2026-01-15',
+          description: 'Test',
+          items: [
+            {
+              accountId: 'acc-1',
+              accountCode: '1000',
+              accountName: 'Cash',
+              debitAmount: 100,
+              creditAmount: 0,
+            },
+          ],
+        }}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /delete transaction/i })).toBeInTheDocument()
+  })
+
+  it('does not show delete button in create mode', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    expect(screen.queryByRole('button', { name: /delete transaction/i })).not.toBeInTheDocument()
+  })
+
+  it('shows confirmation dialog when delete button is clicked', async () => {
+    renderWithProviders(
+      <TransactionForm
+        {...defaultProps}
+        mode="edit"
+        transactionId="txn-1"
+        initialData={{
+          transactionTypeId: 'type-1',
+          transactionTypeName: 'Invoice',
+          transactionNumber: 'INV-001',
+          date: '2026-01-15',
+          description: 'Test',
+          items: [
+            {
+              accountId: 'acc-1',
+              accountCode: '1000',
+              accountName: 'Cash',
+              debitAmount: 100,
+              creditAmount: 0,
+            },
+          ],
+        }}
+      />,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /delete transaction/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/are you sure/i)).toBeInTheDocument()
+    })
+  })
+
+  it('calls deleteTransaction mutation when confirm delete is clicked', async () => {
+    const deleteMutate = vi.fn()
+    mockUseTransactionMutations.mockReturnValue({
+      createTransaction: { ...noOpMutation },
+      editTransaction: { ...noOpMutation },
+      deleteTransaction: { ...noOpMutation, mutate: deleteMutate },
+      createInitialBalance: { ...noOpMutation },
+    })
+
+    renderWithProviders(
+      <TransactionForm
+        {...defaultProps}
+        mode="edit"
+        transactionId="txn-1"
+        initialData={{
+          transactionTypeId: 'type-1',
+          transactionTypeName: 'Invoice',
+          transactionNumber: 'INV-001',
+          date: '2026-01-15',
+          description: 'Test',
+          items: [
+            {
+              accountId: 'acc-1',
+              accountCode: '1000',
+              accountName: 'Cash',
+              debitAmount: 100,
+              creditAmount: 0,
+            },
+          ],
+        }}
+      />,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /delete transaction/i }))
+    await waitFor(() => screen.getByText(/are you sure/i))
+
+    const confirmBtn = screen.getByRole('button', { name: /^delete$/i })
+    await userEvent.click(confirmBtn)
+
+    expect(deleteMutate).toHaveBeenCalledWith('txn-1', expect.any(Object))
+  })
+
+  it('renders initial balance mode without type field and with read-only date', () => {
+    renderWithProviders(
+      <TransactionForm {...defaultProps} mode="createInitialBalance" />,
+    )
+
+    expect(screen.queryByLabelText(/transaction type/i)).not.toBeInTheDocument()
+    expect(screen.getByTestId('initial-balance-date')).toBeInTheDocument()
+  })
+
+  it('initial balance mode shows date from tenant config', () => {
+    renderWithProviders(
+      <TransactionForm {...defaultProps} mode="createInitialBalance" />,
+    )
+
+    const dateField = screen.getByTestId('initial-balance-date')
+    const input = dateField.querySelector('input')
+    expect(input).toHaveValue('2025-01-01')
+  })
+})

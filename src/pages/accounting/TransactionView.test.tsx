@@ -5,14 +5,35 @@ import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { TransactionView } from './TransactionView'
 import type { AccountTransactionDetail } from '@/types/accounting'
 
-// ─── Mock the API hook ────────────────────────────────────────────────────────
+// ─── Mock hooks ────────────────────────────────────────────────────────────────
 
 vi.mock('@/hooks/api/useAccountTransactionsInPeriod', () => ({
   useAccountTransactionsInPeriod: vi.fn(),
 }))
+vi.mock('@/hooks/api/useTransactionById', () => ({
+  useTransactionById: vi.fn(),
+}))
+vi.mock('@/hooks/api/useTransactionMutations', () => ({
+  useTransactionMutations: vi.fn(),
+}))
+
+// Mock TransactionForm to keep tests simple
+vi.mock('./TransactionForm', () => ({
+  TransactionForm: ({ onCancel, onSuccess, mode }: { onCancel: () => void; onSuccess: () => void; mode: string }) => (
+    <div data-testid="transaction-form" data-mode={mode}>
+      <button onClick={onCancel}>cancel-form</button>
+      <button onClick={onSuccess}>save-form</button>
+    </div>
+  ),
+}))
 
 import { useAccountTransactionsInPeriod } from '@/hooks/api/useAccountTransactionsInPeriod'
+import { useTransactionById } from '@/hooks/api/useTransactionById'
+import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
+
 const mockUseQuery = vi.mocked(useAccountTransactionsInPeriod)
+const mockUseTransactionById = vi.mocked(useTransactionById)
+const mockUseTransactionMutations = vi.mocked(useTransactionMutations)
 
 // ─── Sample data ──────────────────────────────────────────────────────────────
 
@@ -45,6 +66,13 @@ const sampleData: AccountTransactionDetail = {
   ],
 }
 
+const noOpMutation = {
+  mutate: vi.fn(),
+  isPending: false,
+  isError: false,
+  error: null,
+}
+
 const defaultProps = {
   tenantId: 'tenant-1',
   accountId: 'acc-1',
@@ -64,6 +92,21 @@ const defaultProps = {
 describe('TransactionView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+
+    mockUseTransactionById.mockReturnValue({
+      data: undefined,
+      isSuccess: false,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactionById>)
+
+    mockUseTransactionMutations.mockReturnValue({
+      createTransaction: { ...noOpMutation },
+      editTransaction: { ...noOpMutation },
+      deleteTransaction: { ...noOpMutation },
+      createInitialBalance: { ...noOpMutation },
+    })
   })
 
   it('shows loading state while fetching', () => {
@@ -116,10 +159,7 @@ describe('TransactionView', () => {
   })
 
   it('shows no-transactions message when transaction list is empty', async () => {
-    const emptyData: AccountTransactionDetail = {
-      ...sampleData,
-      transactions: [],
-    }
+    const emptyData: AccountTransactionDetail = { ...sampleData, transactions: [] }
     mockUseQuery.mockReturnValue({
       data: emptyData,
       isLoading: false,
@@ -158,13 +198,213 @@ describe('TransactionView', () => {
     } as ReturnType<typeof useAccountTransactionsInPeriod>)
 
     renderWithProviders(
-      <TransactionView
-        {...defaultProps}
-        thirdPartyId="tp-1"
-        thirdPartyName="ACME Corp"
-      />,
+      <TransactionView {...defaultProps} thirdPartyId="tp-1" thirdPartyName="ACME Corp" />,
     )
 
     expect(screen.getByText(/ACME Corp/)).toBeInTheDocument()
+  })
+
+  it('shows "New Transaction" and "New Initial Balance" buttons', () => {
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    expect(screen.getByRole('button', { name: /new transaction/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /new initial balance/i })).toBeInTheDocument()
+  })
+
+  it('opens create form when "New Transaction" button is clicked', async () => {
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /new transaction/i }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('transaction-form')).toBeInTheDocument()
+      expect(screen.getByTestId('transaction-form')).toHaveAttribute('data-mode', 'create')
+    })
+  })
+
+  it('opens initial balance form when "New Initial Balance" button is clicked', async () => {
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /new initial balance/i }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('transaction-form')).toBeInTheDocument()
+      expect(screen.getByTestId('transaction-form')).toHaveAttribute(
+        'data-mode',
+        'createInitialBalance',
+      )
+    })
+  })
+
+  it('closes form when cancel is clicked', async () => {
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /new transaction/i }))
+    await waitFor(() => screen.getByTestId('transaction-form'))
+
+    await userEvent.click(screen.getByRole('button', { name: 'cancel-form' }))
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('transaction-form')).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows edit icon buttons on each transaction row', async () => {
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('edit-txn-txn-1')).toBeInTheDocument()
+    })
+  })
+
+  it('shows delete icon buttons on each transaction row', async () => {
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('delete-txn-txn-1')).toBeInTheDocument()
+    })
+  })
+
+  it('shows delete confirmation dialog when row delete icon is clicked', async () => {
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await waitFor(() => screen.getByTestId('delete-txn-txn-1'))
+    await userEvent.click(screen.getByTestId('delete-txn-txn-1'))
+
+    await waitFor(() => {
+      expect(screen.getByText(/are you sure/i)).toBeInTheDocument()
+    })
+  })
+
+  it('calls deleteTransaction mutation when confirm is clicked', async () => {
+    const deleteMutate = vi.fn()
+    mockUseTransactionMutations.mockReturnValue({
+      createTransaction: { ...noOpMutation },
+      editTransaction: { ...noOpMutation },
+      deleteTransaction: { ...noOpMutation, mutate: deleteMutate },
+      createInitialBalance: { ...noOpMutation },
+    })
+
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await waitFor(() => screen.getByTestId('delete-txn-txn-1'))
+    await userEvent.click(screen.getByTestId('delete-txn-txn-1'))
+    await waitFor(() => screen.getByTestId('confirm-delete-btn'))
+
+    await userEvent.click(screen.getByTestId('confirm-delete-btn'))
+
+    expect(deleteMutate).toHaveBeenCalledWith('txn-1', expect.any(Object))
+  })
+
+  it('opens edit form when edit icon is clicked and transaction data is fetched', async () => {
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    const editTxnData = {
+      id: 'txn-1',
+      transactionTypeId: 'type-1',
+      transactionTypeName: 'Invoice',
+      transactionNumber: 'INV-001',
+      date: '2026-01-15',
+      description: 'Office supplies',
+      items: [
+        {
+          accountId: 'acc-1',
+          accountCode: '1000',
+          accountName: 'Cash',
+          thirdPartyId: null,
+          thirdPartyName: null,
+          debitAmount: 100,
+          creditAmount: 0,
+        },
+      ],
+    }
+
+    // First call: loading; second (after clicking edit): returns data
+    mockUseTransactionById
+      .mockReturnValueOnce({
+        data: undefined,
+        isSuccess: false,
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof useTransactionById>)
+      .mockReturnValue({
+        data: editTxnData,
+        isSuccess: true,
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof useTransactionById>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await waitFor(() => screen.getByTestId('edit-txn-txn-1'))
+    await userEvent.click(screen.getByTestId('edit-txn-txn-1'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('transaction-form')).toBeInTheDocument()
+      expect(screen.getByTestId('transaction-form')).toHaveAttribute('data-mode', 'edit')
+    })
   })
 })

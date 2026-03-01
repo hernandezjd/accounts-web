@@ -1,6 +1,15 @@
+import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
+import Collapse from '@mui/material/Collapse'
 import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
+import IconButton from '@mui/material/IconButton'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -9,10 +18,16 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { useTranslation } from 'react-i18next'
 import type { Granularity } from '@/types/accounting'
 import { useAccountTransactionsInPeriod } from '@/hooks/api/useAccountTransactionsInPeriod'
+import { useTransactionById } from '@/hooks/api/useTransactionById'
+import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { PeriodControls } from './PeriodControls'
+import { TransactionForm, type TransactionFormInitialData, type FormMode } from './TransactionForm'
 
 interface TransactionViewProps {
   tenantId: string
@@ -28,6 +43,12 @@ interface TransactionViewProps {
   onPrevPeriod: () => void
   onNextPeriod: () => void
   onGranularityChange: (g: Granularity) => void
+}
+
+interface FormConfig {
+  mode: FormMode
+  transactionId?: string
+  initialData?: TransactionFormInitialData
 }
 
 function formatAmount(n: number): string {
@@ -58,13 +79,63 @@ export function TransactionView({
     thirdPartyId,
   )
 
+  // ── Form state ──
+  const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
+  const [editingTxnId, setEditingTxnId] = useState<string | null>(null)
+  const [deletingTxnId, setDeletingTxnId] = useState<string | null>(null)
+
+  // ── Fetch transaction to edit ──
+  const { data: editTxnData, isSuccess: editFetched } = useTransactionById(
+    tenantId,
+    editingTxnId,
+  )
+
+  useEffect(() => {
+    if (editFetched && editTxnData && editingTxnId) {
+      const txn = editTxnData
+      const initialData: TransactionFormInitialData = {
+        transactionTypeId: txn.transactionTypeId ?? '',
+        transactionTypeName: txn.transactionTypeName ?? '',
+        transactionNumber: txn.transactionNumber ?? '',
+        date: txn.date ?? '',
+        description: txn.description ?? '',
+        items: (txn.items ?? []).map((item) => ({
+          accountId: item.accountId ?? '',
+          accountCode: item.accountCode ?? '',
+          accountName: item.accountName ?? '',
+          hasThirdParties: false,
+          thirdPartyId: item.thirdPartyId ?? null,
+          thirdPartyName: item.thirdPartyName ?? null,
+          debitAmount: item.debitAmount ?? 0,
+          creditAmount: item.creditAmount ?? 0,
+        })),
+      }
+      setFormConfig({ mode: 'edit', transactionId: editingTxnId, initialData })
+      setEditingTxnId(null)
+    }
+  }, [editFetched, editTxnData, editingTxnId])
+
+  // ── Delete ──
+  const { deleteTransaction } = useTransactionMutations(tenantId)
+
+  const handleDeleteConfirm = () => {
+    if (!deletingTxnId) return
+    deleteTransaction.mutate(deletingTxnId, {
+      onSuccess: () => setDeletingTxnId(null),
+      onError: () => setDeletingTxnId(null),
+    })
+  }
+
   const headerTitle = thirdPartyName
     ? `${accountCode} ${accountName} / ${thirdPartyName}`
     : `${accountCode} ${accountName}`
 
+  const handleFormSuccess = () => setFormConfig(null)
+  const handleFormCancel = () => setFormConfig(null)
+
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={onBack}
@@ -74,9 +145,27 @@ export function TransactionView({
         >
           {t('common.back')}
         </Button>
-        <Typography variant="h6" component="h2">
+        <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
           {headerTitle}
         </Typography>
+        <Button
+          size="small"
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setFormConfig({ mode: 'create' })}
+          aria-label={t('transactionForm.newTransaction')}
+        >
+          {t('transactionForm.newTransaction')}
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<AddIcon />}
+          onClick={() => setFormConfig({ mode: 'createInitialBalance' })}
+          aria-label={t('transactionForm.newInitialBalance')}
+        >
+          {t('transactionForm.newInitialBalance')}
+        </Button>
       </Box>
 
       <PeriodControls
@@ -87,6 +176,22 @@ export function TransactionView({
         onNextPeriod={onNextPeriod}
         onGranularityChange={onGranularityChange}
       />
+
+      {/* Inline form panel */}
+      <Collapse in={Boolean(formConfig)} unmountOnExit>
+        {formConfig && (
+          <Box sx={{ mt: 2 }}>
+            <TransactionForm
+              tenantId={tenantId}
+              mode={formConfig.mode}
+              transactionId={formConfig.transactionId}
+              initialData={formConfig.initialData}
+              onSuccess={handleFormSuccess}
+              onCancel={handleFormCancel}
+            />
+          </Box>
+        )}
+      </Collapse>
 
       <Box sx={{ mt: 2 }}>
         {isLoading && (
@@ -139,11 +244,11 @@ export function TransactionView({
                       <TableCell align="right" sx={{ fontWeight: 700 }}>
                         {t('accounting.transactions.runningBalance')}
                       </TableCell>
+                      <TableCell sx={{ fontWeight: 700, width: 80 }} />
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {data.transactions.map((txn) => {
-                      // Find the item that matches the queried account (and TP if applicable)
                       const matchingItem = txn.items.find(
                         (item) =>
                           item.accountId === accountId &&
@@ -169,6 +274,25 @@ export function TransactionView({
                           <TableCell align="right" sx={{ py: 0.75, fontWeight: 600 }}>
                             {formatAmount(txn.runningBalance)}
                           </TableCell>
+                          <TableCell sx={{ py: 0.5 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => setEditingTxnId(txn.transactionId)}
+                              aria-label={`${t('common.edit')} ${txn.transactionNumber}`}
+                              data-testid={`edit-txn-${txn.transactionId}`}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => setDeletingTxnId(txn.transactionId)}
+                              aria-label={`${t('common.delete')} ${txn.transactionNumber}`}
+                              data-testid={`delete-txn-${txn.transactionId}`}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </TableCell>
                         </TableRow>
                       )
                     })}
@@ -179,6 +303,35 @@ export function TransactionView({
           </>
         )}
       </Box>
+
+      {/* Editing indicator */}
+      {editingTxnId && !formConfig && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+          <CircularProgress size={16} />
+          <Typography variant="body2" color="text.secondary">
+            {t('common.loading')}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={Boolean(deletingTxnId)} onClose={() => setDeletingTxnId(null)}>
+        <DialogTitle>{t('transactionForm.confirmDeleteTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{t('transactionForm.confirmDelete')}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeletingTxnId(null)}>{t('common.cancel')}</Button>
+          <Button
+            color="error"
+            onClick={handleDeleteConfirm}
+            disabled={deleteTransaction.isPending}
+            data-testid="confirm-delete-btn"
+          >
+            {t('common.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
