@@ -34,5 +34,39 @@
   "errors": {
     "networkError": "Network error. Please try again.",
     "serverError": "Server error. Please try again later."
+  },
+  "accounting": {
+    "title": "Accounting",
+    "loading": "Loading account data...",
+    "error": "Failed to load account data.",
+    "period": {
+      "monthly": "Monthly",
+      "weekly": "Weekly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly",
+      "custom": "Custom",
+      "prevPeriod": "Previous Period",
+      "nextPeriod": "Next Period"
+    },
+    "tree": {
+      "levelFilter": "Level",
+      "allLevels": "All",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All",
+      "code": "Code",
+      "name": "Name",
+      "openingBalance": "Opening",
+      "debits": "Debits",
+      "credits": "Credits",
+      "closingBalance": "Closing"
+    },
+    "shortcuts": {
+      "prevPeriod": "Previous period",
+      "nextPeriod": "Next period",
+      "levelUp": "Increase level detail",
+      "levelDown": "Decrease level detail",
+      "expandAll": "Expand all branches",
+      "collapseAll": "Collapse all branches"
+    }
   }
 }

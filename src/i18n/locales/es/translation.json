@@ -34,5 +34,39 @@
   "errors": {
     "networkError": "Error de red. Por favor, inténtalo de nuevo.",
     "serverError": "Error del servidor. Por favor, inténtalo más tarde."
+  },
+  "accounting": {
+    "title": "Contabilidad",
+    "loading": "Cargando datos contables...",
+    "error": "Error al cargar los datos contables.",
+    "period": {
+      "monthly": "Mensual",
+      "weekly": "Semanal",
+      "quarterly": "Trimestral",
+      "yearly": "Anual",
+      "custom": "Personalizado",
+      "prevPeriod": "Período Anterior",
+      "nextPeriod": "Período Siguiente"
+    },
+    "tree": {
+      "levelFilter": "Nivel",
+      "allLevels": "Todos",
+      "expandAll": "Expandir Todo",
+      "collapseAll": "Colapsar Todo",
+      "code": "Código",
+      "name": "Nombre",
+      "openingBalance": "Apertura",
+      "debits": "Débitos",
+      "credits": "Créditos",
+      "closingBalance": "Cierre"
+    },
+    "shortcuts": {
+      "prevPeriod": "Período anterior",
+      "nextPeriod": "Período siguiente",
+      "levelUp": "Aumentar detalle de nivel",
+      "levelDown": "Disminuir detalle de nivel",
+      "expandAll": "Expandir todas las ramas",
+      "collapseAll": "Colapsar todas las ramas"
+    }
   }
 }
