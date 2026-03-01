@@ -23,6 +23,7 @@ interface AccountTreeProps {
   onLevelFilterChange: (level: number | null) => void
   onExpandAll: () => void
   onCollapseAll: () => void
+  onDrillDown: (accountId: string, thirdPartyId?: string) => void
 }
 
 export function AccountTree({
@@ -33,6 +34,7 @@ export function AccountTree({
   onLevelFilterChange,
   onExpandAll,
   onCollapseAll,
+  onDrillDown,
 }: AccountTreeProps) {
   const { t } = useTranslation()
 
@@ -103,6 +105,7 @@ export function AccountTree({
                 node={node}
                 expandedNodes={expandedNodes}
                 onToggle={onToggle}
+                onDrillDown={onDrillDown}
               />
             ))}
           </TableBody>

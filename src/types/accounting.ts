@@ -39,3 +39,32 @@ export interface PeriodAccountSummary {
   toDate: string
   accounts: AccountPeriodNode[]
 }
+
+export interface TransactionItemDetail {
+  accountId: string
+  accountCode: string
+  accountName: string
+  thirdPartyId?: string | null
+  thirdPartyName?: string | null
+  debitAmount: number
+  creditAmount: number
+}
+
+export interface TransactionWithRunningBalance {
+  transactionId: string
+  transactionNumber: string
+  transactionTypeName: string
+  date: string
+  description?: string | null
+  items: TransactionItemDetail[]
+  runningBalance: number
+}
+
+export interface AccountTransactionDetail {
+  accountId: string
+  fromDate: string
+  toDate: string
+  thirdPartyId?: string | null
+  openingBalance: number
+  transactions: TransactionWithRunningBalance[]
+}

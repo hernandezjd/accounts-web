@@ -49,6 +49,7 @@ const defaultProps = {
   onLevelFilterChange: vi.fn(),
   onExpandAll: vi.fn(),
   onCollapseAll: vi.fn(),
+  onDrillDown: vi.fn(),
 }
 
 describe('AccountTree', () => {
@@ -161,6 +162,31 @@ describe('AccountTree', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /expand all/i }))
     expect(onExpandAll).toHaveBeenCalled()
+  })
+
+  it('double-click on account row calls onDrillDown with accountId', () => {
+    const onDrillDown = vi.fn()
+    renderWithProviders(
+      <AccountTree {...defaultProps} nodes={[leafA]} onDrillDown={onDrillDown} />,
+    )
+    const row = screen.getByRole('row', { name: /CODE-A Account A/i })
+    fireEvent.dblClick(row)
+    expect(onDrillDown).toHaveBeenCalledWith('A')
+  })
+
+  it('double-click on TP row calls onDrillDown with accountId and thirdPartyId', () => {
+    const onDrillDown = vi.fn()
+    renderWithProviders(
+      <AccountTree
+        {...defaultProps}
+        nodes={[nodeWithTP]}
+        expandedNodes={new Set(['T'])}
+        onDrillDown={onDrillDown}
+      />,
+    )
+    const tpRow = screen.getByRole('row', { name: /EXT-T TP for T/i })
+    fireEvent.dblClick(tpRow)
+    expect(onDrillDown).toHaveBeenCalledWith('T', 'tp-T')
   })
 
   it('indentation increases by level (level-2 row has more padding than level-1)', () => {
