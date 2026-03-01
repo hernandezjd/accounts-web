@@ -178,6 +178,52 @@
     "error": "Error al cargar las transacciones.",
     "noTransactions": "No se encontraron transacciones."
   },
+  "reports": {
+    "title": "Informes",
+    "tabs": {
+      "periodReport": "Informe de Período",
+      "balanceAtDate": "Saldo a Fecha",
+      "balanceAtLevel": "Saldo por Nivel"
+    },
+    "form": {
+      "fromDate": "Fecha Desde",
+      "toDate": "Fecha Hasta",
+      "date": "Fecha",
+      "level": "Nivel de Cuenta",
+      "levelOptional": "Nivel de Cuenta (opcional)",
+      "run": "Ejecutar Informe"
+    },
+    "periodReport": {
+      "code": "Código",
+      "name": "Nombre de Cuenta",
+      "level": "Nivel",
+      "opening": "Saldo Inicial",
+      "txnCount": "Transacciones",
+      "closing": "Saldo Final",
+      "noData": "No se encontraron cuentas para los parámetros seleccionados.",
+      "loading": "Cargando informe de período...",
+      "error": "Error al cargar el informe de período."
+    },
+    "balanceAtDate": {
+      "code": "Código",
+      "name": "Nombre de Cuenta",
+      "level": "Nivel",
+      "balance": "Saldo",
+      "noData": "No se encontraron cuentas para la fecha seleccionada.",
+      "loading": "Cargando saldos...",
+      "error": "Error al cargar el informe de saldos."
+    },
+    "balanceAtLevel": {
+      "code": "Código",
+      "name": "Nombre de Cuenta",
+      "initialBalance": "Saldo Inicial",
+      "runningBalance": "Saldo Corriente",
+      "totalBalance": "Saldo Total",
+      "noData": "No se encontraron cuentas en el nivel seleccionado.",
+      "loading": "Cargando saldos...",
+      "error": "Error al cargar el informe de saldos."
+    }
+  },
   "transactionForm": {
     "newTransaction": "Nueva Transacción",
     "newInitialBalance": "Nuevo Saldo Inicial",

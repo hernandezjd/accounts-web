@@ -1,13 +1,422 @@
-import Typography from '@mui/material/Typography'
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
+import Typography from '@mui/material/Typography'
+import TextField from '@mui/material/TextField'
+import Button from '@mui/material/Button'
+import Table from '@mui/material/Table'
+import TableHead from '@mui/material/TableHead'
+import TableBody from '@mui/material/TableBody'
+import TableRow from '@mui/material/TableRow'
+import TableCell from '@mui/material/TableCell'
+import Collapse from '@mui/material/Collapse'
+import Alert from '@mui/material/Alert'
+import CircularProgress from '@mui/material/CircularProgress'
+import { usePeriodReport } from '@/hooks/api/usePeriodReport'
+import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 
-export function ReportsPage() {
+// ─── Tab panel helper ────────────────────────────────────────────────────────
+
+interface TabPanelProps {
+  children: React.ReactNode
+  value: number
+  index: number
+}
+
+function TabPanel({ children, value, index }: TabPanelProps) {
+  return (
+    <div role="tabpanel" hidden={value !== index} data-testid={`tabpanel-${index}`}>
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  )
+}
+
+// ─── Period Report Tab ───────────────────────────────────────────────────────
+
+function PeriodReportTab({ tenantId }: { tenantId: string }) {
+  const { t } = useTranslation()
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [levelStr, setLevelStr] = useState('')
+  const [appliedParams, setAppliedParams] = useState<{
+    fromDate: string
+    toDate: string
+    level?: number
+    enabled: boolean
+  }>({ fromDate: '', toDate: '', enabled: false })
+
+  const [expandedRow, setExpandedRow] = useState<string | null>(null)
+
+  const { data, isLoading, isError } = usePeriodReport(
+    tenantId,
+    appliedParams.fromDate,
+    appliedParams.toDate,
+    appliedParams.level,
+    appliedParams.enabled,
+  )
+
+  const handleRun = () => {
+    const level = levelStr ? parseInt(levelStr, 10) : undefined
+    setAppliedParams({ fromDate, toDate, level, enabled: true })
+    setExpandedRow(null)
+  }
+
+  const toggleRow = (accountId: string) => {
+    setExpandedRow((prev) => (prev === accountId ? null : accountId))
+  }
+
   return (
     <Box>
-      <Typography variant="h4">Reports</Typography>
-      <Typography color="text.secondary" sx={{ mt: 1 }}>
-        Reports — coming in Step 10.9.
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
+        <TextField
+          label={t('reports.form.fromDate')}
+          type="date"
+          size="small"
+          InputLabelProps={{ shrink: true }}
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          inputProps={{ 'data-testid': 'period-from-date' }}
+        />
+        <TextField
+          label={t('reports.form.toDate')}
+          type="date"
+          size="small"
+          InputLabelProps={{ shrink: true }}
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          inputProps={{ 'data-testid': 'period-to-date' }}
+        />
+        <TextField
+          label={t('reports.form.levelOptional')}
+          type="number"
+          size="small"
+          value={levelStr}
+          onChange={(e) => setLevelStr(e.target.value)}
+          inputProps={{ min: 1, 'data-testid': 'period-level' }}
+          sx={{ width: 200 }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleRun}
+          disabled={!fromDate || !toDate}
+          data-testid="run-period-report-btn"
+        >
+          {t('reports.form.run')}
+        </Button>
+      </Box>
+
+      {isLoading && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+          <CircularProgress size={20} />
+          <Typography>{t('reports.periodReport.loading')}</Typography>
+        </Box>
+      )}
+
+      {isError && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {t('reports.periodReport.error')}
+        </Alert>
+      )}
+
+      {!isLoading && !isError && data && data.entries.length === 0 && (
+        <Typography color="text.secondary" sx={{ mt: 2 }}>
+          {t('reports.periodReport.noData')}
+        </Typography>
+      )}
+
+      {!isLoading && !isError && data && data.entries.length > 0 && (
+        <Table size="small" data-testid="period-report-table">
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('reports.periodReport.code')}</TableCell>
+              <TableCell>{t('reports.periodReport.name')}</TableCell>
+              <TableCell align="right">{t('reports.periodReport.level')}</TableCell>
+              <TableCell align="right">{t('reports.periodReport.opening')}</TableCell>
+              <TableCell align="right">{t('reports.periodReport.txnCount')}</TableCell>
+              <TableCell align="right">{t('reports.periodReport.closing')}</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.entries.map((entry) => (
+              <>
+                <TableRow
+                  key={entry.accountId}
+                  hover
+                  onClick={() => toggleRow(entry.accountId)}
+                  sx={{ cursor: entry.periodTransactions.length > 0 ? 'pointer' : 'default' }}
+                  data-testid={`period-row-${entry.accountId}`}
+                >
+                  <TableCell>{entry.accountCode}</TableCell>
+                  <TableCell>{entry.accountName}</TableCell>
+                  <TableCell align="right">{entry.level}</TableCell>
+                  <TableCell align="right">{entry.openingBalance}</TableCell>
+                  <TableCell align="right">{entry.periodTransactions.length}</TableCell>
+                  <TableCell align="right">{entry.closingBalance}</TableCell>
+                </TableRow>
+                {entry.periodTransactions.length > 0 && (
+                  <TableRow key={`${entry.accountId}-expand`}>
+                    <TableCell colSpan={6} sx={{ p: 0, border: 0 }}>
+                      <Collapse in={expandedRow === entry.accountId} timeout="auto" unmountOnExit>
+                        <Box sx={{ p: 1, pl: 4, bgcolor: 'action.hover' }}>
+                          <Table size="small" data-testid={`period-txns-${entry.accountId}`}>
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Type</TableCell>
+                                <TableCell>Number</TableCell>
+                                <TableCell align="right">Debit</TableCell>
+                                <TableCell align="right">Credit</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {entry.periodTransactions.map((txn) => (
+                                <TableRow key={txn.transactionId}>
+                                  <TableCell>{txn.date}</TableCell>
+                                  <TableCell>{txn.transactionTypeName}</TableCell>
+                                  <TableCell>{txn.transactionNumber}</TableCell>
+                                  <TableCell align="right">{txn.debitAmount}</TableCell>
+                                  <TableCell align="right">{txn.creditAmount}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Box>
+  )
+}
+
+// ─── Balance at Date Tab ─────────────────────────────────────────────────────
+
+function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
+  const { t } = useTranslation()
+  const [date, setDate] = useState('')
+  const [appliedDate, setAppliedDate] = useState('')
+  const [enabled, setEnabled] = useState(false)
+
+  const { data, isLoading, isError } = usePeriodReport(
+    tenantId,
+    appliedDate,
+    appliedDate,
+    undefined,
+    enabled,
+  )
+
+  const handleRun = () => {
+    setAppliedDate(date)
+    setEnabled(true)
+  }
+
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
+        <TextField
+          label={t('reports.form.date')}
+          type="date"
+          size="small"
+          InputLabelProps={{ shrink: true }}
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          inputProps={{ 'data-testid': 'balance-date' }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleRun}
+          disabled={!date}
+          data-testid="run-balance-at-date-btn"
+        >
+          {t('reports.form.run')}
+        </Button>
+      </Box>
+
+      {isLoading && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+          <CircularProgress size={20} />
+          <Typography>{t('reports.balanceAtDate.loading')}</Typography>
+        </Box>
+      )}
+
+      {isError && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {t('reports.balanceAtDate.error')}
+        </Alert>
+      )}
+
+      {!isLoading && !isError && data && data.entries.length === 0 && (
+        <Typography color="text.secondary" sx={{ mt: 2 }}>
+          {t('reports.balanceAtDate.noData')}
+        </Typography>
+      )}
+
+      {!isLoading && !isError && data && data.entries.length > 0 && (
+        <Table size="small" data-testid="balance-at-date-table">
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('reports.balanceAtDate.code')}</TableCell>
+              <TableCell>{t('reports.balanceAtDate.name')}</TableCell>
+              <TableCell align="right">{t('reports.balanceAtDate.level')}</TableCell>
+              <TableCell align="right">{t('reports.balanceAtDate.balance')}</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.entries.map((entry) => (
+              <TableRow key={entry.accountId} data-testid={`balance-row-${entry.accountId}`}>
+                <TableCell>{entry.accountCode}</TableCell>
+                <TableCell>{entry.accountName}</TableCell>
+                <TableCell align="right">{entry.level}</TableCell>
+                <TableCell align="right">{entry.closingBalance}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Box>
+  )
+}
+
+// ─── Balance at Level Tab ────────────────────────────────────────────────────
+
+function BalanceAtLevelTab({ tenantId }: { tenantId: string }) {
+  const { t } = useTranslation()
+  const [date, setDate] = useState('')
+  const [levelStr, setLevelStr] = useState('')
+  const [appliedParams, setAppliedParams] = useState<{
+    date: string
+    level: number | undefined
+    enabled: boolean
+  }>({ date: '', level: undefined, enabled: false })
+
+  const { data, isLoading, isError } = useBalanceAtLevel(
+    tenantId,
+    appliedParams.date,
+    appliedParams.level,
+    appliedParams.enabled,
+  )
+
+  const handleRun = () => {
+    const level = levelStr ? parseInt(levelStr, 10) : undefined
+    setAppliedParams({ date, level, enabled: true })
+  }
+
+  const canRun = Boolean(date) && Boolean(levelStr) && parseInt(levelStr, 10) >= 1
+
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
+        <TextField
+          label={t('reports.form.date')}
+          type="date"
+          size="small"
+          InputLabelProps={{ shrink: true }}
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          inputProps={{ 'data-testid': 'level-date' }}
+        />
+        <TextField
+          label={t('reports.form.level')}
+          type="number"
+          size="small"
+          value={levelStr}
+          onChange={(e) => setLevelStr(e.target.value)}
+          inputProps={{ min: 1, 'data-testid': 'level-input' }}
+          sx={{ width: 160 }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleRun}
+          disabled={!canRun}
+          data-testid="run-balance-at-level-btn"
+        >
+          {t('reports.form.run')}
+        </Button>
+      </Box>
+
+      {isLoading && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+          <CircularProgress size={20} />
+          <Typography>{t('reports.balanceAtLevel.loading')}</Typography>
+        </Box>
+      )}
+
+      {isError && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {t('reports.balanceAtLevel.error')}
+        </Alert>
+      )}
+
+      {!isLoading && !isError && data && data.length === 0 && (
+        <Typography color="text.secondary" sx={{ mt: 2 }}>
+          {t('reports.balanceAtLevel.noData')}
+        </Typography>
+      )}
+
+      {!isLoading && !isError && data && data.length > 0 && (
+        <Table size="small" data-testid="balance-at-level-table">
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('reports.balanceAtLevel.code')}</TableCell>
+              <TableCell>{t('reports.balanceAtLevel.name')}</TableCell>
+              <TableCell align="right">{t('reports.balanceAtLevel.initialBalance')}</TableCell>
+              <TableCell align="right">{t('reports.balanceAtLevel.runningBalance')}</TableCell>
+              <TableCell align="right">{t('reports.balanceAtLevel.totalBalance')}</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((entry) => (
+              <TableRow key={entry.accountId} data-testid={`level-row-${entry.accountId}`}>
+                <TableCell>{entry.accountCode}</TableCell>
+                <TableCell>{entry.accountName}</TableCell>
+                <TableCell align="right">{entry.initialBalance}</TableCell>
+                <TableCell align="right">{entry.runningBalance}</TableCell>
+                <TableCell align="right">{entry.totalBalance}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Box>
+  )
+}
+
+// ─── ReportsPage ─────────────────────────────────────────────────────────────
+
+export function ReportsPage() {
+  const { t } = useTranslation()
+  const { tenantId = '' } = useParams<{ tenantId: string }>()
+  const [activeTab, setActiveTab] = useState(0)
+
+  return (
+    <Box>
+      <Typography variant="h4" sx={{ mb: 2 }}>
+        {t('reports.title')}
       </Typography>
+
+      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} data-testid="reports-tabs">
+        <Tab label={t('reports.tabs.periodReport')} data-testid="tab-period-report" />
+        <Tab label={t('reports.tabs.balanceAtDate')} data-testid="tab-balance-at-date" />
+        <Tab label={t('reports.tabs.balanceAtLevel')} data-testid="tab-balance-at-level" />
+      </Tabs>
+
+      <TabPanel value={activeTab} index={0}>
+        <PeriodReportTab tenantId={tenantId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={1}>
+        <BalanceAtDateTab tenantId={tenantId} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={2}>
+        <BalanceAtLevelTab tenantId={tenantId} />
+      </TabPanel>
     </Box>
   )
 }
