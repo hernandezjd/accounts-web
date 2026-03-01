@@ -16,6 +16,7 @@ import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { PeriodControls } from './PeriodControls'
 import { AccountTree } from './AccountTree'
+import { SearchBar } from './SearchBar'
 import { TransactionView } from './TransactionView'
 
 function parseLevel(raw: string | null): number | null {
@@ -46,6 +47,22 @@ function findAccount(
   return undefined
 }
 
+/** Walk the tree and collect IDs of all ancestors of the target node. */
+function collectAncestorIds(
+  nodes: AccountPeriodNode[],
+  targetId: string,
+  acc: Set<string> = new Set(),
+): boolean {
+  for (const node of nodes) {
+    if (node.accountId === targetId) return true
+    if (collectAncestorIds(node.children, targetId, acc)) {
+      acc.add(node.accountId)
+      return true
+    }
+  }
+  return false
+}
+
 export function AccountingPage() {
   const { t } = useTranslation()
   const { tenantId } = useParams<{ tenantId: string }>()
@@ -66,6 +83,9 @@ export function AccountingPage() {
 
   // ── View state stack (React state, independent from browser history) ───────
   const [, setViewStateStack] = useState<ViewStateSnapshot[]>([])
+
+  // ── Highlight state for search account selection ───────────────────────────
+  const [highlightedAccountId, setHighlightedAccountId] = useState<string | null>(null)
 
   // Ref to trigger scroll restoration after tree re-renders
   const pendingScrollRef = useRef<number | null>(null)
@@ -228,6 +248,42 @@ export function AccountingPage() {
     })
   }, [setSearchParams])
 
+  // ── Search handlers ───────────────────────────────────────────────────────
+  const handleAccountSelect = useCallback(
+    (accountId: string) => {
+      const ancestors = new Set<string>()
+      collectAncestorIds(data?.accounts ?? [], accountId, ancestors)
+      setExpandedNodes((prev) => new Set([...prev, ...ancestors, accountId]))
+      setHighlightedAccountId(accountId)
+      requestAnimationFrame(() => {
+        document
+          .querySelector(`[data-account-id="${accountId}"]`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      })
+      setTimeout(() => setHighlightedAccountId(null), 2000)
+    },
+    [data],
+  )
+
+  const handleTransactionSelect = useCallback(
+    (transactionId: string, accountId: string, date: string) => {
+      const txDate = new Date(date)
+      const txFrom = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, '0')}-01`
+      const txTo = new Date(txDate.getFullYear(), txDate.getMonth() + 1, 0).toISOString().slice(0, 10)
+      void transactionId
+      setSearchParams(() => {
+        const p = new URLSearchParams()
+        p.set('view', 'transactions')
+        p.set('accountId', accountId)
+        p.set('from', txFrom)
+        p.set('to', txTo)
+        p.set('granularity', 'monthly')
+        return p
+      })
+    },
+    [setSearchParams],
+  )
+
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
   const stablePrevPeriod = useCallback(handlePrevPeriod, [from, to, granularity])
   const stableNextPeriod = useCallback(handleNextPeriod, [from, to, granularity])
@@ -295,6 +351,14 @@ export function AccountingPage() {
             onGranularityChange={handleGranularityChange}
           />
 
+          <SearchBar
+            tenantId={tenantId ?? ''}
+            from={from}
+            to={to}
+            onAccountSelect={handleAccountSelect}
+            onTransactionSelect={handleTransactionSelect}
+          />
+
           <Box sx={{ mt: 2 }}>
             {isLoading && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 4 }}>
@@ -317,6 +381,7 @@ export function AccountingPage() {
                 onExpandAll={handleExpandAll}
                 onCollapseAll={handleCollapseAll}
                 onDrillDown={handleDrillDown}
+                highlightedAccountId={highlightedAccountId ?? undefined}
               />
             )}
           </Box>
