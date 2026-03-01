@@ -66,7 +66,22 @@
       "levelUp": "Increase level detail",
       "levelDown": "Decrease level detail",
       "expandAll": "Expand all branches",
-      "collapseAll": "Collapse all branches"
+      "collapseAll": "Collapse all branches",
+      "drillDown": "Drill down into account",
+      "back": "Go back"
+    },
+    "transactions": {
+      "loading": "Loading transactions...",
+      "error": "Failed to load transactions.",
+      "noTransactions": "No transactions in this period.",
+      "openingBalance": "Opening balance",
+      "date": "Date",
+      "type": "Type",
+      "number": "Number",
+      "description": "Description",
+      "debit": "Debit",
+      "credit": "Credit",
+      "runningBalance": "Balance"
     }
   }
 }

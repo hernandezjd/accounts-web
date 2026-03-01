@@ -12,6 +12,7 @@ interface AccountTreeRowProps {
   node: AccountPeriodNode
   expandedNodes: Set<string>
   onToggle: (accountId: string) => void
+  onDrillDown: (accountId: string, thirdPartyId?: string) => void
 }
 
 function formatAmount(n: number): string {
@@ -20,13 +21,30 @@ function formatAmount(n: number): string {
 
 function ThirdPartyRow({
   tp,
+  accountId,
   indent,
+  onDrillDown,
 }: {
   tp: ThirdPartyPeriodNode
+  accountId: string
   indent: number
+  onDrillDown: (accountId: string, thirdPartyId?: string) => void
 }) {
+  function handleActivate() {
+    onDrillDown(accountId, tp.thirdPartyId)
+  }
+
   return (
-    <TableRow hover sx={{ opacity: 0.9 }}>
+    <TableRow
+      hover
+      sx={{ opacity: 0.9, cursor: 'pointer' }}
+      tabIndex={0}
+      onDoubleClick={handleActivate}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') handleActivate()
+      }}
+      aria-label={`${tp.thirdPartyExternalId} ${tp.thirdPartyName}`}
+    >
       <TableCell sx={{ pl: `${indent}px`, py: 0.5 }}>
         <Box component="span" sx={{ fontStyle: 'italic', fontSize: '0.85em', color: 'text.secondary' }}>
           {tp.thirdPartyExternalId}
@@ -53,20 +71,37 @@ function ThirdPartyRow({
   )
 }
 
-export function AccountTreeRow({ node, expandedNodes, onToggle }: AccountTreeRowProps) {
+export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown }: AccountTreeRowProps) {
   const indent = (node.level - 1) * INDENT_PX
   const hasChildren = node.children.length > 0 || node.thirdPartyChildren.length > 0
   const isExpanded = expandedNodes.has(node.accountId)
 
+  function handleActivate() {
+    onDrillDown(node.accountId)
+  }
+
   return (
     <>
-      <TableRow hover>
+      <TableRow
+        hover
+        sx={{ cursor: 'pointer' }}
+        tabIndex={0}
+        onDoubleClick={handleActivate}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleActivate()
+        }}
+        aria-label={`${node.accountCode} ${node.accountName}`}
+      >
         <TableCell sx={{ pl: `${indent + (hasChildren ? 0 : 40)}px`, py: 0.75 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {hasChildren && (
               <IconButton
                 size="small"
-                onClick={() => onToggle(node.accountId)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onToggle(node.accountId)
+                }}
+                onDoubleClick={(e) => e.stopPropagation()}
                 aria-label={`toggle ${node.accountCode}`}
                 sx={{ p: 0.25 }}
               >
@@ -102,7 +137,13 @@ export function AccountTreeRow({ node, expandedNodes, onToggle }: AccountTreeRow
       {isExpanded && (
         <>
           {node.thirdPartyChildren.map((tp) => (
-            <ThirdPartyRow key={tp.thirdPartyId} tp={tp} indent={indent + INDENT_PX} />
+            <ThirdPartyRow
+              key={tp.thirdPartyId}
+              tp={tp}
+              accountId={node.accountId}
+              indent={indent + INDENT_PX}
+              onDrillDown={onDrillDown}
+            />
           ))}
           {node.children.map((child) => (
             <AccountTreeRow
@@ -110,6 +151,7 @@ export function AccountTreeRow({ node, expandedNodes, onToggle }: AccountTreeRow
               node={child}
               expandedNodes={expandedNodes}
               onToggle={onToggle}
+              onDrillDown={onDrillDown}
             />
           ))}
         </>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -16,11 +16,34 @@ import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { PeriodControls } from './PeriodControls'
 import { AccountTree } from './AccountTree'
+import { TransactionView } from './TransactionView'
 
 function parseLevel(raw: string | null): number | null {
   if (!raw) return null
   const n = parseInt(raw, 10)
   return isNaN(n) ? null : n
+}
+
+interface ViewStateSnapshot {
+  from: string
+  to: string
+  granularity: Granularity
+  levelFilter: number | null
+  expandedNodes: Set<string>
+  scrollPosition: number
+}
+
+/** Walk the account tree to find a node by accountId. */
+function findAccount(
+  nodes: AccountPeriodNode[],
+  accountId: string,
+): AccountPeriodNode | undefined {
+  for (const node of nodes) {
+    if (node.accountId === accountId) return node
+    const found = findAccount(node.children, accountId)
+    if (found) return found
+  }
+  return undefined
 }
 
 export function AccountingPage() {
@@ -36,7 +59,18 @@ export function AccountingPage() {
   const to = searchParams.get('to') ?? defaultPeriod.to
   const levelFilter = parseLevel(searchParams.get('level'))
 
-  // Ensure URL has the default period if not set
+  // ── View mode (URL) ───────────────────────────────────────────────────────
+  const viewMode = searchParams.get('view') === 'transactions' ? 'transactions' : 'tree'
+  const selectedAccountId = searchParams.get('accountId') ?? null
+  const selectedThirdPartyId = searchParams.get('thirdPartyId') ?? null
+
+  // ── View state stack (React state, independent from browser history) ───────
+  const [, setViewStateStack] = useState<ViewStateSnapshot[]>([])
+
+  // Ref to trigger scroll restoration after tree re-renders
+  const pendingScrollRef = useRef<number | null>(null)
+
+  // ── Ensure URL has the default period if not set ───────────────────────────
   useEffect(() => {
     if (!searchParams.get('from') || !searchParams.get('to')) {
       setSearchParams(
@@ -59,11 +93,25 @@ export function AccountingPage() {
   // ── Data ──────────────────────────────────────────────────────────────────
   const { data, isLoading, isError } = usePeriodAccountSummary(tenantId, from, to)
 
-  // Reset expanded nodes when data or level filter changes
+  // Reset expanded nodes when data or level filter changes (tree view only)
   useEffect(() => {
-    const nodes: AccountPeriodNode[] = data?.accounts ?? []
-    setExpandedNodes(computeExpandedFromLevel(nodes, levelFilter))
-  }, [data, levelFilter])
+    if (viewMode === 'tree') {
+      const nodes: AccountPeriodNode[] = data?.accounts ?? []
+      setExpandedNodes(computeExpandedFromLevel(nodes, levelFilter))
+    }
+  }, [data, levelFilter, viewMode])
+
+  // Scroll restoration after returning to tree view
+  useEffect(() => {
+    if (viewMode === 'tree' && pendingScrollRef.current !== null) {
+      const pos = pendingScrollRef.current
+      pendingScrollRef.current = null
+      // Small delay to let the tree render before scrolling
+      requestAnimationFrame(() => {
+        window.scrollTo(0, pos)
+      })
+    }
+  }, [viewMode])
 
   // ── URL update helpers ────────────────────────────────────────────────────
   function setPeriod(nextFrom: string, nextTo: string, nextGranularity: Granularity) {
@@ -125,6 +173,61 @@ export function AccountingPage() {
     setExpandedNodes(new Set())
   }, [])
 
+  // ── Drill-down and back ───────────────────────────────────────────────────
+  const handleDrillDown = useCallback(
+    (accountId: string, thirdPartyId?: string) => {
+      // Capture current state before navigating
+      const snapshot: ViewStateSnapshot = {
+        from,
+        to,
+        granularity,
+        levelFilter,
+        expandedNodes: new Set(expandedNodes),
+        scrollPosition: window.scrollY,
+      }
+      setViewStateStack((prev) => [...prev, snapshot])
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.set('view', 'transactions')
+        next.set('accountId', accountId)
+        if (thirdPartyId) {
+          next.set('thirdPartyId', thirdPartyId)
+        } else {
+          next.delete('thirdPartyId')
+        }
+        return next
+      })
+    },
+    [from, to, granularity, levelFilter, expandedNodes, setSearchParams],
+  )
+
+  const handleBack = useCallback(() => {
+    setViewStateStack((prev) => {
+      if (prev.length === 0) return prev
+      const snapshot = prev[prev.length - 1]
+      const rest = prev.slice(0, -1)
+
+      // Restore expand state
+      setExpandedNodes(new Set(snapshot.expandedNodes))
+      pendingScrollRef.current = snapshot.scrollPosition
+
+      // Restore URL
+      setSearchParams(() => {
+        const next = new URLSearchParams()
+        next.set('from', snapshot.from)
+        next.set('to', snapshot.to)
+        next.set('granularity', snapshot.granularity)
+        if (snapshot.levelFilter !== null) {
+          next.set('level', String(snapshot.levelFilter))
+        }
+        // Remove view, accountId, thirdPartyId
+        return next
+      })
+
+      return rest
+    })
+  }, [setSearchParams])
+
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
   const stablePrevPeriod = useCallback(handlePrevPeriod, [from, to, granularity])
   const stableNextPeriod = useCallback(handleNextPeriod, [from, to, granularity])
@@ -147,6 +250,16 @@ export function AccountingPage() {
   )
   useKeyboardShortcut('e', t('accounting.shortcuts.expandAll'), handleExpandAll)
   useKeyboardShortcut('c', t('accounting.shortcuts.collapseAll'), handleCollapseAll)
+  // Escape = back (only relevant in transaction view; harmless in tree view)
+  useKeyboardShortcut('Escape', t('accounting.shortcuts.back'), handleBack)
+
+  // ── Resolve account/TP display names from loaded data ────────────────────
+  const selectedAccount = selectedAccountId
+    ? findAccount(data?.accounts ?? [], selectedAccountId)
+    : null
+  const selectedTP = selectedAccount?.thirdPartyChildren.find(
+    (tp) => tp.thirdPartyId === selectedThirdPartyId,
+  )
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -155,39 +268,60 @@ export function AccountingPage() {
         {t('accounting.title')}
       </Typography>
 
-      <PeriodControls
-        from={from}
-        to={to}
-        granularity={granularity}
-        onPrevPeriod={handlePrevPeriod}
-        onNextPeriod={handleNextPeriod}
-        onGranularityChange={handleGranularityChange}
-      />
-
-      <Box sx={{ mt: 2 }}>
-        {isLoading && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 4 }}>
-            <CircularProgress size={24} />
-            <Typography color="text.secondary">{t('accounting.loading')}</Typography>
-          </Box>
-        )}
-
-        {isError && (
-          <Typography color="error">{t('accounting.error')}</Typography>
-        )}
-
-        {data && !isLoading && (
-          <AccountTree
-            nodes={data.accounts}
-            expandedNodes={expandedNodes}
-            levelFilter={levelFilter}
-            onToggle={handleToggle}
-            onLevelFilterChange={handleLevelFilterChange}
-            onExpandAll={handleExpandAll}
-            onCollapseAll={handleCollapseAll}
+      {viewMode === 'transactions' && selectedAccountId ? (
+        <TransactionView
+          tenantId={tenantId ?? ''}
+          accountId={selectedAccountId}
+          accountName={selectedAccount?.accountName ?? selectedAccountId}
+          accountCode={selectedAccount?.accountCode ?? ''}
+          thirdPartyId={selectedThirdPartyId ?? undefined}
+          thirdPartyName={selectedTP?.thirdPartyName}
+          from={from}
+          to={to}
+          granularity={granularity}
+          onBack={handleBack}
+          onPrevPeriod={handlePrevPeriod}
+          onNextPeriod={handleNextPeriod}
+          onGranularityChange={handleGranularityChange}
+        />
+      ) : (
+        <>
+          <PeriodControls
+            from={from}
+            to={to}
+            granularity={granularity}
+            onPrevPeriod={handlePrevPeriod}
+            onNextPeriod={handleNextPeriod}
+            onGranularityChange={handleGranularityChange}
           />
-        )}
-      </Box>
+
+          <Box sx={{ mt: 2 }}>
+            {isLoading && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 4 }}>
+                <CircularProgress size={24} />
+                <Typography color="text.secondary">{t('accounting.loading')}</Typography>
+              </Box>
+            )}
+
+            {isError && (
+              <Typography color="error">{t('accounting.error')}</Typography>
+            )}
+
+            {data && !isLoading && (
+              <AccountTree
+                nodes={data.accounts}
+                expandedNodes={expandedNodes}
+                levelFilter={levelFilter}
+                onToggle={handleToggle}
+                onLevelFilterChange={handleLevelFilterChange}
+                onExpandAll={handleExpandAll}
+                onCollapseAll={handleCollapseAll}
+                onDrillDown={handleDrillDown}
+              />
+            )}
+          </Box>
+        </>
+      )}
     </Box>
   )
 }
