@@ -10,7 +10,10 @@ type CreateInitialBalanceRequest = IbCmd['schemas']['CreateInitialBalanceRequest
 export function useTransactionMutations(tenantId: string) {
   const qc = useQueryClient()
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['accountTransactions', tenantId] })
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['accountTransactions', tenantId] })
+    qc.invalidateQueries({ queryKey: ['transactions', tenantId] })
+  }
 
   const createTransaction = useMutation({
     mutationFn: async (body: CreateTransactionRequest) => {
