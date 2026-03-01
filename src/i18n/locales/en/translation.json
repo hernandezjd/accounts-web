@@ -178,6 +178,52 @@
     "error": "Failed to load transactions.",
     "noTransactions": "No transactions found."
   },
+  "reports": {
+    "title": "Reports",
+    "tabs": {
+      "periodReport": "Period Report",
+      "balanceAtDate": "Balance at Date",
+      "balanceAtLevel": "Balance at Level"
+    },
+    "form": {
+      "fromDate": "Date From",
+      "toDate": "Date To",
+      "date": "Date",
+      "level": "Account Level",
+      "levelOptional": "Account Level (optional)",
+      "run": "Run Report"
+    },
+    "periodReport": {
+      "code": "Code",
+      "name": "Account Name",
+      "level": "Level",
+      "opening": "Opening Balance",
+      "txnCount": "Transactions",
+      "closing": "Closing Balance",
+      "noData": "No accounts found for the selected parameters.",
+      "loading": "Loading period report...",
+      "error": "Failed to load period report."
+    },
+    "balanceAtDate": {
+      "code": "Code",
+      "name": "Account Name",
+      "level": "Level",
+      "balance": "Balance",
+      "noData": "No accounts found for the selected date.",
+      "loading": "Loading balances...",
+      "error": "Failed to load balance report."
+    },
+    "balanceAtLevel": {
+      "code": "Code",
+      "name": "Account Name",
+      "initialBalance": "Initial Balance",
+      "runningBalance": "Running Balance",
+      "totalBalance": "Total Balance",
+      "noData": "No accounts found at the selected level.",
+      "loading": "Loading balances...",
+      "error": "Failed to load balance report."
+    }
+  },
   "transactionForm": {
     "newTransaction": "New Transaction",
     "newInitialBalance": "New Initial Balance",
