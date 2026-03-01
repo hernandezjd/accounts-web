@@ -82,6 +82,14 @@
       "debit": "Débito",
       "credit": "Crédito",
       "runningBalance": "Saldo"
+    },
+    "search": {
+      "placeholder": "Buscar cuentas y transacciones...",
+      "allHistory": "Buscar todo el historial",
+      "noResults": "No se encontraron resultados",
+      "accountsSection": "Cuentas",
+      "transactionsSection": "Transacciones",
+      "loading": "Buscando..."
     }
   }
 }

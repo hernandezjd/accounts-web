@@ -82,6 +82,14 @@
       "debit": "Debit",
       "credit": "Credit",
       "runningBalance": "Balance"
+    },
+    "search": {
+      "placeholder": "Search accounts and transactions...",
+      "allHistory": "Search all history",
+      "noResults": "No results found",
+      "accountsSection": "Accounts",
+      "transactionsSection": "Transactions",
+      "loading": "Searching..."
     }
   }
 }

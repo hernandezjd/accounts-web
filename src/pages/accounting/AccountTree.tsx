@@ -24,6 +24,7 @@ interface AccountTreeProps {
   onExpandAll: () => void
   onCollapseAll: () => void
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
+  highlightedAccountId?: string
 }
 
 export function AccountTree({
@@ -35,6 +36,7 @@ export function AccountTree({
   onExpandAll,
   onCollapseAll,
   onDrillDown,
+  highlightedAccountId,
 }: AccountTreeProps) {
   const { t } = useTranslation()
 
@@ -106,6 +108,7 @@ export function AccountTree({
                 expandedNodes={expandedNodes}
                 onToggle={onToggle}
                 onDrillDown={onDrillDown}
+                highlightedAccountId={highlightedAccountId}
               />
             ))}
           </TableBody>

@@ -13,6 +13,7 @@ interface AccountTreeRowProps {
   expandedNodes: Set<string>
   onToggle: (accountId: string) => void
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
+  highlightedAccountId?: string
 }
 
 function formatAmount(n: number): string {
@@ -71,10 +72,11 @@ function ThirdPartyRow({
   )
 }
 
-export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown }: AccountTreeRowProps) {
+export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, highlightedAccountId }: AccountTreeRowProps) {
   const indent = (node.level - 1) * INDENT_PX
   const hasChildren = node.children.length > 0 || node.thirdPartyChildren.length > 0
   const isExpanded = expandedNodes.has(node.accountId)
+  const isHighlighted = highlightedAccountId === node.accountId
 
   function handleActivate() {
     onDrillDown(node.accountId)
@@ -84,7 +86,12 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown }: A
     <>
       <TableRow
         hover
-        sx={{ cursor: 'pointer' }}
+        data-account-id={node.accountId}
+        sx={{
+          cursor: 'pointer',
+          bgcolor: isHighlighted ? 'primary.light' : undefined,
+          transition: 'background-color 1.5s',
+        }}
         tabIndex={0}
         onDoubleClick={handleActivate}
         onKeyDown={(e) => {
@@ -152,6 +159,7 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown }: A
               expandedNodes={expandedNodes}
               onToggle={onToggle}
               onDrillDown={onDrillDown}
+              highlightedAccountId={highlightedAccountId}
             />
           ))}
         </>

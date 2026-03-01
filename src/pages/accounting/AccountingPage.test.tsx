@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, waitFor, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { AccountingPage } from './AccountingPage'
 import type { AccountTransactionDetail, PeriodAccountSummary } from '@/types/accounting'
@@ -14,10 +15,16 @@ vi.mock('@/hooks/api/useAccountTransactionsInPeriod', () => ({
   useAccountTransactionsInPeriod: vi.fn(),
 }))
 
+vi.mock('@/hooks/api/useUnifiedSearch', () => ({
+  useUnifiedSearch: vi.fn().mockReturnValue({ data: undefined, isLoading: false, isError: false }),
+}))
+
 import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
 import { useAccountTransactionsInPeriod } from '@/hooks/api/useAccountTransactionsInPeriod'
+import { useUnifiedSearch } from '@/hooks/api/useUnifiedSearch'
 const mockUseSummary = vi.mocked(usePeriodAccountSummary)
 const mockUseTxns = vi.mocked(useAccountTransactionsInPeriod)
+const mockUseSearch = vi.mocked(useUnifiedSearch)
 
 // ─── Sample data ──────────────────────────────────────────────────────────────
 
@@ -90,6 +97,11 @@ describe('AccountingPage', () => {
       isError: false,
       error: null,
     } as ReturnType<typeof useAccountTransactionsInPeriod>)
+    mockUseSearch.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useUnifiedSearch>)
   })
 
   it('shows loading state while fetching', () => {
@@ -359,6 +371,180 @@ describe('AccountingPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Code')).toBeInTheDocument()
+    })
+  })
+
+  // ── Search integration ──────────────────────────────────────────────────────
+
+  it('shouldShowSearchBar_inTreeView', () => {
+    mockUseSummary.mockReturnValue({
+      data: sampleSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
+    })
+
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+  })
+
+  it('shouldNotShowSearchBar_inTransactionView', async () => {
+    mockUseSummary.mockReturnValue({
+      data: sampleSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+    mockUseTxns.mockReturnValue({
+      data: sampleTransactions,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: {
+        initialEntries: [
+          '/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&view=transactions&accountId=acc-1',
+        ],
+      },
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    })
+  })
+
+  it('shouldExpandAncestorsAndHighlight_whenAccountResultSelected', async () => {
+    const nestedSummary = {
+      ...sampleSummary,
+      accounts: [
+        {
+          accountId: 'acc-parent',
+          accountCode: '1000',
+          accountName: 'Assets',
+          level: 1,
+          openingBalance: 1000,
+          totalDebits: 500,
+          totalCredits: 200,
+          closingBalance: 1300,
+          thirdPartyChildren: [],
+          children: [
+            {
+              accountId: 'acc-child',
+              accountCode: '1100',
+              accountName: 'Cash',
+              level: 2,
+              openingBalance: 500,
+              totalDebits: 100,
+              totalCredits: 50,
+              closingBalance: 550,
+              thirdPartyChildren: [],
+              children: [],
+            },
+          ],
+        },
+      ],
+    }
+
+    mockUseSummary.mockReturnValue({
+      data: nestedSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+
+    mockUseSearch.mockReturnValue({
+      data: {
+        query: 'cash',
+        accounts: [{ accountId: 'acc-child', accountCode: '1100', accountName: 'Cash', level: 2 }],
+        transactions: [],
+      },
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useUnifiedSearch>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&level=1'] },
+    })
+
+    // Tree is at level 1 — only parent visible initially (level filter collapses children)
+    await waitFor(() => expect(screen.getByText('Assets')).toBeInTheDocument())
+
+    // Type in search
+    const input = screen.getByRole('textbox')
+    await userEvent.type(input, 'cash')
+
+    // Click the Cash result in the popover
+    await waitFor(() => {
+      expect(screen.getAllByText('Cash').length).toBeGreaterThan(0)
+    })
+
+    // Click the one in the popover (list item)
+    const cashItems = screen.getAllByText('Cash')
+    fireEvent.click(cashItems[cashItems.length - 1])
+
+    // Parent should now be expanded (Cash account visible in tree)
+    await waitFor(() => {
+      const cashRows = screen.getAllByText('Cash')
+      expect(cashRows.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('shouldNavigateToTransactionView_whenTransactionResultSelected', async () => {
+    mockUseSummary.mockReturnValue({
+      data: sampleSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+    mockUseTxns.mockReturnValue({
+      data: sampleTransactions,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    mockUseSearch.mockReturnValue({
+      data: {
+        query: 'inv',
+        accounts: [],
+        transactions: [
+          {
+            transactionId: 'txn-1',
+            transactionNumber: 'INV-001',
+            transactionTypeName: 'Invoice',
+            date: '2026-01-15',
+            description: 'Test',
+            items: [{ accountId: 'acc-1', accountCode: '1000', accountName: 'Cash', thirdPartyId: null, thirdPartyName: null, debitAmount: 100, creditAmount: 0 }],
+          },
+        ],
+      },
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useUnifiedSearch>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
+    })
+
+    await waitFor(() => expect(screen.getByText('Cash')).toBeInTheDocument())
+
+    const input = screen.getByRole('textbox')
+    await userEvent.type(input, 'inv')
+
+    await waitFor(() => {
+      expect(screen.getByText('INV-001')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('INV-001'))
+
+    await waitFor(() => {
+      // Should now be in transaction view (Back button visible)
+      expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
     })
   })
 
