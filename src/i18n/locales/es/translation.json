@@ -10,6 +10,7 @@
     "search": "Buscar..."
   },
   "nav": {
+    "accounting": "Contabilidad",
     "accounts": "Cuentas",
     "thirdParties": "Terceros",
     "transactions": "Transacciones",
@@ -20,7 +21,15 @@
   "tenant": {
     "select": "Seleccionar Tenant",
     "switch": "Cambiar Tenant",
-    "active": "Tenant Activo"
+    "active": "Tenant Activo",
+    "tenantPicker": "Seleccionar Tenant",
+    "autoSelecting": "Seleccionando tu tenant automáticamente...",
+    "noTenants": "No hay tenants disponibles",
+    "switchTenant": "Cambiar Tenant"
+  },
+  "shortcuts": {
+    "title": "Atajos de Teclado",
+    "showHelp": "Mostrar ayuda de atajos de teclado"
   },
   "errors": {
     "networkError": "Error de red. Por favor, inténtalo de nuevo.",

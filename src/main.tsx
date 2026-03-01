@@ -7,6 +7,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/i18n'
 import { theme } from '@/theme'
+import { KeyboardShortcutsProvider } from '@/context/KeyboardShortcutsContext'
 import App from './App'
 
 const queryClient = new QueryClient({
@@ -28,7 +29,9 @@ createRoot(root).render(
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <BrowserRouter>
-            <App />
+            <KeyboardShortcutsProvider>
+              <App />
+            </KeyboardShortcutsProvider>
           </BrowserRouter>
         </ThemeProvider>
       </QueryClientProvider>
