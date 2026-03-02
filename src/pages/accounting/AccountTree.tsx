@@ -80,19 +80,20 @@ export function AccountTree({
       </Toolbar>
 
       {/* Account tree table */}
+      <Box sx={{ overflowX: 'auto' }}>
       <TableContainer>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 700 }}>{t('accounting.tree.code')}</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>{t('accounting.tree.name')}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.openingBalance')}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.debits')}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.credits')}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
@@ -114,6 +115,7 @@ export function AccountTree({
           </TableBody>
         </Table>
       </TableContainer>
+      </Box>
     </Box>
   )
 }

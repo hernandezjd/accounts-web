@@ -56,13 +56,13 @@ function ThirdPartyRow({
           {tp.thirdPartyName}
         </Box>
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary' }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
         {formatAmount(tp.openingBalance)}
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary' }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
         {formatAmount(tp.totalDebits)}
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary' }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
         {formatAmount(tp.totalCredits)}
       </TableCell>
       <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary' }}>
@@ -127,13 +127,13 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, hig
         <TableCell sx={{ py: 0.75, fontWeight: node.level === 1 ? 600 : 400 }}>
           {node.accountName}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75 }}>
+        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' } }}>
           {formatAmount(node.openingBalance)}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75 }}>
+        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' } }}>
           {formatAmount(node.totalDebits)}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75 }}>
+        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' } }}>
           {formatAmount(node.totalCredits)}
         </TableCell>
         <TableCell align="right" sx={{ py: 0.75 }}>

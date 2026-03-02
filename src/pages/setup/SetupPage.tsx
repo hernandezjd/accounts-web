@@ -36,6 +36,8 @@ import { useTenantConfigMutations } from '@/hooks/api/useTenantConfigMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureConfigMutations'
 import { TransactionTypesContent } from '@/pages/transaction-types/TransactionTypesPage'
+import { translateApiError } from '@/utils/errorUtils'
+import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,27 +105,23 @@ function TenantFormDialog({ open, onClose, editTenant }: TenantFormDialogProps) 
 
   const handleSubmit = () => {
     setErrorMsg(null)
-    const address = (street || city || state || postalCode || country)
-      ? { street: street || undefined, city: city || undefined, state: state || undefined, postalCode: postalCode || undefined, country: country || undefined }
-      : undefined
-
     const body = {
       name,
       contactName,
       contactEmail,
       contactPhone: contactPhone || undefined,
-      address,
+      address: { street, city, state, postalCode, country },
     }
 
     if (isEdit) {
       updateTenant.mutate(
         { id: editTenant!.id, body },
-        { onSuccess: handleClose, onError: (err) => setErrorMsg(err.message) },
+        { onSuccess: handleClose, onError: (err) => setErrorMsg(translateApiError(err, t)) },
       )
     } else {
       createTenant.mutate(body, {
         onSuccess: handleClose,
-        onError: (err) => setErrorMsg(err.message),
+        onError: (err) => setErrorMsg(translateApiError(err, t)),
       })
     }
   }
@@ -253,14 +251,7 @@ function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) 
     setErrorMsg(null)
     deleteTenant.mutate(tenant.id, {
       onSuccess: handleClose,
-      onError: (err) => {
-        const msg = err.message
-        if (msg.includes('409') || msg.toLowerCase().includes('conflict') || msg.toLowerCase().includes('data')) {
-          setErrorMsg(t('setup.tenants.deleteConflict'))
-        } else {
-          setErrorMsg(msg)
-        }
-      },
+      onError: (err) => setErrorMsg(translateApiError(err, t)),
     })
   }
 
@@ -295,7 +286,7 @@ function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) 
 
 function TenantsTab() {
   const { t } = useTranslation()
-  const { data: tenants, isLoading, isError } = useTenants()
+  const { data: tenants, isLoading, isError, refetch } = useTenants()
   const { deactivateTenant, reactivateTenant } = useTenantMutations()
 
   const [formOpen, setFormOpen] = useState(false)
@@ -317,9 +308,10 @@ function TenantsTab() {
       </Box>
 
       {isLoading && <Typography>{t('setup.tenants.loading')}</Typography>}
-      {isError && <Alert severity="error">{t('setup.tenants.error')}</Alert>}
+      {isError && <QueryErrorAlert message={t('setup.tenants.error')} onRetry={refetch} />}
 
       {!isLoading && !isError && (
+        <Box sx={{ overflowX: 'auto' }}>
         <Table size="small" data-testid="tenants-table">
           <TableHead>
             <TableRow>
@@ -390,6 +382,7 @@ function TenantsTab() {
             ))}
           </TableBody>
         </Table>
+        </Box>
       )}
 
       <TenantFormDialog
@@ -537,7 +530,7 @@ function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructure
       },
       {
         onSuccess: onClose,
-        onError: (err) => setErrorMsg(err.message),
+        onError: (err) => setErrorMsg(translateApiError(err, t)),
       },
     )
   }
@@ -686,7 +679,7 @@ function AccountingConfigTab({ tenantId }: { tenantId: string }) {
       mutationFn: (v) =>
         mutations.setInitialDate.mutate(v, {
           onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(err.message),
+          onError: (err) => setEditError(translateApiError(err, t)),
         }),
       isPending: mutations.setInitialDate.isPending,
     },
@@ -701,7 +694,7 @@ function AccountingConfigTab({ tenantId }: { tenantId: string }) {
       mutationFn: (v) =>
         mutations.setClosedPeriodDate.mutate(v, {
           onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(err.message),
+          onError: (err) => setEditError(translateApiError(err, t)),
         }),
       isPending: mutations.setClosedPeriodDate.isPending,
     },
@@ -717,7 +710,7 @@ function AccountingConfigTab({ tenantId }: { tenantId: string }) {
         const numVal = v ? parseInt(v, 10) : null
         mutations.setMinimumAccountLevel.mutate(numVal, {
           onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(err.message),
+          onError: (err) => setEditError(translateApiError(err, t)),
         })
       },
       isPending: mutations.setMinimumAccountLevel.isPending,
@@ -734,7 +727,7 @@ function AccountingConfigTab({ tenantId }: { tenantId: string }) {
         const numVal = v ? parseInt(v, 10) : null
         mutations.setSnapshotFrequency.mutate(numVal, {
           onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(err.message),
+          onError: (err) => setEditError(translateApiError(err, t)),
         })
       },
       isPending: mutations.setSnapshotFrequency.isPending,

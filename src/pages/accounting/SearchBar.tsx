@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -27,13 +27,24 @@ interface SearchBarProps {
   onTransactionSelect: (transactionId: string, accountId: string, date: string) => void
 }
 
-export function SearchBar({ tenantId, from, to, onAccountSelect, onTransactionSelect }: SearchBarProps) {
+export interface SearchBarHandle {
+  focus: () => void
+}
+
+export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function SearchBar(
+  { tenantId, from, to, onAccountSelect, onTransactionSelect },
+  ref,
+) {
   const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [allHistory, setAllHistory] = useState(false)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+  }))
 
   // 300ms debounce
   useEffect(() => {
@@ -108,14 +119,12 @@ export function SearchBar({ tenantId, from, to, onAccountSelect, onTransactionSe
         placeholder={t('accounting.search.placeholder')}
         size="small"
         fullWidth
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
-          },
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
+          ),
         }}
         aria-label={t('accounting.search.placeholder')}
       />
@@ -225,4 +234,4 @@ export function SearchBar({ tenantId, from, to, onAccountSelect, onTransactionSe
       </Popover>
     </Box>
   )
-}
+})

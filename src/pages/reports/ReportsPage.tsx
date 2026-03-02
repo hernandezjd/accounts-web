@@ -13,10 +13,10 @@ import TableBody from '@mui/material/TableBody'
 import TableRow from '@mui/material/TableRow'
 import TableCell from '@mui/material/TableCell'
 import Collapse from '@mui/material/Collapse'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 import { usePeriodReport } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
+import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 
 // ─── Tab panel helper ────────────────────────────────────────────────────────
 
@@ -50,7 +50,7 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
-  const { data, isLoading, isError } = usePeriodReport(
+  const { data, isLoading, isError, refetch } = usePeriodReport(
     tenantId,
     appliedParams.fromDate,
     appliedParams.toDate,
@@ -116,9 +116,7 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
       )}
 
       {isError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {t('reports.periodReport.error')}
-        </Alert>
+        <QueryErrorAlert message={t('reports.periodReport.error')} onRetry={refetch} sx={{ mt: 2 }} />
       )}
 
       {!isLoading && !isError && data && data.entries.length === 0 && (
@@ -128,6 +126,7 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
       )}
 
       {!isLoading && !isError && data && data.entries.length > 0 && (
+        <Box sx={{ overflowX: 'auto' }}>
         <Table size="small" data-testid="period-report-table">
           <TableHead>
             <TableRow>
@@ -192,6 +191,7 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
             ))}
           </TableBody>
         </Table>
+        </Box>
       )}
     </Box>
   )
@@ -205,7 +205,7 @@ function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
   const [appliedDate, setAppliedDate] = useState('')
   const [enabled, setEnabled] = useState(false)
 
-  const { data, isLoading, isError } = usePeriodReport(
+  const { data, isLoading, isError, refetch } = usePeriodReport(
     tenantId,
     appliedDate,
     appliedDate,
@@ -248,9 +248,7 @@ function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
       )}
 
       {isError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {t('reports.balanceAtDate.error')}
-        </Alert>
+        <QueryErrorAlert message={t('reports.balanceAtDate.error')} onRetry={refetch} sx={{ mt: 2 }} />
       )}
 
       {!isLoading && !isError && data && data.entries.length === 0 && (
@@ -260,6 +258,7 @@ function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
       )}
 
       {!isLoading && !isError && data && data.entries.length > 0 && (
+        <Box sx={{ overflowX: 'auto' }}>
         <Table size="small" data-testid="balance-at-date-table">
           <TableHead>
             <TableRow>
@@ -280,6 +279,7 @@ function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
             ))}
           </TableBody>
         </Table>
+        </Box>
       )}
     </Box>
   )
@@ -297,7 +297,7 @@ function BalanceAtLevelTab({ tenantId }: { tenantId: string }) {
     enabled: boolean
   }>({ date: '', level: undefined, enabled: false })
 
-  const { data, isLoading, isError } = useBalanceAtLevel(
+  const { data, isLoading, isError, refetch } = useBalanceAtLevel(
     tenantId,
     appliedParams.date,
     appliedParams.level,
@@ -350,9 +350,7 @@ function BalanceAtLevelTab({ tenantId }: { tenantId: string }) {
       )}
 
       {isError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {t('reports.balanceAtLevel.error')}
-        </Alert>
+        <QueryErrorAlert message={t('reports.balanceAtLevel.error')} onRetry={refetch} sx={{ mt: 2 }} />
       )}
 
       {!isLoading && !isError && data && data.length === 0 && (
@@ -362,6 +360,7 @@ function BalanceAtLevelTab({ tenantId }: { tenantId: string }) {
       )}
 
       {!isLoading && !isError && data && data.length > 0 && (
+        <Box sx={{ overflowX: 'auto' }}>
         <Table size="small" data-testid="balance-at-level-table">
           <TableHead>
             <TableRow>
@@ -384,6 +383,7 @@ function BalanceAtLevelTab({ tenantId }: { tenantId: string }) {
             ))}
           </TableBody>
         </Table>
+        </Box>
       )}
     </Box>
   )

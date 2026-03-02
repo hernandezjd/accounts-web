@@ -33,7 +33,17 @@
   },
   "errors": {
     "networkError": "Error de red. Por favor, inténtalo de nuevo.",
-    "serverError": "Error del servidor. Por favor, inténtalo más tarde."
+    "serverError": "Error del servidor. Por favor, inténtalo más tarde.",
+    "closedPeriod": "Esta fecha pertenece a un período cerrado y no puede modificarse.",
+    "duplicateCode": "Ya existe una cuenta con este código.",
+    "duplicateTransactionNumber": "Ya existe una transacción con este número para el tipo seleccionado.",
+    "accountNotDeletable": "Esta cuenta tiene transacciones o subcuentas y no puede eliminarse.",
+    "thirdPartyNotDeletable": "Este tercero tiene transacciones o saldos y no puede eliminarse.",
+    "transactionTypeInUse": "Este tipo de transacción está en uso por transacciones existentes y no puede eliminarse.",
+    "transactionNotBalanced": "Las líneas de la transacción no están balanceadas. Los débitos deben ser iguales a los créditos.",
+    "unknownError": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "loadFailed": "Error al cargar los datos."
   },
   "accounting": {
     "title": "Contabilidad",
@@ -68,7 +78,9 @@
       "expandAll": "Expandir todas las ramas",
       "collapseAll": "Colapsar todas las ramas",
       "drillDown": "Ver detalle de cuenta",
-      "back": "Volver"
+      "back": "Volver",
+      "newTransaction": "Nueva transacción",
+      "focusSearch": "Enfocar barra de búsqueda"
     },
     "transactions": {
       "loading": "Cargando transacciones...",
@@ -319,6 +331,9 @@
     "city": "Ciudad",
     "state": "Estado",
     "postalCode": "Código Postal",
-    "country": "País"
+    "country": "País",
+    "draftBannerMessage": "Tienes un borrador no guardado. ¿Deseas restaurarlo?",
+    "draftRestore": "Restaurar",
+    "draftDiscard": "Descartar"
   }
 }
