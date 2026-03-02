@@ -14,6 +14,9 @@ vi.mock('@/hooks/api/useCodeStructureConfig', () => ({ useCodeStructureConfig: v
 vi.mock('@/hooks/api/useCodeStructureConfigMutations', () => ({ useCodeStructureConfigMutations: vi.fn() }))
 vi.mock('@/hooks/api/useTransactionTypes', () => ({ useTransactionTypes: vi.fn() }))
 vi.mock('@/hooks/api/useTransactionTypeMutations', () => ({ useTransactionTypeMutations: vi.fn() }))
+vi.mock('./ThemeEditorTab', () => ({
+  ThemeEditorTab: () => <div data-testid="theme-editor-tab">Theme Editor</div>,
+}))
 
 import { useTenants } from '@/hooks/api/useTenants'
 import { useTenantMutations } from '@/hooks/api/useTenantMutations'
@@ -127,11 +130,12 @@ function render() {
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('SetupPage — tab navigation', () => {
-  it('renders three tabs', () => {
+  it('renders four tabs including Theme', () => {
     render()
     expect(screen.getByTestId('tab-tenants')).toBeInTheDocument()
     expect(screen.getByTestId('tab-accounting-config')).toBeInTheDocument()
     expect(screen.getByTestId('tab-transaction-types')).toBeInTheDocument()
+    expect(screen.getByTestId('tab-theme')).toBeInTheDocument()
   })
 
   it('shows Tenants tab content by default', () => {
@@ -151,6 +155,13 @@ describe('SetupPage — tab navigation', () => {
     render()
     await user.click(screen.getByTestId('tab-transaction-types'))
     expect(screen.getByTestId('tt-table')).toBeInTheDocument()
+  })
+
+  it('switches to Theme tab', async () => {
+    const user = userEvent.setup()
+    render()
+    await user.click(screen.getByTestId('tab-theme'))
+    expect(screen.getByTestId('theme-editor-tab')).toBeInTheDocument()
   })
 })
 

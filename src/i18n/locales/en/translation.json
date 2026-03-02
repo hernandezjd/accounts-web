@@ -241,7 +241,8 @@
     "tabs": {
       "tenants": "Tenants",
       "accountingConfig": "Accounting Config",
-      "transactionTypes": "Transaction Types"
+      "transactionTypes": "Transaction Types",
+      "theme": "Theme"
     },
     "tenants": {
       "newTenant": "New Tenant",
@@ -294,6 +295,29 @@
       "length": "Length",
       "addLevel": "Add Level",
       "removeLevel": "Remove Level"
+    },
+    "theme": {
+      "title": "Theme Editor",
+      "colors": "Colors",
+      "primary": "Primary Color",
+      "secondary": "Secondary Color",
+      "error": "Error Color",
+      "warning": "Warning Color",
+      "success": "Success Color",
+      "info": "Info Color",
+      "typography": "Typography",
+      "fontFamily": "Font Family",
+      "fontSizeBase": "Base Font Size",
+      "spacingAndBorders": "Spacing & Borders",
+      "spacingUnit": "Spacing Unit",
+      "borderRadiusSubtle": "Border Radius — Subtle",
+      "borderRadiusStandard": "Border Radius — Standard",
+      "borderRadiusLarge": "Border Radius — Large",
+      "preview": "Live Preview",
+      "save": "Save Theme",
+      "reset": "Reset to Default",
+      "saveSuccess": "Theme saved successfully.",
+      "resetSuccess": "Theme reset to default."
     }
   },
   "transactionForm": {

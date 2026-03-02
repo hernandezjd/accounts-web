@@ -241,7 +241,8 @@
     "tabs": {
       "tenants": "Empresas",
       "accountingConfig": "Config. Contable",
-      "transactionTypes": "Tipos de Transacción"
+      "transactionTypes": "Tipos de Transacción",
+      "theme": "Tema"
     },
     "tenants": {
       "newTenant": "Nueva Empresa",
@@ -294,6 +295,29 @@
       "length": "Longitud",
       "addLevel": "Agregar Nivel",
       "removeLevel": "Eliminar Nivel"
+    },
+    "theme": {
+      "title": "Editor de Tema",
+      "colors": "Colores",
+      "primary": "Color Primario",
+      "secondary": "Color Secundario",
+      "error": "Color de Error",
+      "warning": "Color de Advertencia",
+      "success": "Color de Éxito",
+      "info": "Color Informativo",
+      "typography": "Tipografía",
+      "fontFamily": "Familia de Fuente",
+      "fontSizeBase": "Tamaño de Fuente Base",
+      "spacingAndBorders": "Espaciado y Bordes",
+      "spacingUnit": "Unidad de Espaciado",
+      "borderRadiusSubtle": "Radio de Borde — Sutil",
+      "borderRadiusStandard": "Radio de Borde — Estándar",
+      "borderRadiusLarge": "Radio de Borde — Grande",
+      "preview": "Vista Previa",
+      "save": "Guardar Tema",
+      "reset": "Restablecer por Defecto",
+      "saveSuccess": "Tema guardado exitosamente.",
+      "resetSuccess": "Tema restablecido por defecto."
     }
   },
   "transactionForm": {
