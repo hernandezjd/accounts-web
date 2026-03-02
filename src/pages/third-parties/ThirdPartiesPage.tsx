@@ -131,7 +131,7 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
       <DialogTitle>
         {isEdit ? t('thirdParties.editThirdParty') : t('thirdParties.newThirdParty')}
       </DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
         <TextField
           label={t('thirdParties.externalId')}

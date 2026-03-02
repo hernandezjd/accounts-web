@@ -20,6 +20,17 @@ export function createAppTheme(settings: ThemeSettings): Theme {
     },
     spacing: settings.spacing.unit,
     components: {
+      MuiDialogContent: {
+        styleOverrides: {
+          root: {
+            // MUI injects `.MuiDialogTitle-root + .MuiDialogContent-root { padding-top: 0 }`
+            // (specificity 0,2,0), which clips the floating label of the first outlined
+            // TextField. The `&&` selector (0,2,0) injected after the component styles
+            // wins via cascade order and restores the clearance the label needs.
+            '&&': { paddingTop: '20px' },
+          },
+        },
+      },
       MuiChip: {
         styleOverrides: {
           root: { borderRadius: settings.shape.borderRadiusSubtle },
