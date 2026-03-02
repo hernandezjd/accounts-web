@@ -36,6 +36,7 @@ import { useTenantConfigMutations } from '@/hooks/api/useTenantConfigMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureConfigMutations'
 import { TransactionTypesContent } from '@/pages/transaction-types/TransactionTypesPage'
+import { ThemeEditorTab } from './ThemeEditorTab'
 import { translateApiError } from '@/utils/errorUtils'
 import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 
@@ -853,6 +854,7 @@ export function SetupPage() {
         <Tab label={t('setup.tabs.tenants')} data-testid="tab-tenants" />
         <Tab label={t('setup.tabs.accountingConfig')} data-testid="tab-accounting-config" />
         <Tab label={t('setup.tabs.transactionTypes')} data-testid="tab-transaction-types" />
+        <Tab label={t('setup.tabs.theme')} data-testid="tab-theme" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0} testId="tabpanel-tenants">
@@ -863,6 +865,9 @@ export function SetupPage() {
       </TabPanel>
       <TabPanel value={activeTab} index={2} testId="tabpanel-transaction-types">
         <TransactionTypesContent hideTitle={true} />
+      </TabPanel>
+      <TabPanel value={activeTab} index={3} testId="tabpanel-theme">
+        <ThemeEditorTab />
       </TabPanel>
     </Box>
   )

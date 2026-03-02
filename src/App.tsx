@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
+import { TenantThemeProvider } from '@/context/TenantThemeProvider'
 import { TenantPickerPage } from '@/pages/TenantPickerPage'
 import { AccountingPage } from '@/pages/accounting/AccountingPage'
 import { AccountsPage } from '@/pages/accounts/AccountsPage'
@@ -14,7 +15,7 @@ function App() {
     <Routes>
       <Route path="/" element={<TenantPickerPage />} />
 
-      <Route path="/tenants/:tenantId" element={<AppShell />}>
+      <Route path="/tenants/:tenantId" element={<TenantThemeProvider><AppShell /></TenantThemeProvider>}>
         <Route index element={<Navigate to="accounting" replace />} />
         <Route path="accounting" element={<AccountingPage />} />
         <Route path="accounts" element={<AccountsPage />} />
