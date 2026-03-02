@@ -225,4 +225,14 @@ describe('AccountsPage', () => {
 
     expect(screen.getByText(/no accounts found/i)).toBeInTheDocument()
   })
+
+  it('parent account field is an autocomplete picker in create dialog', async () => {
+    renderWithProviders(<AccountsPage />)
+
+    await userEvent.click(screen.getByTestId('new-account-btn'))
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /parent account/i })).toBeInTheDocument()
+    })
+  })
 })

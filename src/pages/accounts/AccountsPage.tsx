@@ -28,6 +28,7 @@ import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { translateApiError } from '@/utils/errorUtils'
 import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 
 // ─── AccountFormDialog ─────────────────────────────────────────────────────────
 
@@ -54,14 +55,14 @@ function AccountFormDialog({
 
   const [code, setCode] = useState(editAccount?.code ?? '')
   const [name, setName] = useState(editAccount?.name ?? '')
-  const [parentId, setParentId] = useState('')
+  const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [hasThirdParties, setHasThirdParties] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleClose = () => {
     setCode(editAccount?.code ?? '')
     setName(editAccount?.name ?? '')
-    setParentId('')
+    setParentAccount(null)
     setHasThirdParties(false)
     setErrorMsg(null)
     onClose()
@@ -70,12 +71,12 @@ function AccountFormDialog({
   // Code-structure hint for the code field
   const codeHint = (() => {
     if (!codeStructureConfig?.enabled) return null
-    if (!isEdit && !parentId.trim()) {
+    if (!isEdit && !parentAccount) {
       const len = codeStructureConfig.rootCodeLength
       return len ? `${len}-character code` : null
     }
-    if (!isEdit && parentId.trim()) {
-      const parent = accounts.find((a) => a.id === parentId.trim())
+    if (!isEdit && parentAccount) {
+      const parent = accounts.find((a) => a.id === parentAccount.id)
       if (parent?.code && parent.level) {
         const nextLevel = parent.level + 1
         const segLen = codeStructureConfig.segmentLengthByLevel?.[nextLevel]
@@ -97,7 +98,7 @@ function AccountFormDialog({
       )
     } else {
       createAccount.mutate(
-        { code, name, hasThirdParties, parentId: parentId.trim() || undefined },
+        { code, name, hasThirdParties, parentId: parentAccount?.id },
         {
           onSuccess: handleClose,
           onError: (err) => setErrorMsg(translateApiError(err, t)),
@@ -132,13 +133,12 @@ function AccountFormDialog({
         />
         {!isEdit && (
           <>
-            <TextField
+            <AccountPicker
+              tenantId={tenantId}
+              value={parentAccount}
+              onChange={setParentAccount}
               label={t('transactionForm.parentAccount')}
-              value={parentId}
-              onChange={(e) => setParentId(e.target.value)}
-              size="small"
-              helperText="UUID (optional)"
-              inputProps={{ 'data-testid': 'parent-id-input' }}
+              excludeAccountId={editAccount?.id}
             />
             <FormControlLabel
               control={
