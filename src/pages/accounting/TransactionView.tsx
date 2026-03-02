@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import Collapse from '@mui/material/Collapse'
 import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
@@ -26,6 +25,8 @@ import type { Granularity } from '@/types/accounting'
 import { useAccountTransactionsInPeriod } from '@/hooks/api/useAccountTransactionsInPeriod'
 import { useTransactionById } from '@/hooks/api/useTransactionById'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
+import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 import { PeriodControls } from './PeriodControls'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from './TransactionForm'
 
@@ -115,6 +116,15 @@ export function TransactionView({
     }
   }, [editFetched, editTxnData, editingTxnId])
 
+  // ── Keyboard shortcut: n = new transaction ────────────────────────────────
+  useKeyboardShortcut(
+    'n',
+    t('accounting.shortcuts.newTransaction'),
+    useCallback(() => {
+      if (!formConfig) setFormConfig({ mode: 'create' })
+    }, [formConfig]),
+  )
+
   // ── Delete ──
   const { deleteTransaction } = useTransactionMutations(tenantId)
 
@@ -202,7 +212,7 @@ export function TransactionView({
         )}
 
         {isError && (
-          <Typography color="error">{t('accounting.transactions.error')}</Typography>
+          <QueryErrorAlert message={t('accounting.transactions.error')} />
         )}
 
         {data && !isLoading && (

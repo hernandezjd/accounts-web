@@ -88,7 +88,7 @@ describe('KeyboardShortcutsContext', () => {
         <div>content</div>
       </TestWrapper>,
     )
-    fireEvent.keyDown(window, { key: '/' })
+    fireEvent.keyDown(window, { key: '?' })
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
@@ -100,7 +100,7 @@ describe('KeyboardShortcutsContext', () => {
         <div>content</div>
       </TestWrapper>,
     )
-    fireEvent.keyDown(window, { key: '/' })
+    fireEvent.keyDown(window, { key: '?' })
     await waitFor(() => {
       expect(screen.getByText('Show keyboard shortcuts help')).toBeInTheDocument()
     })

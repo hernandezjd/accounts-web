@@ -145,7 +145,7 @@ describe('ThirdPartiesPage', () => {
 
   it('shows friendly message on 409 delete error', async () => {
     const deleteMutate = vi.fn((_id, opts) => {
-      opts.onError(new Error('409 Conflict'))
+      opts.onError(new Error('409 Conflict: third party has transactions'))
     })
     mockUseThirdPartyMutations.mockReturnValue({
       createThirdParty: { ...noOpMutation },

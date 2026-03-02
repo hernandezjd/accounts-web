@@ -33,7 +33,17 @@
   },
   "errors": {
     "networkError": "Network error. Please try again.",
-    "serverError": "Server error. Please try again later."
+    "serverError": "Server error. Please try again later.",
+    "closedPeriod": "This date falls within a closed period and cannot be modified.",
+    "duplicateCode": "An account with this code already exists.",
+    "duplicateTransactionNumber": "A transaction with this number already exists for the selected type.",
+    "accountNotDeletable": "This account has transactions or child accounts and cannot be deleted.",
+    "thirdPartyNotDeletable": "This third party has transactions or balances and cannot be deleted.",
+    "transactionTypeInUse": "This transaction type is in use by existing transactions and cannot be deleted.",
+    "transactionNotBalanced": "Transaction items are not balanced. Debits must equal credits.",
+    "unknownError": "An unexpected error occurred. Please try again.",
+    "retry": "Try again",
+    "loadFailed": "Failed to load data."
   },
   "accounting": {
     "title": "Accounting",
@@ -68,7 +78,9 @@
       "expandAll": "Expand all branches",
       "collapseAll": "Collapse all branches",
       "drillDown": "Drill down into account",
-      "back": "Go back"
+      "back": "Go back",
+      "newTransaction": "New transaction",
+      "focusSearch": "Focus search bar"
     },
     "transactions": {
       "loading": "Loading transactions...",
@@ -319,6 +331,9 @@
     "city": "City",
     "state": "State",
     "postalCode": "Postal Code",
-    "country": "Country"
+    "country": "Country",
+    "draftBannerMessage": "You have an unsaved draft. Would you like to restore it?",
+    "draftRestore": "Restore",
+    "draftDiscard": "Discard"
   }
 }

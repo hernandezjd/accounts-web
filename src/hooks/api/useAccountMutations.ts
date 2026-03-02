@@ -4,7 +4,7 @@ import type { components } from '@/api/generated/account-command-api'
 
 type CreateAccountRequest = components['schemas']['CreateAccountRequest']
 type UpdateAccountRequest = components['schemas']['UpdateAccountRequest']
-type ToggleHasThirdPartiesRequest = components['schemas']['ToggleHasThirdPartiesRequest']
+type ToggleHasThirdPartiesRequest = { enabled: boolean; thirdPartyId?: string }
 type AccountCommandResponse = components['schemas']['AccountCommandResponse']
 
 export function useAccountMutations(tenantId: string) {

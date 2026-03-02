@@ -21,6 +21,8 @@ import AddIcon from '@mui/icons-material/Add'
 import { useTranslation } from 'react-i18next'
 import { useTransactionTypes, type TransactionType } from '@/hooks/api/useTransactionTypes'
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
+import { translateApiError } from '@/utils/errorUtils'
+import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 
 // ─── TransactionTypeFormDialog ─────────────────────────────────────────────────
 
@@ -52,7 +54,7 @@ function TransactionTypeFormDialog({ open, onClose, editType }: TransactionTypeF
         { id: editType!.id!, body: { name } },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(err.message),
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
     } else {
@@ -60,7 +62,7 @@ function TransactionTypeFormDialog({ open, onClose, editType }: TransactionTypeF
         { name },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(err.message),
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
     }
@@ -126,16 +128,7 @@ function DeleteTransactionTypeDialog({
     setErrorMsg(null)
     deleteTransactionType.mutate(transactionType.id, {
       onSuccess: handleClose,
-      onError: (err) => {
-        const msg = err.message
-        if (msg.includes('404')) {
-          setErrorMsg(t('transactionTypes.deleteNotFound'))
-        } else if (msg.includes('409') || msg.toLowerCase().includes('conflict') || msg.toLowerCase().includes('in use')) {
-          setErrorMsg(t('transactionTypes.deleteConflict'))
-        } else {
-          setErrorMsg(msg)
-        }
-      },
+      onError: (err) => setErrorMsg(translateApiError(err, t)),
     })
   }
 
@@ -174,7 +167,7 @@ interface TransactionTypesContentProps {
 
 export function TransactionTypesContent({ hideTitle = false }: TransactionTypesContentProps) {
   const { t } = useTranslation()
-  const { data: types, isLoading, isError } = useTransactionTypes()
+  const { data: types, isLoading, isError, refetch } = useTransactionTypes()
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<TransactionType | undefined>(undefined)
@@ -200,7 +193,7 @@ export function TransactionTypesContent({ hideTitle = false }: TransactionTypesC
       </Box>
 
       {isLoading && <Typography>{t('transactionTypes.loading')}</Typography>}
-      {isError && <Alert severity="error">{t('transactionTypes.error')}</Alert>}
+      {isError && <QueryErrorAlert message={t('transactionTypes.error')} onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <Table size="small" data-testid="tt-table">

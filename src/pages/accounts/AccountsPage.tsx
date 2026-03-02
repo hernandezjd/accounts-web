@@ -26,6 +26,8 @@ import { useTranslation } from 'react-i18next'
 import { useAccounts, type Account } from '@/hooks/api/useAccounts'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
+import { translateApiError } from '@/utils/errorUtils'
+import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 
 // ─── AccountFormDialog ─────────────────────────────────────────────────────────
 
@@ -90,7 +92,7 @@ function AccountFormDialog({
         { id: editAccount!.id!, body: { code, name } },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(err.message),
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
     } else {
@@ -98,7 +100,7 @@ function AccountFormDialog({
         { code, name, hasThirdParties, parentId: parentId.trim() || undefined },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(err.message),
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
     }
@@ -189,14 +191,7 @@ function DeleteAccountDialog({ open, onClose, account, tenantId }: DeleteAccount
     setErrorMsg(null)
     deleteAccount.mutate(account.id, {
       onSuccess: handleClose,
-      onError: (err) => {
-        const msg = err.message
-        if (msg.includes('409') || msg.toLowerCase().includes('conflict')) {
-          setErrorMsg(t('accounts.deleteConflict'))
-        } else {
-          setErrorMsg(msg)
-        }
-      },
+      onError: (err) => setErrorMsg(translateApiError(err, t)),
     })
   }
 
@@ -260,11 +255,11 @@ function ToggleTpDialog({ open, onClose, account, tenantId }: ToggleTpDialogProp
       {
         onSuccess: handleClose,
         onError: (err) => {
-          const msg = err.message
+          const msg = err instanceof Error ? err.message : ''
           if (enabling && msg.toLowerCase().includes('thirdparty')) {
             setNeedsThirdPartyId(true)
           }
-          setErrorMsg(msg)
+          setErrorMsg(translateApiError(err, t))
         },
       },
     )
@@ -309,7 +304,7 @@ export function AccountsPage() {
   const { t } = useTranslation()
   const { tenantId = '' } = useParams<{ tenantId: string }>()
 
-  const { data: accounts, isLoading, isError } = useAccounts(tenantId || null)
+  const { data: accounts, isLoading, isError, refetch } = useAccounts(tenantId || null)
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Account | undefined>(undefined)
@@ -339,16 +334,17 @@ export function AccountsPage() {
       </Box>
 
       {isLoading && <Typography>{t('accounts.loading')}</Typography>}
-      {isError && <Alert severity="error">{t('accounts.error')}</Alert>}
+      {isError && <QueryErrorAlert message={t('accounts.error')} onRetry={refetch} />}
 
       {!isLoading && !isError && (
+        <Box sx={{ overflowX: 'auto' }}>
         <Table size="small" data-testid="accounts-table">
           <TableHead>
             <TableRow>
               <TableCell>{t('accounts.code')}</TableCell>
               <TableCell>{t('accounts.name')}</TableCell>
               <TableCell>{t('accounts.level')}</TableCell>
-              <TableCell>{t('accounts.parentCode')}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('accounts.parentCode')}</TableCell>
               <TableCell>{t('accounts.hasThirdParties')}</TableCell>
               <TableCell>{t('accounts.actions')}</TableCell>
             </TableRow>
@@ -364,7 +360,7 @@ export function AccountsPage() {
                 <TableCell>{account.code}</TableCell>
                 <TableCell>{account.name}</TableCell>
                 <TableCell>{account.level}</TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   {account.parentId ? (idToCode[account.parentId] ?? '—') : '—'}
                 </TableCell>
                 <TableCell>{account.hasThirdParties ? '✓' : ''}</TableCell>
@@ -398,6 +394,7 @@ export function AccountsPage() {
             ))}
           </TableBody>
         </Table>
+        </Box>
       )}
 
       <AccountFormDialog

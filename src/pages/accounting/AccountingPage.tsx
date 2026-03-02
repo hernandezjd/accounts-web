@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 import { useParams, useSearchParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -16,7 +17,7 @@ import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { PeriodControls } from './PeriodControls'
 import { AccountTree } from './AccountTree'
-import { SearchBar } from './SearchBar'
+import { SearchBar, type SearchBarHandle } from './SearchBar'
 import { TransactionView } from './TransactionView'
 
 function parseLevel(raw: string | null): number | null {
@@ -111,7 +112,10 @@ export function AccountingPage() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  const { data, isLoading, isError } = usePeriodAccountSummary(tenantId, from, to)
+  const { data, isLoading, isError, refetch } = usePeriodAccountSummary(tenantId, from, to)
+
+  // ── Search bar ref (for "/" shortcut) ─────────────────────────────────────
+  const searchBarRef = useRef<SearchBarHandle>(null)
 
   // Reset expanded nodes when data or level filter changes (tree view only)
   useEffect(() => {
@@ -308,6 +312,12 @@ export function AccountingPage() {
   useKeyboardShortcut('c', t('accounting.shortcuts.collapseAll'), handleCollapseAll)
   // Escape = back (only relevant in transaction view; harmless in tree view)
   useKeyboardShortcut('Escape', t('accounting.shortcuts.back'), handleBack)
+  // "/" = focus search bar (tree view only; ref will be null in transaction view)
+  useKeyboardShortcut(
+    '/',
+    t('accounting.shortcuts.focusSearch'),
+    useCallback(() => searchBarRef.current?.focus(), []),
+  )
 
   // ── Resolve account/TP display names from loaded data ────────────────────
   const selectedAccount = selectedAccountId
@@ -352,6 +362,7 @@ export function AccountingPage() {
           />
 
           <SearchBar
+            ref={searchBarRef}
             tenantId={tenantId ?? ''}
             from={from}
             to={to}
@@ -368,7 +379,7 @@ export function AccountingPage() {
             )}
 
             {isError && (
-              <Typography color="error">{t('accounting.error')}</Typography>
+              <QueryErrorAlert message={t('accounting.error')} onRetry={refetch} />
             )}
 
             {data && !isLoading && (

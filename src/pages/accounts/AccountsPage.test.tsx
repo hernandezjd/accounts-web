@@ -178,7 +178,7 @@ describe('AccountsPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/has transactions or children and cannot be deleted/i),
+        screen.getByText(/child accounts and cannot be deleted/i),
       ).toBeInTheDocument()
     })
   })

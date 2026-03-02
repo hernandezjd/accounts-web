@@ -26,6 +26,8 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { useTranslation } from 'react-i18next'
 import { useAllThirdParties, type ThirdParty } from '@/hooks/api/useAllThirdParties'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
+import { translateApiError } from '@/utils/errorUtils'
+import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -110,13 +112,13 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
         { id: editThirdParty!.id!, body },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(err.message),
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
     } else {
       createThirdParty.mutate(body, {
         onSuccess: handleClose,
-        onError: (err) => setErrorMsg(err.message),
+        onError: (err) => setErrorMsg(translateApiError(err, t)),
       })
     }
   }
@@ -254,14 +256,7 @@ function DeleteThirdPartyDialog({ open, onClose, thirdParty }: DeleteThirdPartyD
     setErrorMsg(null)
     deleteThirdParty.mutate(thirdParty.id, {
       onSuccess: handleClose,
-      onError: (err) => {
-        const msg = err.message
-        if (msg.includes('409') || msg.toLowerCase().includes('conflict')) {
-          setErrorMsg(t('thirdParties.deleteConflict'))
-        } else {
-          setErrorMsg(msg)
-        }
-      },
+      onError: (err) => setErrorMsg(translateApiError(err, t)),
     })
   }
 
@@ -296,7 +291,7 @@ function DeleteThirdPartyDialog({ open, onClose, thirdParty }: DeleteThirdPartyD
 
 export function ThirdPartiesPage() {
   const { t } = useTranslation()
-  const { data: thirdParties, isLoading, isError } = useAllThirdParties()
+  const { data: thirdParties, isLoading, isError, refetch } = useAllThirdParties()
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<ThirdParty | undefined>(undefined)
@@ -319,9 +314,10 @@ export function ThirdPartiesPage() {
       </Box>
 
       {isLoading && <Typography>{t('thirdParties.loading')}</Typography>}
-      {isError && <Alert severity="error">{t('thirdParties.error')}</Alert>}
+      {isError && <QueryErrorAlert message={t('thirdParties.error')} onRetry={refetch} />}
 
       {!isLoading && !isError && (
+        <Box sx={{ overflowX: 'auto' }}>
         <Table size="small" data-testid="tp-table">
           <TableHead>
             <TableRow>
@@ -366,6 +362,7 @@ export function ThirdPartiesPage() {
             ))}
           </TableBody>
         </Table>
+        </Box>
       )}
 
       <ThirdPartyFormDialog

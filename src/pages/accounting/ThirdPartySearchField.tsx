@@ -89,16 +89,14 @@ export function ThirdPartySearchField({ tenantId, value, onChange }: ThirdPartyS
             {...params}
             label={t('transactionForm.thirdParty')}
             size="small"
-            slotProps={{
-              input: {
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {isFetching && <CircularProgress size={16} />}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              },
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {isFetching && <CircularProgress size={16} />}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
             }}
           />
         )}

@@ -94,9 +94,7 @@ export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProvide
         return
       }
 
-      let key = event.key
-      // Map Shift+/ to "?"
-      if (key === '/') key = '?'
+      const key = event.key
       const normalized = normalizeKey(key)
       const entry = handlersRef.current.get(normalized)
       if (entry) {

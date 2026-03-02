@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
@@ -21,6 +21,8 @@ import { useTranslation } from 'react-i18next'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
+import { translateApiError } from '@/utils/errorUtils'
+import { useFormDraft } from '@/hooks/useFormDraft'
 import { AccountSearchField, type AccountOption } from './AccountSearchField'
 import { ThirdPartySearchField, type ThirdPartyOption } from './ThirdPartySearchField'
 
@@ -66,6 +68,36 @@ interface TransactionFormProps {
   initialData?: TransactionFormInitialData
   onSuccess: () => void
   onCancel: () => void
+}
+
+// ─── Draft type ───────────────────────────────────────────────────────────────
+
+interface FormDraft {
+  transactionTypeId: string
+  transactionTypeName: string
+  transactionNumber: string
+  date: string
+  description: string
+  items: Array<{
+    id: string
+    accountId: string
+    accountCode: string
+    accountName: string
+    hasThirdParties: boolean
+    thirdPartyId: string | null
+    thirdPartyName: string | null
+    side: 'debit' | 'credit'
+    amount: string
+  }>
+}
+
+const EMPTY_DRAFT: FormDraft = {
+  transactionTypeId: '',
+  transactionTypeName: '',
+  transactionNumber: '',
+  date: '',
+  description: '',
+  items: [],
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -128,6 +160,72 @@ export function TransactionForm({
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
+  // ── Draft persistence (create mode only) ────────────────────────────────────
+  const isDraftMode = mode === 'create' && !initialData
+  const draftKey = `txn-draft-${tenantId}-create`
+  const [storedDraft, , clearDraft, hasDraft] = useFormDraft<FormDraft>(draftKey, EMPTY_DRAFT)
+  // Once user decides (restore or discard), start auto-saving
+  const [draftDecided, setDraftDecided] = useState(!isDraftMode || !hasDraft)
+  const [showRestoreBanner, setShowRestoreBanner] = useState(isDraftMode && hasDraft)
+
+  const handleRestoreDraft = useCallback(() => {
+    if (storedDraft.transactionTypeId) {
+      setSelectedType({ id: storedDraft.transactionTypeId, name: storedDraft.transactionTypeName })
+    }
+    setNumber(storedDraft.transactionNumber)
+    setDate(storedDraft.date)
+    setDescription(storedDraft.description)
+    if (storedDraft.items.length > 0) {
+      setItems(
+        storedDraft.items.map((item) => ({
+          id: item.id || crypto.randomUUID(),
+          account: item.accountId
+            ? { id: item.accountId, code: item.accountCode, name: item.accountName, hasThirdParties: item.hasThirdParties }
+            : null,
+          thirdParty: item.thirdPartyId ? { id: item.thirdPartyId, name: item.thirdPartyName ?? '' } : null,
+          side: item.side,
+          amount: item.amount,
+        })),
+      )
+    }
+    setShowRestoreBanner(false)
+    setDraftDecided(true)
+  }, [storedDraft])
+
+  const handleDiscardDraft = useCallback(() => {
+    clearDraft()
+    setShowRestoreBanner(false)
+    // draftDecided stays false → no auto-save after explicit discard
+  }, [clearDraft])
+
+  // Auto-save draft on form changes once decided
+  useEffect(() => {
+    if (!isDraftMode || !draftDecided) return
+    const draft: FormDraft = {
+      transactionTypeId: selectedType?.id ?? '',
+      transactionTypeName: selectedType?.name ?? '',
+      transactionNumber: number,
+      date,
+      description,
+      items: items.map((item) => ({
+        id: item.id,
+        accountId: item.account?.id ?? '',
+        accountCode: item.account?.code ?? '',
+        accountName: item.account?.name ?? '',
+        hasThirdParties: item.account?.hasThirdParties ?? false,
+        thirdPartyId: item.thirdParty?.id ?? null,
+        thirdPartyName: item.thirdParty?.name ?? null,
+        side: item.side,
+        amount: item.amount,
+      })),
+    }
+    try {
+      sessionStorage.setItem(`form-draft:${draftKey}`, JSON.stringify(draft))
+    } catch {
+      // ignore storage errors
+    }
+  }, [isDraftMode, draftDecided, selectedType, number, date, description, items, draftKey])
+
   // Reset type if transaction types load and we're in create mode
   useEffect(() => {
     if (mode === 'create' && !initialData && transactionTypes?.length && !selectedType) {
@@ -179,7 +277,7 @@ export function TransactionForm({
   const canSave =
     isBalanced &&
     number.trim() &&
-    (mode === 'createInitialBalance' || (mode !== 'createInitialBalance' && selectedType && date)) &&
+    (mode === 'createInitialBalance' || (selectedType && date)) &&
     items.every((item) => item.account && parseAmount(item.amount) > 0)
 
   const handleSave = () => {
@@ -196,8 +294,8 @@ export function TransactionForm({
           items: requestItems,
         },
         {
-          onSuccess: () => onSuccess(),
-          onError: (err) => setErrorMsg(err.message),
+          onSuccess: () => { clearDraft(); onSuccess() },
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
     } else if (mode === 'createInitialBalance') {
@@ -205,7 +303,7 @@ export function TransactionForm({
         { transactionNumber: number, description, items: requestItems },
         {
           onSuccess: () => onSuccess(),
-          onError: (err) => setErrorMsg(err.message),
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
     } else if (mode === 'edit') {
@@ -222,7 +320,7 @@ export function TransactionForm({
         },
         {
           onSuccess: () => onSuccess(),
-          onError: (err) => setErrorMsg(err.message),
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
     }
@@ -238,7 +336,7 @@ export function TransactionForm({
       },
       onError: (err) => {
         setDeleteDialogOpen(false)
-        setErrorMsg(err.message)
+        setErrorMsg(translateApiError(err, t))
       },
     })
   }
@@ -261,6 +359,25 @@ export function TransactionForm({
             ? t('transactionForm.newInitialBalance')
             : t('transactionForm.newTransaction')}
       </Typography>
+
+      {showRestoreBanner && (
+        <Alert
+          severity="info"
+          sx={{ mb: 2 }}
+          action={
+            <>
+              <Button color="inherit" size="small" onClick={handleRestoreDraft}>
+                {t('transactionForm.draftRestore')}
+              </Button>
+              <Button color="inherit" size="small" onClick={handleDiscardDraft}>
+                {t('transactionForm.draftDiscard')}
+              </Button>
+            </>
+          }
+        >
+          {t('transactionForm.draftBannerMessage')}
+        </Alert>
+      )}
 
       {errorMsg && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -306,7 +423,7 @@ export function TransactionForm({
             value={tenantConfig?.systemInitialDate ?? ''}
             size="small"
             sx={{ minWidth: 160 }}
-            slotProps={{ input: { readOnly: true } }}
+            inputProps={{ readOnly: true }}
             data-testid="initial-balance-date"
           />
         ) : (
@@ -318,7 +435,7 @@ export function TransactionForm({
             required
             size="small"
             sx={{ minWidth: 160 }}
-            slotProps={{ inputLabel: { shrink: true } }}
+            InputLabelProps={{ shrink: true }}
           />
         )}
 
@@ -428,7 +545,7 @@ export function TransactionForm({
         >
           {t('common.save')}
         </Button>
-        <Button onClick={onCancel}>{t('common.cancel')}</Button>
+        <Button onClick={() => { clearDraft(); onCancel() }}>{t('common.cancel')}</Button>
         {mode === 'edit' && (
           <Button
             color="error"

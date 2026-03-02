@@ -135,7 +135,7 @@ export function TransactionsPage() {
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
           size="small"
-          slotProps={{ inputLabel: { shrink: true } }}
+          InputLabelProps={{ shrink: true }}
           sx={{ minWidth: 160 }}
           inputProps={{ 'data-testid': 'filter-date-from' }}
         />
@@ -145,7 +145,7 @@ export function TransactionsPage() {
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
           size="small"
-          slotProps={{ inputLabel: { shrink: true } }}
+          InputLabelProps={{ shrink: true }}
           sx={{ minWidth: 160 }}
           inputProps={{ 'data-testid': 'filter-date-to' }}
         />
