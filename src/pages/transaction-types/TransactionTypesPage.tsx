@@ -166,9 +166,13 @@ function DeleteTransactionTypeDialog({
   )
 }
 
-// ─── TransactionTypesPage ──────────────────────────────────────────────────────
+// ─── TransactionTypesContent ──────────────────────────────────────────────────
 
-export function TransactionTypesPage() {
+interface TransactionTypesContentProps {
+  hideTitle?: boolean
+}
+
+export function TransactionTypesContent({ hideTitle = false }: TransactionTypesContentProps) {
   const { t } = useTranslation()
   const { data: types, isLoading, isError } = useTransactionTypes()
 
@@ -179,9 +183,12 @@ export function TransactionTypesPage() {
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          {t('transactionTypes.title')}
-        </Typography>
+        {!hideTitle && (
+          <Typography variant="h4" sx={{ flexGrow: 1 }}>
+            {t('transactionTypes.title')}
+          </Typography>
+        )}
+        {hideTitle && <Box sx={{ flexGrow: 1 }} />}
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -249,4 +256,10 @@ export function TransactionTypesPage() {
       />
     </Box>
   )
+}
+
+// ─── TransactionTypesPage ──────────────────────────────────────────────────────
+
+export function TransactionTypesPage() {
+  return <TransactionTypesContent hideTitle={false} />
 }
