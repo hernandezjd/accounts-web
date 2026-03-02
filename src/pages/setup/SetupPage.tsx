@@ -135,7 +135,7 @@ function TenantFormDialog({ open, onClose, editTenant }: TenantFormDialogProps) 
       <DialogTitle>
         {isEdit ? t('setup.tenants.editTenant') : t('setup.tenants.createTenant')}
       </DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
         <TextField
           label={t('setup.tenants.name')}
@@ -442,7 +442,7 @@ function ConfigFieldDialog({
       TransitionProps={{ onEntering: handleOpen }}
     >
       <DialogTitle>{title}</DialogTitle>
-      <DialogContent sx={{ pt: 2 }}>
+      <DialogContent>
         {errorMsg && <Alert severity="error" sx={{ mb: 1 }}>{errorMsg}</Alert>}
         <TextField
           fullWidth
@@ -552,7 +552,7 @@ function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructure
       TransitionProps={{ onEntering: handleOpen }}
     >
       <DialogTitle>{t('setup.config.editCodeStructure')}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
         <FormControlLabel
           control={

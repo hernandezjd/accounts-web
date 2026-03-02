@@ -75,7 +75,7 @@ function TransactionTypeFormDialog({ open, onClose, editType }: TransactionTypeF
       <DialogTitle>
         {isEdit ? t('transactionTypes.editTransactionType') : t('transactionTypes.newTransactionType')}
       </DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
         <TextField
           label={t('transactionTypes.name')}

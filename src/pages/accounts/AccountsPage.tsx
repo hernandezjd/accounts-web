@@ -112,7 +112,7 @@ function AccountFormDialog({
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <DialogTitle>{isEdit ? t('accounts.editAccount') : t('accounts.createAccount')}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
         <TextField
           label={t('accounts.code')}
@@ -268,7 +268,7 @@ function ToggleTpDialog({ open, onClose, account, tenantId }: ToggleTpDialogProp
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>{t('accounts.toggleTpTitle')}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <DialogContentText>
           {enabling ? t('accounts.toggleTpEnable') : t('accounts.toggleTpDisable')}
         </DialogContentText>

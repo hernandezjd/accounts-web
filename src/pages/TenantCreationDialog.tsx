@@ -82,7 +82,7 @@ export function TenantCreationDialog({ open, onClose, onCreated }: TenantCreatio
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>{t('setup.tenants.createTenant')}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
         <TextField
           label={t('setup.tenants.name')}
