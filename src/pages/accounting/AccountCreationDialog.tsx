@@ -8,6 +8,7 @@ import TextField from '@mui/material/TextField'
 import Alert from '@mui/material/Alert'
 import { useTranslation } from 'react-i18next'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
+import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 
 interface CreatedAccount {
   id: string
@@ -33,19 +34,19 @@ export function AccountCreationDialog({
 
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
-  const [parentId, setParentId] = useState('')
+  const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleSubmit = () => {
     setErrorMsg(null)
     createAccount.mutate(
-      { code, name, hasThirdParties: false, parentId: parentId.trim() || undefined },
+      { code, name, hasThirdParties: false, parentId: parentAccount?.id },
       {
         onSuccess: (data) => {
           onCreated({ id: data.accountId!, code: data.code!, name: data.name! })
           setCode('')
           setName('')
-          setParentId('')
+          setParentAccount(null)
           onClose()
         },
         onError: (err) => setErrorMsg(err.message),
@@ -56,7 +57,7 @@ export function AccountCreationDialog({
   const handleClose = () => {
     setCode('')
     setName('')
-    setParentId('')
+    setParentAccount(null)
     setErrorMsg(null)
     onClose()
   }
@@ -82,13 +83,11 @@ export function AccountCreationDialog({
           size="small"
           inputProps={{ 'data-testid': 'account-name-input' }}
         />
-        <TextField
+        <AccountPicker
+          tenantId={tenantId}
+          value={parentAccount}
+          onChange={setParentAccount}
           label={t('transactionForm.parentAccount')}
-          value={parentId}
-          onChange={(e) => setParentId(e.target.value)}
-          size="small"
-          helperText="UUID (optional)"
-          inputProps={{ 'data-testid': 'parent-id-input' }}
         />
       </DialogContent>
       <DialogActions>
