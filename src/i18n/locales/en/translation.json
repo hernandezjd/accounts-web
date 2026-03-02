@@ -25,7 +25,8 @@
     "tenantPicker": "Select Your Tenant",
     "autoSelecting": "Automatically selecting your tenant...",
     "noTenants": "No tenants available",
-    "switchTenant": "Switch Tenant"
+    "switchTenant": "Switch Tenant",
+    "createFirstTenant": "Create Your First Tenant"
   },
   "shortcuts": {
     "title": "Keyboard Shortcuts",

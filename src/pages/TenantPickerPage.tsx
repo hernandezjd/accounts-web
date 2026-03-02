@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import List from '@mui/material/List'
 import ListItemButton from '@mui/material/ListItemButton'
@@ -10,6 +11,7 @@ import Alert from '@mui/material/Alert'
 import Paper from '@mui/material/Paper'
 import { useTranslation } from 'react-i18next'
 import { useTenants } from '@/hooks/api/useTenants'
+import { TenantCreationDialog } from './TenantCreationDialog'
 
 function tenantAccountingPath(id: string): string {
   return `/tenants/${id}/accounting`
@@ -19,6 +21,7 @@ export function TenantPickerPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: tenants, isLoading, isError } = useTenants()
+  const [createOpen, setCreateOpen] = useState(false)
 
   // Auto-redirect: check sessionStorage first
   useEffect(() => {
@@ -71,9 +74,24 @@ export function TenantPickerPage() {
         )}
 
         {tenants && tenants.length === 0 && (
-          <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
-            {t('tenant.noTenants')}
-          </Typography>
+          <>
+            <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
+              {t('tenant.noTenants')}
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Button variant="contained" onClick={() => setCreateOpen(true)}>
+                {t('tenant.createFirstTenant')}
+              </Button>
+            </Box>
+            <TenantCreationDialog
+              open={createOpen}
+              onClose={() => setCreateOpen(false)}
+              onCreated={(id) => {
+                sessionStorage.setItem('lastTenantId', id)
+                navigate(tenantAccountingPath(id))
+              }}
+            />
+          </>
         )}
 
         {tenants && tenants.length > 1 && (
