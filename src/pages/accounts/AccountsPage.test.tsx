@@ -37,6 +37,7 @@ const sampleAccounts: Account[] = [
     hasThirdParties: false,
     balance: 0,
     hasChildren: true,
+    active: true,
   },
   {
     id: 'acc-2',
@@ -47,8 +48,21 @@ const sampleAccounts: Account[] = [
     hasThirdParties: false,
     balance: 0,
     hasChildren: false,
+    active: true,
   },
 ]
+
+const inactiveAccount: Account = {
+  id: 'acc-3',
+  code: '1002',
+  name: 'Old Cash',
+  level: 2,
+  parentId: 'acc-1',
+  hasThirdParties: false,
+  balance: 0,
+  hasChildren: false,
+  active: false,
+}
 
 const noOpMutation = { mutate: vi.fn(), isPending: false }
 
@@ -67,7 +81,8 @@ beforeEach(() => {
   mockUseAccountMutations.mockReturnValue({
     createAccount: { ...noOpMutation },
     updateAccount: { ...noOpMutation },
-    deleteAccount: { ...noOpMutation },
+    deactivateAccount: { ...noOpMutation },
+    activateAccount: { ...noOpMutation },
     toggleHasThirdParties: { ...noOpMutation },
   })
 
@@ -90,6 +105,7 @@ describe('AccountsPage', () => {
     expect(screen.getByText('Level')).toBeInTheDocument()
     expect(screen.getByText('Parent Code')).toBeInTheDocument()
     expect(screen.getByText('Has Third Parties')).toBeInTheDocument()
+    expect(screen.getByText('Status')).toBeInTheDocument()
   })
 
   it('renders account rows', () => {
@@ -131,56 +147,111 @@ describe('AccountsPage', () => {
     })
   })
 
-  it('Delete button opens confirmation dialog', async () => {
+  it('Deactivate button opens confirmation dialog for active account', async () => {
     renderWithProviders(<AccountsPage />)
 
-    await userEvent.click(screen.getByTestId('delete-account-acc-1'))
+    await userEvent.click(screen.getByTestId('deactivate-account-acc-1'))
 
     await waitFor(() => {
-      expect(screen.getByText(/are you sure.*delete this account/i)).toBeInTheDocument()
+      expect(screen.getByText(/deactivate this account/i)).toBeInTheDocument()
     })
   })
 
-  it('confirming delete calls deleteAccount mutation', async () => {
-    const deleteMutate = vi.fn()
+  it('confirming deactivate calls deactivateAccount mutation', async () => {
+    const deactivateMutate = vi.fn()
     mockUseAccountMutations.mockReturnValue({
       createAccount: { ...noOpMutation },
       updateAccount: { ...noOpMutation },
-      deleteAccount: { ...noOpMutation, mutate: deleteMutate },
+      deactivateAccount: { ...noOpMutation, mutate: deactivateMutate },
+      activateAccount: { ...noOpMutation },
       toggleHasThirdParties: { ...noOpMutation },
     })
 
     renderWithProviders(<AccountsPage />)
 
-    await userEvent.click(screen.getByTestId('delete-account-acc-1'))
-    await waitFor(() => screen.getByTestId('confirm-delete-account'))
-    await userEvent.click(screen.getByTestId('confirm-delete-account'))
+    await userEvent.click(screen.getByTestId('deactivate-account-acc-1'))
+    await waitFor(() => screen.getByTestId('confirm-deactivate-account'))
+    await userEvent.click(screen.getByTestId('confirm-deactivate-account'))
 
-    expect(deleteMutate).toHaveBeenCalledWith('acc-1', expect.any(Object))
+    expect(deactivateMutate).toHaveBeenCalledWith('acc-1', expect.any(Object))
   })
 
-  it('shows friendly message on 409 delete error', async () => {
-    const deleteMutate = vi.fn((_id, opts) => {
+  it('shows friendly message on 409 deactivate error', async () => {
+    const deactivateMutate = vi.fn((_id, opts) => {
       opts.onError(new Error('409 Conflict: has transactions'))
     })
     mockUseAccountMutations.mockReturnValue({
       createAccount: { ...noOpMutation },
       updateAccount: { ...noOpMutation },
-      deleteAccount: { ...noOpMutation, mutate: deleteMutate },
+      deactivateAccount: { ...noOpMutation, mutate: deactivateMutate },
+      activateAccount: { ...noOpMutation },
       toggleHasThirdParties: { ...noOpMutation },
     })
 
     renderWithProviders(<AccountsPage />)
 
-    await userEvent.click(screen.getByTestId('delete-account-acc-1'))
-    await waitFor(() => screen.getByTestId('confirm-delete-account'))
-    await userEvent.click(screen.getByTestId('confirm-delete-account'))
+    await userEvent.click(screen.getByTestId('deactivate-account-acc-1'))
+    await waitFor(() => screen.getByTestId('confirm-deactivate-account'))
+    await userEvent.click(screen.getByTestId('confirm-deactivate-account'))
 
     await waitFor(() => {
       expect(
-        screen.getByText(/child accounts and cannot be deleted/i),
+        screen.getByText(/child accounts and cannot be deactivated/i),
       ).toBeInTheDocument()
     })
+  })
+
+  it('shows Reactivate button for inactive accounts', async () => {
+    mockUseAccounts.mockReturnValue({
+      data: [...sampleAccounts, inactiveAccount],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccounts>)
+
+    renderWithProviders(<AccountsPage />)
+
+    expect(screen.getByTestId('reactivate-account-acc-3')).toBeInTheDocument()
+    expect(screen.queryByTestId('deactivate-account-acc-3')).not.toBeInTheDocument()
+  })
+
+  it('confirming reactivate calls activateAccount mutation', async () => {
+    const activateMutate = vi.fn()
+    mockUseAccounts.mockReturnValue({
+      data: [...sampleAccounts, inactiveAccount],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccounts>)
+    mockUseAccountMutations.mockReturnValue({
+      createAccount: { ...noOpMutation },
+      updateAccount: { ...noOpMutation },
+      deactivateAccount: { ...noOpMutation },
+      activateAccount: { ...noOpMutation, mutate: activateMutate },
+      toggleHasThirdParties: { ...noOpMutation },
+    })
+
+    renderWithProviders(<AccountsPage />)
+
+    await userEvent.click(screen.getByTestId('reactivate-account-acc-3'))
+    await waitFor(() => screen.getByTestId('confirm-reactivate-account'))
+    await userEvent.click(screen.getByTestId('confirm-reactivate-account'))
+
+    expect(activateMutate).toHaveBeenCalledWith('acc-3', expect.any(Object))
+  })
+
+  it('shows Inactive status for inactive accounts', () => {
+    mockUseAccounts.mockReturnValue({
+      data: [...sampleAccounts, inactiveAccount],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccounts>)
+
+    renderWithProviders(<AccountsPage />)
+
+    expect(screen.getByTestId('account-status-acc-3')).toHaveTextContent('Inactive')
+    expect(screen.getByTestId('account-status-acc-1')).toHaveTextContent('Active')
   })
 
   it('shows loading state while fetching', () => {

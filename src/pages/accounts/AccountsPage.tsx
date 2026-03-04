@@ -19,7 +19,8 @@ import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Alert from '@mui/material/Alert'
 import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
+import BlockIcon from '@mui/icons-material/Block'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import AddIcon from '@mui/icons-material/Add'
 import { useTranslation } from 'react-i18next'
@@ -167,18 +168,18 @@ function AccountFormDialog({
   )
 }
 
-// ─── DeleteAccountDialog ───────────────────────────────────────────────────────
+// ─── DeactivateAccountDialog ──────────────────────────────────────────────────
 
-interface DeleteAccountDialogProps {
+interface DeactivateAccountDialogProps {
   open: boolean
   onClose: () => void
   account: Account | null
   tenantId: string
 }
 
-function DeleteAccountDialog({ open, onClose, account, tenantId }: DeleteAccountDialogProps) {
+function DeactivateAccountDialog({ open, onClose, account, tenantId }: DeactivateAccountDialogProps) {
   const { t } = useTranslation()
-  const { deleteAccount } = useAccountMutations(tenantId)
+  const { deactivateAccount } = useAccountMutations(tenantId)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleClose = () => {
@@ -189,7 +190,7 @@ function DeleteAccountDialog({ open, onClose, account, tenantId }: DeleteAccount
   const handleConfirm = () => {
     if (!account?.id) return
     setErrorMsg(null)
-    deleteAccount.mutate(account.id, {
+    deactivateAccount.mutate(account.id, {
       onSuccess: handleClose,
       onError: (err) => setErrorMsg(translateApiError(err, t)),
     })
@@ -197,12 +198,12 @@ function DeleteAccountDialog({ open, onClose, account, tenantId }: DeleteAccount
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{t('accounts.deleteTitle')}</DialogTitle>
+      <DialogTitle>{t('accounts.deactivateTitle')}</DialogTitle>
       <DialogContent>
         {errorMsg ? (
           <Alert severity="error">{errorMsg}</Alert>
         ) : (
-          <DialogContentText>{t('accounts.deleteConfirm')}</DialogContentText>
+          <DialogContentText>{t('accounts.deactivateConfirm')}</DialogContentText>
         )}
       </DialogContent>
       <DialogActions>
@@ -211,10 +212,66 @@ function DeleteAccountDialog({ open, onClose, account, tenantId }: DeleteAccount
           <Button
             color="error"
             onClick={handleConfirm}
-            disabled={deleteAccount.isPending}
-            data-testid="confirm-delete-account"
+            disabled={deactivateAccount.isPending}
+            data-testid="confirm-deactivate-account"
           >
-            {t('common.delete')}
+            {t('accounts.deactivateTitle')}
+          </Button>
+        )}
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+// ─── ReactivateAccountDialog ──────────────────────────────────────────────────
+
+interface ReactivateAccountDialogProps {
+  open: boolean
+  onClose: () => void
+  account: Account | null
+  tenantId: string
+}
+
+function ReactivateAccountDialog({ open, onClose, account, tenantId }: ReactivateAccountDialogProps) {
+  const { t } = useTranslation()
+  const { activateAccount } = useAccountMutations(tenantId)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  const handleClose = () => {
+    setErrorMsg(null)
+    onClose()
+  }
+
+  const handleConfirm = () => {
+    if (!account?.id) return
+    setErrorMsg(null)
+    activateAccount.mutate(account.id, {
+      onSuccess: handleClose,
+      onError: (err) => setErrorMsg(translateApiError(err, t)),
+    })
+  }
+
+  return (
+    <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>{t('accounts.reactivateTitle')}</DialogTitle>
+      <DialogContent>
+        {errorMsg ? (
+          <Alert severity="error">{errorMsg}</Alert>
+        ) : (
+          <DialogContentText>{t('accounts.reactivateConfirm')}</DialogContentText>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>{t('common.cancel')}</Button>
+        {!errorMsg && (
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={handleConfirm}
+            disabled={activateAccount.isPending}
+            data-testid="confirm-reactivate-account"
+          >
+            {t('accounts.reactivateTitle')}
           </Button>
         )}
       </DialogActions>
@@ -304,11 +361,12 @@ export function AccountsPage() {
   const { t } = useTranslation()
   const { tenantId = '' } = useParams<{ tenantId: string }>()
 
-  const { data: accounts, isLoading, isError, refetch } = useAccounts(tenantId || null)
+  const { data: accounts, isLoading, isError, refetch } = useAccounts(tenantId || null, true)
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Account | undefined>(undefined)
-  const [deleteTarget, setDeleteTarget] = useState<Account | null>(null)
+  const [deactivateTarget, setDeactivateTarget] = useState<Account | null>(null)
+  const [reactivateTarget, setReactivateTarget] = useState<Account | null>(null)
   const [toggleTpTarget, setToggleTpTarget] = useState<Account | null>(null)
 
   // id → code map for parent code display
@@ -346,17 +404,22 @@ export function AccountsPage() {
               <TableCell>{t('accounts.level')}</TableCell>
               <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('accounts.parentCode')}</TableCell>
               <TableCell>{t('accounts.hasThirdParties')}</TableCell>
+              <TableCell>{t('accounts.status')}</TableCell>
               <TableCell>{t('accounts.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {(accounts ?? []).length === 0 && (
               <TableRow>
-                <TableCell colSpan={6}>{t('accounts.noAccounts')}</TableCell>
+                <TableCell colSpan={7}>{t('accounts.noAccounts')}</TableCell>
               </TableRow>
             )}
             {(accounts ?? []).map((account) => (
-              <TableRow key={account.id} data-testid={`account-row-${account.id}`}>
+              <TableRow
+                key={account.id}
+                data-testid={`account-row-${account.id}`}
+                sx={account.active === false ? { opacity: 0.5 } : undefined}
+              >
                 <TableCell>{account.code}</TableCell>
                 <TableCell>{account.name}</TableCell>
                 <TableCell>{account.level}</TableCell>
@@ -364,6 +427,9 @@ export function AccountsPage() {
                   {account.parentId ? (idToCode[account.parentId] ?? '—') : '—'}
                 </TableCell>
                 <TableCell>{account.hasThirdParties ? '✓' : ''}</TableCell>
+                <TableCell data-testid={`account-status-${account.id}`}>
+                  {account.active === false ? t('accounts.inactive') : t('accounts.active')}
+                </TableCell>
                 <TableCell>
                   <IconButton
                     size="small"
@@ -373,14 +439,25 @@ export function AccountsPage() {
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => setDeleteTarget(account)}
-                    aria-label={t('common.delete')}
-                    data-testid={`delete-account-${account.id}`}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                  {account.active !== false ? (
+                    <IconButton
+                      size="small"
+                      onClick={() => setDeactivateTarget(account)}
+                      aria-label={t('accounts.deactivateTitle')}
+                      data-testid={`deactivate-account-${account.id}`}
+                    >
+                      <BlockIcon fontSize="small" />
+                    </IconButton>
+                  ) : (
+                    <IconButton
+                      size="small"
+                      onClick={() => setReactivateTarget(account)}
+                      aria-label={t('accounts.reactivateTitle')}
+                      data-testid={`reactivate-account-${account.id}`}
+                    >
+                      <CheckCircleIcon fontSize="small" />
+                    </IconButton>
+                  )}
                   <IconButton
                     size="small"
                     onClick={() => setToggleTpTarget(account)}
@@ -405,10 +482,16 @@ export function AccountsPage() {
         editAccount={editTarget}
         accounts={accounts ?? []}
       />
-      <DeleteAccountDialog
-        open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        account={deleteTarget}
+      <DeactivateAccountDialog
+        open={Boolean(deactivateTarget)}
+        onClose={() => setDeactivateTarget(null)}
+        account={deactivateTarget}
+        tenantId={tenantId}
+      />
+      <ReactivateAccountDialog
+        open={Boolean(reactivateTarget)}
+        onClose={() => setReactivateTarget(null)}
+        account={reactivateTarget}
         tenantId={tenantId}
       />
       <ToggleTpDialog
