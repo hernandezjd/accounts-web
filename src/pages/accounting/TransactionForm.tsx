@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
@@ -20,6 +20,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { useTranslation } from 'react-i18next'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { translateApiError } from '@/utils/errorUtils'
 import { useFormDraft } from '@/hooks/useFormDraft'
@@ -124,6 +125,7 @@ export function TransactionForm({
   const { t } = useTranslation()
   const { data: transactionTypes } = useTransactionTypes()
   const { data: tenantConfig } = useTenantConfig(mode === 'createInitialBalance' ? tenantId : undefined)
+  const { data: accounts } = useAccounts(tenantId)
   const { createTransaction, editTransaction, deleteTransaction, createInitialBalance } =
     useTransactionMutations(tenantId)
 
@@ -225,6 +227,21 @@ export function TransactionForm({
       // ignore storage errors
     }
   }, [isDraftMode, draftDecided, selectedType, number, date, description, items, draftKey])
+
+  // ── Sync hasThirdParties from accounts list (edit mode) ──
+  const accountsSyncedRef = useRef(false)
+  useEffect(() => {
+    if (!accounts || accountsSyncedRef.current || !initialData) return
+    accountsSyncedRef.current = true
+    setItems((prev) =>
+      prev.map((item) => {
+        if (!item.account) return item
+        const found = accounts.find((a) => a.id === item.account!.id)
+        if (!found) return item
+        return { ...item, account: { ...item.account, hasThirdParties: found.hasThirdParties ?? false } }
+      }),
+    )
+  }, [accounts, initialData])
 
   // Reset type if transaction types load and we're in create mode
   useEffect(() => {
