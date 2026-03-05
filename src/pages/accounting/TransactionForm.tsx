@@ -4,7 +4,6 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
-import InputAdornment from '@mui/material/InputAdornment'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
@@ -492,22 +491,16 @@ export function TransactionForm({
               label={t('transactionForm.debit')}
               value={item.debitAmount}
               onChange={(e) => updateItem(item.id, { debitAmount: e.target.value, creditAmount: '' })}
-              type="number"
               size="small"
               sx={{ width: 110 }}
-              inputProps={{ min: 0, step: 0.01 }}
-              InputProps={{ startAdornment: <InputAdornment position="start">D</InputAdornment> }}
             />
 
             <TextField
               label={t('transactionForm.credit')}
               value={item.creditAmount}
               onChange={(e) => updateItem(item.id, { creditAmount: e.target.value, debitAmount: '' })}
-              type="number"
               size="small"
               sx={{ width: 110 }}
-              inputProps={{ min: 0, step: 0.01 }}
-              InputProps={{ startAdornment: <InputAdornment position="start">C</InputAdornment> }}
             />
 
             <IconButton
@@ -532,21 +525,28 @@ export function TransactionForm({
       </Box>
 
       {/* Totals + balance indicator */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-        <Typography variant="body2">
-          {t('transactionForm.totalDebits')}: <strong>{totalDebits.toFixed(2)}</strong>
-        </Typography>
-        <Typography variant="body2">
-          {t('transactionForm.totalCredits')}: <strong>{totalCredits.toFixed(2)}</strong>
-        </Typography>
-        {(totalDebits > 0 || totalCredits > 0) && (
-          <Chip
-            label={isBalanced ? t('transactionForm.balanced') : t('transactionForm.unbalanced')}
-            color={isBalanced ? 'success' : 'error'}
-            size="small"
-            data-testid="balance-chip"
-          />
-        )}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Box sx={{ flexGrow: 1 }}>
+          {(totalDebits > 0 || totalCredits > 0) && (
+            <Chip
+              label={isBalanced ? t('transactionForm.balanced') : t('transactionForm.unbalanced')}
+              color={isBalanced ? 'success' : 'error'}
+              size="small"
+              data-testid="balance-chip"
+            />
+          )}
+        </Box>
+        <Box sx={{ width: 110, textAlign: 'center' }}>
+          <Typography variant="body2">
+            <strong>{totalDebits.toFixed(2)}</strong>
+          </Typography>
+        </Box>
+        <Box sx={{ width: 110, textAlign: 'center' }}>
+          <Typography variant="body2">
+            <strong>{totalCredits.toFixed(2)}</strong>
+          </Typography>
+        </Box>
+        <Box sx={{ width: 28 }} />
       </Box>
 
       {/* Actions */}
