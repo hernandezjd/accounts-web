@@ -44,13 +44,24 @@ export function useAccountMutations(tenantId: string) {
     onSuccess: invalidate,
   })
 
-  const deleteAccount = useMutation({
+  const deactivateAccount = useMutation({
     mutationFn: async (id: string): Promise<void> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).DELETE('/accounts/{id}', {
+      const { error } = await (commandClient as any).POST('/accounts/{id}/deactivate', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete account')
+      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to deactivate account')
+    },
+    onSuccess: invalidate,
+  })
+
+  const activateAccount = useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (commandClient as any).POST('/accounts/{id}/activate', {
+        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+      })
+      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to activate account')
     },
     onSuccess: invalidate,
   })
@@ -76,5 +87,5 @@ export function useAccountMutations(tenantId: string) {
     onSuccess: invalidate,
   })
 
-  return { createAccount, updateAccount, deleteAccount, toggleHasThirdParties }
+  return { createAccount, updateAccount, deactivateAccount, activateAccount, toggleHasThirdParties }
 }
