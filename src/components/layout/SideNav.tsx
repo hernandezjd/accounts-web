@@ -7,7 +7,6 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import PeopleIcon from '@mui/icons-material/People'
 import ReceiptIcon from '@mui/icons-material/Receipt'
-import CategoryIcon from '@mui/icons-material/Category'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import SettingsIcon from '@mui/icons-material/Settings'
 import { NavLink, useParams } from 'react-router-dom'
@@ -28,7 +27,6 @@ function useNavItems(): NavItem[] {
     { key: 'accounts', labelKey: 'nav.accounts', icon: <AccountTreeIcon />, path: `${base}/accounts` },
     { key: 'thirdParties', labelKey: 'nav.thirdParties', icon: <PeopleIcon />, path: `${base}/third-parties` },
     { key: 'transactions', labelKey: 'nav.transactions', icon: <ReceiptIcon />, path: `${base}/transactions` },
-    { key: 'transactionTypes', labelKey: 'nav.transactionTypes', icon: <CategoryIcon />, path: `${base}/transaction-types` },
     { key: 'reports', labelKey: 'nav.reports', icon: <BarChartIcon />, path: `${base}/reports` },
     { key: 'setup', labelKey: 'nav.setup', icon: <SettingsIcon />, path: `${base}/setup` },
   ]
