@@ -138,7 +138,7 @@ describe('TenantPickerPage', () => {
     await userEvent.type(screen.getByLabelText(/country/i), 'US')
 
     // Submit
-    await userEvent.click(screen.getByRole('button', { name: /create tenant/i }))
+    await userEvent.click(screen.getByTestId('tenant-form-save'))
 
     await waitFor(() => {
       expect(sessionStorage.getItem('lastTenantId')).toBe('new-tenant-id')

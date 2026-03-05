@@ -266,6 +266,11 @@ describe('SetupPage — Tenants tab', () => {
     await user.type(screen.getByTestId('tenant-name-input'), 'New Corp')
     await user.type(screen.getByTestId('tenant-contact-name-input'), 'Alice')
     await user.type(screen.getByTestId('tenant-contact-email-input'), 'alice@new.com')
+    await user.type(screen.getByTestId('tenant-street-input'), '1 Main St')
+    await user.type(screen.getByTestId('tenant-city-input'), 'Springfield')
+    await user.type(screen.getByTestId('tenant-state-input'), 'IL')
+    await user.type(screen.getByTestId('tenant-postal-input'), '62701')
+    await user.type(screen.getByTestId('tenant-country-input'), 'US')
     await user.click(screen.getByTestId('tenant-form-save'))
     expect(createFn).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'New Corp', contactName: 'Alice', contactEmail: 'alice@new.com' }),
