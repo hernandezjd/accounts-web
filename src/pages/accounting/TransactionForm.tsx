@@ -459,9 +459,18 @@ export function TransactionForm({
 
       {/* Line items */}
       <Box sx={{ mb: 2 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-          {t('transactionForm.items')}
-        </Typography>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, flexGrow: 1 }}>
+            {t('transactionForm.items')}
+          </Typography>
+          <Typography variant="body2" sx={{ width: 110, textAlign: 'center', color: 'text.secondary' }}>
+            {t('transactionForm.debit')}
+          </Typography>
+          <Typography variant="body2" sx={{ width: 110, textAlign: 'center', color: 'text.secondary' }}>
+            {t('transactionForm.credit')}
+          </Typography>
+          <Box sx={{ width: 28 }} />
+        </Box>
 
         {items.map((item) => (
           <Box
@@ -488,19 +497,19 @@ export function TransactionForm({
             )}
 
             <TextField
-              label={t('transactionForm.debit')}
               value={item.debitAmount}
               onChange={(e) => updateItem(item.id, { debitAmount: e.target.value, creditAmount: '' })}
               size="small"
               sx={{ width: 110 }}
+              inputProps={{ style: { textAlign: 'right' } }}
             />
 
             <TextField
-              label={t('transactionForm.credit')}
               value={item.creditAmount}
               onChange={(e) => updateItem(item.id, { creditAmount: e.target.value, debitAmount: '' })}
               size="small"
               sx={{ width: 110 }}
+              inputProps={{ style: { textAlign: 'right' } }}
             />
 
             <IconButton
@@ -536,14 +545,14 @@ export function TransactionForm({
             />
           )}
         </Box>
-        <Box sx={{ width: 110, textAlign: 'center' }}>
-          <Typography variant="body2">
-            <strong>{totalDebits.toFixed(2)}</strong>
+        <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
+          <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
+            {parseFloat(totalDebits.toFixed(2))}
           </Typography>
         </Box>
-        <Box sx={{ width: 110, textAlign: 'center' }}>
-          <Typography variant="body2">
-            <strong>{totalCredits.toFixed(2)}</strong>
+        <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
+          <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
+            {parseFloat(totalCredits.toFixed(2))}
           </Typography>
         </Box>
         <Box sx={{ width: 28 }} />
