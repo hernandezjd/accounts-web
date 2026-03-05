@@ -104,7 +104,7 @@ export function TransactionView({
           accountId: item.accountId ?? '',
           accountCode: item.accountCode ?? '',
           accountName: item.accountName ?? '',
-          hasThirdParties: false,
+          hasThirdParties: !!(item.thirdPartyId),
           thirdPartyId: item.thirdPartyId ?? null,
           thirdPartyName: item.thirdPartyName ?? null,
           debitAmount: item.debitAmount ?? 0,
