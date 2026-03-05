@@ -4,8 +4,7 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import InputAdornment from '@mui/material/InputAdornment'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
@@ -35,8 +34,8 @@ interface FormItem {
   id: string
   account: AccountOption | null
   thirdParty: ThirdPartyOption | null
-  side: 'debit' | 'credit'
-  amount: string
+  debitAmount: string
+  creditAmount: string
 }
 
 interface TransactionTypeOption {
@@ -87,8 +86,8 @@ interface FormDraft {
     hasThirdParties: boolean
     thirdPartyId: string | null
     thirdPartyName: string | null
-    side: 'debit' | 'credit'
-    amount: string
+    debitAmount: string
+    creditAmount: string
   }>
 }
 
@@ -104,7 +103,7 @@ const EMPTY_DRAFT: FormDraft = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeEmptyItem(): FormItem {
-  return { id: crypto.randomUUID(), account: null, thirdParty: null, side: 'debit', amount: '' }
+  return { id: crypto.randomUUID(), account: null, thirdParty: null, debitAmount: '', creditAmount: '' }
 }
 
 function parseAmount(s: string): number {
@@ -152,8 +151,8 @@ export function TransactionForm({
           item.thirdPartyId && item.thirdPartyName
             ? { id: item.thirdPartyId, name: item.thirdPartyName }
             : null,
-        side: (item.debitAmount ?? 0) > 0 ? 'debit' : 'credit',
-        amount: String((item.debitAmount ?? 0) > 0 ? item.debitAmount : (item.creditAmount ?? '')),
+        debitAmount: (item.debitAmount ?? 0) > 0 ? String(item.debitAmount) : '',
+        creditAmount: (item.creditAmount ?? 0) > 0 ? String(item.creditAmount) : '',
       }))
     }
     return [makeEmptyItem()]
@@ -185,8 +184,8 @@ export function TransactionForm({
             ? { id: item.accountId, code: item.accountCode, name: item.accountName, hasThirdParties: item.hasThirdParties }
             : null,
           thirdParty: item.thirdPartyId ? { id: item.thirdPartyId, name: item.thirdPartyName ?? '' } : null,
-          side: item.side,
-          amount: item.amount,
+          debitAmount: item.debitAmount,
+          creditAmount: item.creditAmount,
         })),
       )
     }
@@ -217,8 +216,8 @@ export function TransactionForm({
         hasThirdParties: item.account?.hasThirdParties ?? false,
         thirdPartyId: item.thirdParty?.id ?? null,
         thirdPartyName: item.thirdParty?.name ?? null,
-        side: item.side,
-        amount: item.amount,
+        debitAmount: item.debitAmount,
+        creditAmount: item.creditAmount,
       })),
     }
     try {
@@ -251,14 +250,8 @@ export function TransactionForm({
   }, [mode, initialData, transactionTypes, selectedType])
 
   // ── Totals ──
-  const totalDebits = items.reduce(
-    (sum, item) => (item.side === 'debit' ? sum + parseAmount(item.amount) : sum),
-    0,
-  )
-  const totalCredits = items.reduce(
-    (sum, item) => (item.side === 'credit' ? sum + parseAmount(item.amount) : sum),
-    0,
-  )
+  const totalDebits = items.reduce((sum, item) => sum + parseAmount(item.debitAmount), 0)
+  const totalCredits = items.reduce((sum, item) => sum + parseAmount(item.creditAmount), 0)
   const isBalanced = totalDebits > 0 && Math.abs(totalDebits - totalCredits) < 0.001
 
   // ── Item mutations ──
@@ -286,8 +279,8 @@ export function TransactionForm({
     items.map((item) => ({
       accountId: item.account!.id,
       thirdPartyId: item.thirdParty?.id ?? undefined,
-      debitAmount: item.side === 'debit' ? parseAmount(item.amount) : undefined,
-      creditAmount: item.side === 'credit' ? parseAmount(item.amount) : undefined,
+      debitAmount: parseAmount(item.debitAmount) > 0 ? parseAmount(item.debitAmount) : undefined,
+      creditAmount: parseAmount(item.creditAmount) > 0 ? parseAmount(item.creditAmount) : undefined,
     }))
 
   // ── Save ──
@@ -295,7 +288,7 @@ export function TransactionForm({
     isBalanced &&
     number.trim() &&
     (mode === 'createInitialBalance' || (selectedType && date)) &&
-    items.every((item) => item.account && parseAmount(item.amount) > 0)
+    items.every((item) => item.account && (parseAmount(item.debitAmount) > 0 || parseAmount(item.creditAmount) > 0))
 
   const handleSave = () => {
     setErrorMsg(null)
@@ -495,25 +488,26 @@ export function TransactionForm({
               </Box>
             )}
 
-            <ToggleButtonGroup
-              value={item.side}
-              exclusive
-              onChange={(_, v) => v && updateItem(item.id, { side: v })}
-              size="small"
-              aria-label={t('transactionForm.debitOrCredit')}
-            >
-              <ToggleButton value="debit">{t('transactionForm.debit')}</ToggleButton>
-              <ToggleButton value="credit">{t('transactionForm.credit')}</ToggleButton>
-            </ToggleButtonGroup>
-
             <TextField
-              label={t('transactionForm.amount')}
-              value={item.amount}
-              onChange={(e) => updateItem(item.id, { amount: e.target.value })}
+              label={t('transactionForm.debit')}
+              value={item.debitAmount}
+              onChange={(e) => updateItem(item.id, { debitAmount: e.target.value, creditAmount: '' })}
               type="number"
               size="small"
-              sx={{ width: 120 }}
+              sx={{ width: 110 }}
               inputProps={{ min: 0, step: 0.01 }}
+              InputProps={{ startAdornment: <InputAdornment position="start">D</InputAdornment> }}
+            />
+
+            <TextField
+              label={t('transactionForm.credit')}
+              value={item.creditAmount}
+              onChange={(e) => updateItem(item.id, { creditAmount: e.target.value, debitAmount: '' })}
+              type="number"
+              size="small"
+              sx={{ width: 110 }}
+              inputProps={{ min: 0, step: 0.01 }}
+              InputProps={{ startAdornment: <InputAdornment position="start">C</InputAdornment> }}
             />
 
             <IconButton
