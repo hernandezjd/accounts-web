@@ -9,6 +9,7 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTenant } from '@/hooks/api/useTenant'
+import { useTenants } from '@/hooks/api/useTenants'
 import { useAppStore } from '@/store/appStore'
 
 interface AppHeaderProps {
@@ -20,6 +21,7 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
   const navigate = useNavigate()
   const { tenantId } = useParams<{ tenantId: string }>()
   const { data: tenant } = useTenant(tenantId)
+  const { data: tenants } = useTenants()
   const { language, setLanguage } = useAppStore()
 
   function handleSwitchTenant() {
@@ -50,9 +52,6 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
 
         {tenant && (
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <Typography variant="body2" sx={{ opacity: 0.8, mr: 0.5 }}>
-              {t('tenant.active')}:
-            </Typography>
             <Typography variant="body1" fontWeight="medium" data-testid="active-tenant-name">
               {tenant.name}
             </Typography>
@@ -70,15 +69,17 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
           {language === 'en' ? 'ES' : 'EN'}
         </Button>
 
-        <Button
-          color="inherit"
-          size="small"
-          startIcon={<SwapHorizIcon />}
-          onClick={handleSwitchTenant}
-          data-testid="switch-tenant-button"
-        >
-          {t('tenant.switchTenant')}
-        </Button>
+        {tenants && tenants.length > 1 && (
+          <Button
+            color="inherit"
+            size="small"
+            startIcon={<SwapHorizIcon />}
+            onClick={handleSwitchTenant}
+            data-testid="switch-tenant-button"
+          >
+            {t('tenant.switchTenant')}
+          </Button>
+        )}
       </Toolbar>
     </AppBar>
   )

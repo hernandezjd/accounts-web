@@ -21,6 +21,7 @@ vi.mock('@/api/clients', () => ({
 import { tenantClient } from '@/api/clients'
 
 const mockTenant = { id: 'tenant-1', name: 'Acme Corp', status: 'active' as const }
+const mockTenant2 = { id: 'tenant-2', name: 'Other Corp', status: 'active' as const }
 
 /**
  * Render AppShell inside a real Route so that useParams() gets :tenantId.
@@ -51,10 +52,12 @@ function renderAppShell(initialPath = '/tenants/tenant-1/accounting') {
 beforeEach(() => {
   sessionStorage.clear()
   vi.clearAllMocks()
-  vi.mocked((tenantClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockResolvedValue({
-    data: mockTenant,
-    error: undefined,
-  })
+  vi.mocked((tenantClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
+    (url: string) => {
+      if (url === '/tenants') return Promise.resolve({ data: [mockTenant], error: undefined })
+      return Promise.resolve({ data: mockTenant, error: undefined })
+    },
+  )
 })
 
 afterEach(() => {
@@ -84,7 +87,14 @@ describe('AppShell', () => {
     })
   })
 
-  it('Switch Tenant button clears sessionStorage and is rendered', async () => {
+  it('Switch Tenant button clears sessionStorage and is rendered when multiple tenants exist', async () => {
+    vi.mocked((tenantClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
+      (url: string) => {
+        if (url === '/tenants')
+          return Promise.resolve({ data: [mockTenant, mockTenant2], error: undefined })
+        return Promise.resolve({ data: mockTenant, error: undefined })
+      },
+    )
     sessionStorage.setItem('lastTenantId', 'tenant-1')
     renderAppShell()
     await waitFor(() => {
@@ -92,6 +102,14 @@ describe('AppShell', () => {
     })
     await userEvent.click(screen.getByTestId('switch-tenant-button'))
     expect(sessionStorage.getItem('lastTenantId')).toBeNull()
+  })
+
+  it('hides Switch Tenant button when only one tenant exists', async () => {
+    renderAppShell()
+    await waitFor(() => {
+      expect(screen.getByTestId('active-tenant-name')).toBeInTheDocument()
+    })
+    expect(screen.queryByTestId('switch-tenant-button')).not.toBeInTheDocument()
   })
 
   it('syncs tenantId to sessionStorage on mount', async () => {
