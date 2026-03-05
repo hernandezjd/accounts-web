@@ -258,7 +258,7 @@ export function TransactionForm({
               ...item,
               ...patch,
               // Clear third party when account changes
-              thirdParty: 'account' in patch ? null : item.thirdParty,
+              ...('account' in patch && { thirdParty: null }),
             }
           : item,
       ),

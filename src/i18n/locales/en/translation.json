@@ -40,6 +40,8 @@
     "duplicateTransactionNumber": "A transaction with this number already exists for the selected type.",
     "accountNotDeletable": "This account has transactions or child accounts and cannot be deactivated.",
     "thirdPartyNotDeletable": "This third party has transactions or balances and cannot be deleted.",
+    "thirdPartyRequired": "A third party is required for this account.",
+    "thirdPartyNotFound": "The specified third party was not found.",
     "transactionTypeInUse": "This transaction type is in use by existing transactions and cannot be deleted.",
     "transactionNotBalanced": "Transaction items are not balanced. Debits must equal credits.",
     "unknownError": "An unexpected error occurred. Please try again.",

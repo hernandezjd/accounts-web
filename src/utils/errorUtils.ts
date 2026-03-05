@@ -67,6 +67,22 @@ export function translateApiError(error: unknown, t: TFunction): string {
     return t('errors.accountNotDeletable')
   }
 
+  // Third party required (account needs one but none was provided)
+  if (
+    (lower.includes('third party') || lower.includes('thirdparty')) &&
+    lower.includes('required')
+  ) {
+    return t('errors.thirdPartyRequired')
+  }
+
+  // Third party not found
+  if (
+    (lower.includes('third party') || lower.includes('thirdparty')) &&
+    lower.includes('not found')
+  ) {
+    return t('errors.thirdPartyNotFound')
+  }
+
   // Third party not deletable
   if (
     lower.includes('third party') ||

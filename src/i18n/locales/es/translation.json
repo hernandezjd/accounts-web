@@ -40,6 +40,8 @@
     "duplicateTransactionNumber": "Ya existe una transacción con este número para el tipo seleccionado.",
     "accountNotDeletable": "Esta cuenta tiene transacciones o subcuentas y no puede desactivarse.",
     "thirdPartyNotDeletable": "Este tercero tiene transacciones o saldos y no puede eliminarse.",
+    "thirdPartyRequired": "Se requiere un tercero para esta cuenta.",
+    "thirdPartyNotFound": "El tercero especificado no fue encontrado.",
     "transactionTypeInUse": "Este tipo de transacción está en uso por transacciones existentes y no puede eliminarse.",
     "transactionNotBalanced": "Las líneas de la transacción no están balanceadas. Los débitos deben ser iguales a los créditos.",
     "unknownError": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",

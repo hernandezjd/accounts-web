@@ -55,6 +55,16 @@ describe('translateApiError', () => {
     expect(translateApiError(err, t)).toBe(t('errors.accountNotDeletable'))
   })
 
+  it('returns thirdPartyRequired when third party is required but not provided', () => {
+    const err = new Error("Third party ID is required for account '550e'")
+    expect(translateApiError(err, t)).toBe(t('errors.thirdPartyRequired'))
+  })
+
+  it('returns thirdPartyNotFound when third party does not exist', () => {
+    const err = new Error('Third party not found: 660e')
+    expect(translateApiError(err, t)).toBe(t('errors.thirdPartyNotFound'))
+  })
+
   it('returns thirdPartyNotDeletable for third party with transactions', () => {
     const err = new Error('Third party has transactions')
     expect(translateApiError(err, t)).toBe(t('errors.thirdPartyNotDeletable'))
