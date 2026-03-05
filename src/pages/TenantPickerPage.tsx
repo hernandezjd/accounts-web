@@ -11,7 +11,7 @@ import Alert from '@mui/material/Alert'
 import Paper from '@mui/material/Paper'
 import { useTranslation } from 'react-i18next'
 import { useTenants } from '@/hooks/api/useTenants'
-import { TenantCreationDialog } from './TenantCreationDialog'
+import { TenantFormDialog } from './TenantFormDialog'
 
 function tenantAccountingPath(id: string): string {
   return `/tenants/${id}/accounting`
@@ -83,7 +83,7 @@ export function TenantPickerPage() {
                 {t('tenant.createFirstTenant')}
               </Button>
             </Box>
-            <TenantCreationDialog
+            <TenantFormDialog
               open={createOpen}
               onClose={() => setCreateOpen(false)}
               onCreated={(id) => {

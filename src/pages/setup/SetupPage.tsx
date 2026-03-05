@@ -39,23 +39,13 @@ import { TransactionTypesContent } from '@/pages/transaction-types/TransactionTy
 import { ThemeEditorTab } from './ThemeEditorTab'
 import { translateApiError } from '@/utils/errorUtils'
 import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { TenantFormDialog } from '@/pages/TenantFormDialog'
+import type { TenantFormData } from '@/pages/TenantFormDialog'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface TenantRow {
-  id: string
-  name: string
+interface TenantRow extends TenantFormData {
   status: 'active' | 'inactive'
-  contactName: string
-  contactEmail: string
-  contactPhone?: string
-  address?: {
-    street?: string
-    city?: string
-    state?: string
-    postalCode?: string
-    country?: string
-  }
 }
 
 // ─── TabPanel helper ──────────────────────────────────────────────────────────
@@ -72,160 +62,6 @@ function TabPanel({ children, value, index, testId }: TabPanelProps) {
     <div role="tabpanel" hidden={value !== index} data-testid={testId}>
       {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
     </div>
-  )
-}
-
-// ─── TenantFormDialog ─────────────────────────────────────────────────────────
-
-interface TenantFormDialogProps {
-  open: boolean
-  onClose: () => void
-  editTenant?: TenantRow
-}
-
-function TenantFormDialog({ open, onClose, editTenant }: TenantFormDialogProps) {
-  const { t } = useTranslation()
-  const { createTenant, updateTenant } = useTenantMutations()
-  const isEdit = Boolean(editTenant)
-
-  const [name, setName] = useState(editTenant?.name ?? '')
-  const [contactName, setContactName] = useState(editTenant?.contactName ?? '')
-  const [contactEmail, setContactEmail] = useState(editTenant?.contactEmail ?? '')
-  const [contactPhone, setContactPhone] = useState(editTenant?.contactPhone ?? '')
-  const [street, setStreet] = useState(editTenant?.address?.street ?? '')
-  const [city, setCity] = useState(editTenant?.address?.city ?? '')
-  const [state, setState] = useState(editTenant?.address?.state ?? '')
-  const [postalCode, setPostalCode] = useState(editTenant?.address?.postalCode ?? '')
-  const [country, setCountry] = useState(editTenant?.address?.country ?? '')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-
-  const handleClose = () => {
-    setErrorMsg(null)
-    onClose()
-  }
-
-  const handleSubmit = () => {
-    setErrorMsg(null)
-    const body = {
-      name,
-      contactName,
-      contactEmail,
-      contactPhone: contactPhone || undefined,
-      address: { street, city, state, postalCode, country },
-    }
-
-    if (isEdit) {
-      updateTenant.mutate(
-        { id: editTenant!.id, body },
-        { onSuccess: handleClose, onError: (err) => setErrorMsg(translateApiError(err, t)) },
-      )
-    } else {
-      createTenant.mutate(body, {
-        onSuccess: handleClose,
-        onError: (err) => setErrorMsg(translateApiError(err, t)),
-      })
-    }
-  }
-
-  const canSave = name.trim() && contactName.trim() && contactEmail.trim()
-  const isPending = createTenant.isPending || updateTenant.isPending
-
-  return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth data-testid="tenant-form-dialog">
-      <DialogTitle>
-        {isEdit ? t('setup.tenants.editTenant') : t('setup.tenants.createTenant')}
-      </DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
-        <TextField
-          label={t('setup.tenants.name')}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          size="small"
-          inputProps={{ 'data-testid': 'tenant-name-input' }}
-        />
-        <TextField
-          label={t('setup.tenants.contactName')}
-          value={contactName}
-          onChange={(e) => setContactName(e.target.value)}
-          required
-          size="small"
-          inputProps={{ 'data-testid': 'tenant-contact-name-input' }}
-        />
-        <TextField
-          label={t('setup.tenants.contactEmail')}
-          value={contactEmail}
-          onChange={(e) => setContactEmail(e.target.value)}
-          required
-          type="email"
-          size="small"
-          inputProps={{ 'data-testid': 'tenant-contact-email-input' }}
-        />
-        <TextField
-          label={t('setup.tenants.contactPhone')}
-          value={contactPhone}
-          onChange={(e) => setContactPhone(e.target.value)}
-          size="small"
-          inputProps={{ 'data-testid': 'tenant-contact-phone-input' }}
-        />
-        <Typography variant="subtitle2" sx={{ mt: 1 }}>Address (optional)</Typography>
-        <TextField
-          label={t('setup.tenants.street')}
-          value={street}
-          onChange={(e) => setStreet(e.target.value)}
-          size="small"
-          inputProps={{ 'data-testid': 'tenant-street-input' }}
-        />
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <TextField
-            label={t('setup.tenants.city')}
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            size="small"
-            sx={{ flex: 2 }}
-            inputProps={{ 'data-testid': 'tenant-city-input' }}
-          />
-          <TextField
-            label={t('setup.tenants.state')}
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            size="small"
-            sx={{ flex: 1 }}
-            inputProps={{ 'data-testid': 'tenant-state-input' }}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <TextField
-            label={t('setup.tenants.postalCode')}
-            value={postalCode}
-            onChange={(e) => setPostalCode(e.target.value)}
-            size="small"
-            sx={{ flex: 1 }}
-            inputProps={{ 'data-testid': 'tenant-postal-input' }}
-          />
-          <TextField
-            label={t('setup.tenants.country')}
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            size="small"
-            sx={{ flex: 2 }}
-            inputProps={{ 'data-testid': 'tenant-country-input' }}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>{t('common.cancel')}</Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={!canSave || isPending}
-          data-testid="tenant-form-save"
-        >
-          {t('common.save')}
-        </Button>
-      </DialogActions>
-    </Dialog>
   )
 }
 
