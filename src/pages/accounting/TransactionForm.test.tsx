@@ -164,8 +164,17 @@ describe('TransactionForm', () => {
     expect(screen.getAllByTestId('form-item-row')).toHaveLength(1)
   })
 
-  it('shows "Unbalanced" chip when debits and credits do not match', () => {
+  it('does not show balance chip when no amounts are entered', () => {
     renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    expect(screen.queryByTestId('balance-chip')).not.toBeInTheDocument()
+  })
+
+  it('shows "Unbalanced" chip when debits and credits do not match', async () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const debitInput = screen.getAllByRole('spinbutton')[0]
+    await userEvent.type(debitInput, '100')
 
     const chip = screen.getByTestId('balance-chip')
     expect(chip).toHaveTextContent(/unbalanced/i)

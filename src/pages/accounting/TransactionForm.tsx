@@ -539,12 +539,14 @@ export function TransactionForm({
         <Typography variant="body2">
           {t('transactionForm.totalCredits')}: <strong>{totalCredits.toFixed(2)}</strong>
         </Typography>
-        <Chip
-          label={isBalanced ? t('transactionForm.balanced') : t('transactionForm.unbalanced')}
-          color={isBalanced ? 'success' : 'error'}
-          size="small"
-          data-testid="balance-chip"
-        />
+        {(totalDebits > 0 || totalCredits > 0) && (
+          <Chip
+            label={isBalanced ? t('transactionForm.balanced') : t('transactionForm.unbalanced')}
+            color={isBalanced ? 'success' : 'error'}
+            size="small"
+            data-testid="balance-chip"
+          />
+        )}
       </Box>
 
       {/* Actions */}
