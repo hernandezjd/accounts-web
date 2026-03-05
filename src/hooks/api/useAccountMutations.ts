@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
 import type { components } from '@/api/generated/account-command-api'
+import type { Account } from '@/hooks/api/useAccounts'
 
 type CreateAccountRequest = components['schemas']['CreateAccountRequest']
 type UpdateAccountRequest = components['schemas']['UpdateAccountRequest']
@@ -22,7 +23,36 @@ export function useAccountMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create account')
       return data as AccountCommandResponse
     },
-    onSuccess: invalidate,
+    onSuccess: (data, variables) => {
+      // Optimistically add the new account to the cache so it appears immediately,
+      // before the event processor has had time to project it to the read side.
+      const cachedAccounts =
+        qc.getQueryData<Account[]>(['accounts', tenantId, true]) ??
+        qc.getQueryData<Account[]>(['accounts', tenantId, false]) ??
+        []
+      const parent = variables.parentId
+        ? cachedAccounts.find((a) => a.id === variables.parentId)
+        : undefined
+      const newAccount: Account = {
+        id: data.accountId,
+        code: data.code ?? variables.code,
+        name: data.name ?? variables.name,
+        hasThirdParties: variables.hasThirdParties ?? false,
+        parentId: variables.parentId ?? undefined,
+        level: parent?.level != null ? parent.level + 1 : 1,
+        active: true,
+      }
+      for (const includeInactive of [true, false]) {
+        const key = ['accounts', tenantId, includeInactive]
+        const existing = qc.getQueryData<Account[]>(key)
+        if (existing !== undefined) {
+          qc.setQueryData(key, [...existing, newAccount])
+        }
+      }
+      // Delay the authoritative refetch to avoid a race where the query service
+      // hasn't yet projected the event, which would overwrite the optimistic data.
+      setTimeout(invalidate, 500)
+    },
   })
 
   const updateAccount = useMutation({
