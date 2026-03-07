@@ -262,7 +262,7 @@ export function AccountingPage() {
       requestAnimationFrame(() => {
         document
           .querySelector(`[data-account-id="${accountId}"]`)
-          ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          ?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
       })
       setTimeout(() => setHighlightedAccountId(null), 2000)
     },
