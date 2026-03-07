@@ -13,6 +13,7 @@
     "accounting": "Accounting",
     "accounts": "Accounts",
     "thirdParties": "Third Parties",
+    "initialBalances": "Initial Balances",
     "transactions": "Transactions",
     "transactionTypes": "Transaction Types",
     "reports": "Reports",
@@ -328,10 +329,22 @@
       "resetSuccess": "Theme reset to default."
     }
   },
+  "initialBalances": {
+    "title": "Initial Balances",
+    "newInitialBalance": "New Initial Balance",
+    "loading": "Loading initial balances...",
+    "error": "Failed to load initial balances.",
+    "noData": "No initial balance entries found.",
+    "number": "Number",
+    "description": "Description",
+    "date": "Date",
+    "items": "Items"
+  },
   "transactionForm": {
     "newTransaction": "New Transaction",
     "newInitialBalance": "New Initial Balance",
     "editTransaction": "Edit Transaction",
+    "editInitialBalance": "Edit Initial Balance",
     "transactionType": "Transaction Type",
     "transactionNumber": "Transaction Number",
     "date": "Date",

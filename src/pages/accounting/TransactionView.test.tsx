@@ -106,6 +106,8 @@ describe('TransactionView', () => {
       editTransaction: { ...noOpMutation },
       deleteTransaction: { ...noOpMutation },
       createInitialBalance: { ...noOpMutation },
+      editInitialBalance: { ...noOpMutation },
+      deleteInitialBalance: { ...noOpMutation },
     })
   })
 
