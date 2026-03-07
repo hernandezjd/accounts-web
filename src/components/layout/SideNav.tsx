@@ -4,6 +4,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Divider from '@mui/material/Divider'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import PeopleIcon from '@mui/icons-material/People'
 import ReceiptIcon from '@mui/icons-material/Receipt'
@@ -26,6 +27,7 @@ function useNavItems(): NavItem[] {
     { key: 'accounting', labelKey: 'nav.accounting', icon: <AccountBalanceIcon />, path: `${base}/accounting` },
     { key: 'accounts', labelKey: 'nav.accounts', icon: <AccountTreeIcon />, path: `${base}/accounts` },
     { key: 'thirdParties', labelKey: 'nav.thirdParties', icon: <PeopleIcon />, path: `${base}/third-parties` },
+    { key: 'initialBalances', labelKey: 'nav.initialBalances', icon: <AccountBalanceWalletIcon />, path: `${base}/initial-balances` },
     { key: 'transactions', labelKey: 'nav.transactions', icon: <ReceiptIcon />, path: `${base}/transactions` },
     { key: 'reports', labelKey: 'nav.reports', icon: <BarChartIcon />, path: `${base}/reports` },
     { key: 'setup', labelKey: 'nav.setup', icon: <SettingsIcon />, path: `${base}/setup` },
@@ -42,7 +44,7 @@ export function SideNav() {
     <List sx={{ width: DRAWER_WIDTH, pt: 1 }} aria-label="navigation">
       {navItems.map((item, index) => (
         <span key={item.key}>
-          {index === 5 && <Divider sx={{ my: 0.5 }} />}
+          {index === 6 && <Divider sx={{ my: 0.5 }} />}
           <NavLink
             to={item.path}
             style={{ textDecoration: 'none', color: 'inherit' }}

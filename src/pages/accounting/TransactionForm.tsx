@@ -27,7 +27,7 @@ import { ThirdPartySearchField, type ThirdPartyOption } from './ThirdPartySearch
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type FormMode = 'create' | 'createInitialBalance' | 'edit'
+export type FormMode = 'create' | 'createInitialBalance' | 'edit' | 'editInitialBalance'
 
 interface FormItem {
   id: string
@@ -122,9 +122,11 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const { t } = useTranslation()
   const { data: transactionTypes } = useTransactionTypes()
-  const { data: tenantConfig } = useTenantConfig(mode === 'createInitialBalance' ? tenantId : undefined)
+  const { data: tenantConfig } = useTenantConfig(
+    mode === 'createInitialBalance' || mode === 'editInitialBalance' ? tenantId : undefined,
+  )
   const { data: accounts } = useAccounts(tenantId)
-  const { createTransaction, editTransaction, deleteTransaction, createInitialBalance } =
+  const { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance } =
     useTransactionMutations(tenantId)
 
   // ── Form state ──
@@ -286,7 +288,7 @@ export function TransactionForm({
   const canSave =
     isBalanced &&
     number.trim() &&
-    (mode === 'createInitialBalance' || (selectedType && date)) &&
+    (mode === 'createInitialBalance' || mode === 'editInitialBalance' || (selectedType && date)) &&
     items.every((item) => item.account && (parseAmount(item.debitAmount) > 0 || parseAmount(item.creditAmount) > 0))
 
   const handleSave = () => {
@@ -315,6 +317,17 @@ export function TransactionForm({
           onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
+    } else if (mode === 'editInitialBalance') {
+      editInitialBalance.mutate(
+        {
+          id: transactionId!,
+          body: { transactionNumber: number, description, items: requestItems },
+        },
+        {
+          onSuccess: () => onSuccess(),
+          onError: (err) => setErrorMsg(translateApiError(err, t)),
+        },
+      )
     } else if (mode === 'edit') {
       editTransaction.mutate(
         {
@@ -338,22 +351,36 @@ export function TransactionForm({
   // ── Delete ──
   const handleDeleteConfirm = () => {
     setErrorMsg(null)
-    deleteTransaction.mutate(transactionId!, {
-      onSuccess: () => {
-        setDeleteDialogOpen(false)
-        onSuccess()
-      },
-      onError: (err) => {
-        setDeleteDialogOpen(false)
-        setErrorMsg(translateApiError(err, t))
-      },
-    })
+    if (mode === 'editInitialBalance') {
+      deleteInitialBalance.mutate(transactionId!, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false)
+          onSuccess()
+        },
+        onError: (err) => {
+          setDeleteDialogOpen(false)
+          setErrorMsg(translateApiError(err, t))
+        },
+      })
+    } else {
+      deleteTransaction.mutate(transactionId!, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false)
+          onSuccess()
+        },
+        onError: (err) => {
+          setDeleteDialogOpen(false)
+          setErrorMsg(translateApiError(err, t))
+        },
+      })
+    }
   }
 
   const isSaving =
     createTransaction.isPending ||
     editTransaction.isPending ||
-    createInitialBalance.isPending
+    createInitialBalance.isPending ||
+    editInitialBalance.isPending
 
   // ── Render ──
   return (
@@ -366,7 +393,9 @@ export function TransactionForm({
           ? t('transactionForm.editTransaction')
           : mode === 'createInitialBalance'
             ? t('transactionForm.newInitialBalance')
-            : t('transactionForm.newTransaction')}
+            : mode === 'editInitialBalance'
+              ? t('transactionForm.editInitialBalance')
+              : t('transactionForm.newTransaction')}
       </Typography>
 
       {showRestoreBanner && (
@@ -395,8 +424,8 @@ export function TransactionForm({
       )}
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-        {/* Type — hidden for initial balance */}
-        {mode !== 'createInitialBalance' && (
+        {/* Type — hidden for initial balance modes */}
+        {mode !== 'createInitialBalance' && mode !== 'editInitialBalance' && (
           <Autocomplete<TransactionTypeOption>
             options={(transactionTypes ?? []).map((tt) => ({ id: tt.id!, name: tt.name! }))}
             value={selectedType}
@@ -425,8 +454,8 @@ export function TransactionForm({
           sx={{ minWidth: 160 }}
         />
 
-        {/* Date — read-only for initial balance */}
-        {mode === 'createInitialBalance' ? (
+        {/* Date — read-only for initial balance modes */}
+        {mode === 'createInitialBalance' || mode === 'editInitialBalance' ? (
           <TextField
             label={t('transactionForm.initialBalanceDate')}
             value={tenantConfig?.systemInitialDate ?? ''}
@@ -568,12 +597,12 @@ export function TransactionForm({
           {t('common.save')}
         </Button>
         <Button onClick={() => { clearDraft(); onCancel() }}>{t('common.cancel')}</Button>
-        {mode === 'edit' && (
+        {(mode === 'edit' || mode === 'editInitialBalance') && (
           <Button
             color="error"
             startIcon={<DeleteIcon />}
             onClick={() => setDeleteDialogOpen(true)}
-            disabled={deleteTransaction.isPending}
+            disabled={mode === 'editInitialBalance' ? deleteInitialBalance.isPending : deleteTransaction.isPending}
             sx={{ ml: 'auto' }}
           >
             {t('transactionForm.deleteTransaction')}

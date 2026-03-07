@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { TransactionForm } from './TransactionForm'
@@ -73,6 +73,8 @@ function setupDefaultMocks() {
     editTransaction: { ...noOpMutation },
     deleteTransaction: { ...noOpMutation },
     createInitialBalance: { ...noOpMutation },
+    editInitialBalance: { ...noOpMutation },
+    deleteInitialBalance: { ...noOpMutation },
   })
 
   mockUseAccounts.mockReturnValue({
@@ -173,7 +175,8 @@ describe('TransactionForm', () => {
   it('shows "Unbalanced" chip when debits and credits do not match', async () => {
     renderWithProviders(<TransactionForm {...defaultProps} />)
 
-    const debitInput = screen.getAllByRole('spinbutton')[0]
+    const row = screen.getAllByTestId('form-item-row')[0]
+    const debitInput = within(row).getAllByRole('textbox')[1]
     await userEvent.type(debitInput, '100')
 
     const chip = screen.getByTestId('balance-chip')
@@ -261,6 +264,8 @@ describe('TransactionForm', () => {
       editTransaction: { ...noOpMutation },
       deleteTransaction: { ...noOpMutation, mutate: deleteMutate },
       createInitialBalance: { ...noOpMutation },
+      editInitialBalance: { ...noOpMutation },
+      deleteInitialBalance: { ...noOpMutation },
     })
 
     renderWithProviders(

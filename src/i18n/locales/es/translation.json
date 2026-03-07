@@ -13,6 +13,7 @@
     "accounting": "Contabilidad",
     "accounts": "Cuentas",
     "thirdParties": "Terceros",
+    "initialBalances": "Saldos Iniciales",
     "transactions": "Transacciones",
     "transactionTypes": "Tipos de Transacción",
     "reports": "Informes",
@@ -328,10 +329,22 @@
       "resetSuccess": "Tema restablecido por defecto."
     }
   },
+  "initialBalances": {
+    "title": "Saldos Iniciales",
+    "newInitialBalance": "Nuevo Saldo Inicial",
+    "loading": "Cargando saldos iniciales...",
+    "error": "Error al cargar los saldos iniciales.",
+    "noData": "No se encontraron saldos iniciales.",
+    "number": "Número",
+    "description": "Descripción",
+    "date": "Fecha",
+    "items": "Líneas"
+  },
   "transactionForm": {
     "newTransaction": "Nueva Transacción",
     "newInitialBalance": "Nuevo Saldo Inicial",
     "editTransaction": "Editar Transacción",
+    "editInitialBalance": "Editar Saldo Inicial",
     "transactionType": "Tipo de Transacción",
     "transactionNumber": "Número de Transacción",
     "date": "Fecha",

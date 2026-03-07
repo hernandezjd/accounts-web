@@ -75,7 +75,7 @@ describe('AppShell', () => {
     expect(nav).toHaveTextContent('Accounts')
     expect(nav).toHaveTextContent('Third Parties')
     expect(nav).toHaveTextContent('Transactions')
-    expect(nav).toHaveTextContent('Transaction Types')
+    expect(nav).toHaveTextContent('Initial Balances')
     expect(nav).toHaveTextContent('Reports')
     expect(nav).toHaveTextContent('Setup')
   })
