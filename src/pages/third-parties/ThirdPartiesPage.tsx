@@ -19,8 +19,10 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Alert from '@mui/material/Alert'
+import Chip from '@mui/material/Chip'
 import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
+import BlockIcon from '@mui/icons-material/Block'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { useTranslation } from 'react-i18next'
@@ -233,17 +235,25 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
   )
 }
 
-// ─── DeleteThirdPartyDialog ────────────────────────────────────────────────────
+// ─── ConfirmActionDialog ───────────────────────────────────────────────────────
 
-interface DeleteThirdPartyDialogProps {
+interface ConfirmActionDialogProps {
   open: boolean
   onClose: () => void
-  thirdParty: ThirdParty | null
+  title: string
+  confirmText: string
+  confirmLabel: string
+  confirmColor?: 'error' | 'warning' | 'success'
+  onConfirm: (onSuccess: () => void, onError: (err: Error) => void) => void
+  isPending: boolean
+  testId?: string
 }
 
-function DeleteThirdPartyDialog({ open, onClose, thirdParty }: DeleteThirdPartyDialogProps) {
+function ConfirmActionDialog({
+  open, onClose, title, confirmText, confirmLabel, confirmColor = 'warning',
+  onConfirm, isPending, testId,
+}: ConfirmActionDialogProps) {
   const { t } = useTranslation()
-  const { deleteThirdParty } = useThirdPartyMutations()
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleClose = () => {
@@ -252,34 +262,30 @@ function DeleteThirdPartyDialog({ open, onClose, thirdParty }: DeleteThirdPartyD
   }
 
   const handleConfirm = () => {
-    if (!thirdParty?.id) return
     setErrorMsg(null)
-    deleteThirdParty.mutate(thirdParty.id, {
-      onSuccess: handleClose,
-      onError: (err) => setErrorMsg(translateApiError(err, t)),
-    })
+    onConfirm(handleClose, (err) => setErrorMsg(translateApiError(err, t)))
   }
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{t('thirdParties.deleteTitle')}</DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         {errorMsg ? (
           <Alert severity="error">{errorMsg}</Alert>
         ) : (
-          <DialogContentText>{t('thirdParties.deleteConfirm')}</DialogContentText>
+          <DialogContentText>{confirmText}</DialogContentText>
         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>{t('common.cancel')}</Button>
         {!errorMsg && (
           <Button
-            color="error"
+            color={confirmColor}
             onClick={handleConfirm}
-            disabled={deleteThirdParty.isPending}
-            data-testid="confirm-delete-tp"
+            disabled={isPending}
+            data-testid={testId}
           >
-            {t('common.delete')}
+            {confirmLabel}
           </Button>
         )}
       </DialogActions>
@@ -292,10 +298,13 @@ function DeleteThirdPartyDialog({ open, onClose, thirdParty }: DeleteThirdPartyD
 export function ThirdPartiesPage() {
   const { t } = useTranslation()
   const { data: thirdParties, isLoading, isError, refetch } = useAllThirdParties()
+  const { deactivateThirdParty, activateThirdParty } = useThirdPartyMutations()
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<ThirdParty | undefined>(undefined)
-  const [deleteTarget, setDeleteTarget] = useState<ThirdParty | null>(null)
+  const [actionTarget, setActionTarget] = useState<ThirdParty | null>(null)
+
+  const isDeactivating = actionTarget?.active !== false
 
   return (
     <Box>
@@ -325,41 +334,69 @@ export function ThirdPartiesPage() {
               <TableCell>{t('thirdParties.name')}</TableCell>
               <TableCell>{t('thirdParties.city')}</TableCell>
               <TableCell>{t('thirdParties.country')}</TableCell>
+              <TableCell>{t('thirdParties.status')}</TableCell>
               <TableCell>{t('thirdParties.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {(thirdParties ?? []).length === 0 && (
               <TableRow>
-                <TableCell colSpan={5}>{t('thirdParties.noThirdParties')}</TableCell>
+                <TableCell colSpan={6}>{t('thirdParties.noThirdParties')}</TableCell>
               </TableRow>
             )}
-            {(thirdParties ?? []).map((tp) => (
-              <TableRow key={tp.id} data-testid={`tp-row-${tp.id}`}>
-                <TableCell>{tp.externalId}</TableCell>
-                <TableCell>{tp.name}</TableCell>
-                <TableCell>{tp.address?.city ?? '—'}</TableCell>
-                <TableCell>{tp.address?.country ?? '—'}</TableCell>
-                <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => { setEditTarget(tp); setFormOpen(true) }}
-                    aria-label={t('common.edit')}
-                    data-testid={`edit-tp-${tp.id}`}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => setDeleteTarget(tp)}
-                    aria-label={t('common.delete')}
-                    data-testid={`delete-tp-${tp.id}`}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+            {(thirdParties ?? []).map((tp) => {
+              const isActive = tp.active !== false
+              return (
+                <TableRow
+                  key={tp.id}
+                  data-testid={`tp-row-${tp.id}`}
+                  sx={{ opacity: isActive ? 1 : 0.5 }}
+                >
+                  <TableCell>{tp.externalId}</TableCell>
+                  <TableCell>{tp.name}</TableCell>
+                  <TableCell>{tp.address?.city ?? '—'}</TableCell>
+                  <TableCell>{tp.address?.country ?? '—'}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={isActive ? t('thirdParties.active') : t('thirdParties.inactive')}
+                      color={isActive ? 'success' : 'default'}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton
+                      size="small"
+                      onClick={() => { setEditTarget(tp); setFormOpen(true) }}
+                      aria-label={t('common.edit')}
+                      data-testid={`edit-tp-${tp.id}`}
+                      disabled={!isActive}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    {isActive ? (
+                      <IconButton
+                        size="small"
+                        onClick={() => setActionTarget(tp)}
+                        aria-label={t('thirdParties.deactivate')}
+                        data-testid={`deactivate-tp-${tp.id}`}
+                      >
+                        <BlockIcon fontSize="small" />
+                      </IconButton>
+                    ) : (
+                      <IconButton
+                        size="small"
+                        onClick={() => setActionTarget(tp)}
+                        aria-label={t('thirdParties.reactivate')}
+                        data-testid={`activate-tp-${tp.id}`}
+                        color="success"
+                      >
+                        <CheckCircleOutlineIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
         </Box>
@@ -371,10 +408,20 @@ export function ThirdPartiesPage() {
         onClose={() => setFormOpen(false)}
         editThirdParty={editTarget}
       />
-      <DeleteThirdPartyDialog
-        open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        thirdParty={deleteTarget}
+      <ConfirmActionDialog
+        open={Boolean(actionTarget)}
+        onClose={() => setActionTarget(null)}
+        title={isDeactivating ? t('thirdParties.deactivateTitle') : t('thirdParties.activateTitle')}
+        confirmText={isDeactivating ? t('thirdParties.deactivateConfirm') : t('thirdParties.activateConfirm')}
+        confirmLabel={isDeactivating ? t('thirdParties.deactivate') : t('thirdParties.reactivate')}
+        confirmColor={isDeactivating ? 'warning' : 'success'}
+        isPending={deactivateThirdParty.isPending || activateThirdParty.isPending}
+        testId={isDeactivating ? 'confirm-deactivate-tp' : 'confirm-activate-tp'}
+        onConfirm={(onSuccess, onError) => {
+          if (!actionTarget?.id) return
+          const mutation = isDeactivating ? deactivateThirdParty : activateThirdParty
+          mutation.mutate(actionTarget.id, { onSuccess, onError })
+        }}
       />
     </Box>
   )

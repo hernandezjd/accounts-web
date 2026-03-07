@@ -65,9 +65,9 @@ describe('translateApiError', () => {
     expect(translateApiError(err, t)).toBe(t('errors.thirdPartyNotFound'))
   })
 
-  it('returns thirdPartyNotDeletable for third party with transactions', () => {
-    const err = new Error('Third party has transactions')
-    expect(translateApiError(err, t)).toBe(t('errors.thirdPartyNotDeletable'))
+  it('returns thirdPartyNotDeactivatable for third party with active transactions', () => {
+    const err = new Error('Cannot deactivate third-party: referenced by active transactions')
+    expect(translateApiError(err, t)).toBe(t('errors.thirdPartyNotDeactivatable'))
   })
 
   it('returns transactionTypeInUse for type in use', () => {

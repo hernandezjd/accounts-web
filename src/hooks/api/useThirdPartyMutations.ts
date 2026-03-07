@@ -42,16 +42,27 @@ export function useThirdPartyMutations() {
     onSuccess: invalidate,
   })
 
-  const deleteThirdParty = useMutation({
+  const deactivateThirdParty = useMutation({
     mutationFn: async (id: string): Promise<void> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).DELETE('/third-parties/{id}', {
+      const { error } = await (commandClient as any).POST('/third-parties/{id}/deactivate', {
         params: { path: { id } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete third party')
+      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to deactivate third party')
     },
     onSuccess: invalidate,
   })
 
-  return { createThirdParty, updateThirdParty, deleteThirdParty }
+  const activateThirdParty = useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (commandClient as any).POST('/third-parties/{id}/activate', {
+        params: { path: { id } },
+      })
+      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to activate third party')
+    },
+    onSuccess: invalidate,
+  })
+
+  return { createThirdParty, updateThirdParty, deactivateThirdParty, activateThirdParty }
 }
