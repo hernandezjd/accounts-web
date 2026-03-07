@@ -83,13 +83,14 @@ export function translateApiError(error: unknown, t: TFunction): string {
     return t('errors.thirdPartyNotFound')
   }
 
-  // Third party not deletable
+  // Third party not deactivatable (has active transactions)
   if (
     lower.includes('third party') ||
+    lower.includes('third-party') ||
     lower.includes('thirdparty') ||
     (lower.includes('has transactions') && lower.includes('balance'))
   ) {
-    return t('errors.thirdPartyNotDeletable')
+    return t('errors.thirdPartyNotDeactivatable')
   }
 
   // Transaction type in use

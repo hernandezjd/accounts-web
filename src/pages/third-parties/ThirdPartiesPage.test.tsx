@@ -35,6 +35,7 @@ const sampleThirdParties: ThirdParty[] = [
       country: 'US',
     },
     phoneNumbers: [],
+    active: true,
   },
   {
     id: 'tp-2',
@@ -48,6 +49,7 @@ const sampleThirdParties: ThirdParty[] = [
       country: 'US',
     },
     phoneNumbers: [],
+    active: false,
   },
 ]
 
@@ -68,20 +70,22 @@ beforeEach(() => {
   mockUseThirdPartyMutations.mockReturnValue({
     createThirdParty: { ...noOpMutation },
     updateThirdParty: { ...noOpMutation },
-    deleteThirdParty: { ...noOpMutation },
+    deactivateThirdParty: { ...noOpMutation },
+    activateThirdParty: { ...noOpMutation },
   })
 })
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('ThirdPartiesPage', () => {
-  it('renders table headers', () => {
+  it('renders table headers including Status', () => {
     renderWithProviders(<ThirdPartiesPage />)
 
     expect(screen.getByText('External ID')).toBeInTheDocument()
     expect(screen.getByText('Name')).toBeInTheDocument()
     expect(screen.getByText('City')).toBeInTheDocument()
     expect(screen.getByText('Country')).toBeInTheDocument()
+    expect(screen.getByText('Status')).toBeInTheDocument()
   })
 
   it('renders third party rows', () => {
@@ -93,13 +97,19 @@ describe('ThirdPartiesPage', () => {
     expect(screen.getByText('Beta LLC')).toBeInTheDocument()
   })
 
+  it('shows Active chip for active and Inactive chip for inactive', () => {
+    renderWithProviders(<ThirdPartiesPage />)
+
+    expect(screen.getByText('Active')).toBeInTheDocument()
+    expect(screen.getByText('Inactive')).toBeInTheDocument()
+  })
+
   it('"New Third Party" button opens create dialog', async () => {
     renderWithProviders(<ThirdPartiesPage />)
 
     await userEvent.click(screen.getByTestId('new-tp-btn'))
 
     await waitFor(() => {
-      // Check for the External ID input that only appears inside the dialog
       expect(screen.getByTestId('tp-external-id-input')).toBeInTheDocument()
     })
   })
@@ -116,52 +126,64 @@ describe('ThirdPartiesPage', () => {
     })
   })
 
-  it('Delete button opens confirmation dialog', async () => {
+  it('Deactivate button opens confirmation dialog for active third party', async () => {
     renderWithProviders(<ThirdPartiesPage />)
 
-    await userEvent.click(screen.getByTestId('delete-tp-tp-1'))
+    await userEvent.click(screen.getByTestId('deactivate-tp-tp-1'))
 
     await waitFor(() => {
-      expect(screen.getByText(/are you sure.*delete this third party/i)).toBeInTheDocument()
+      expect(screen.getByText(/are you sure.*deactivate this third party/i)).toBeInTheDocument()
     })
   })
 
-  it('confirming delete calls deleteThirdParty mutation', async () => {
-    const deleteMutate = vi.fn()
+  it('Activate button opens confirmation dialog for inactive third party', async () => {
+    renderWithProviders(<ThirdPartiesPage />)
+
+    await userEvent.click(screen.getByTestId('activate-tp-tp-2'))
+
+    await waitFor(() => {
+      expect(screen.getByText(/are you sure.*reactivate this third party/i)).toBeInTheDocument()
+    })
+  })
+
+  it('confirming deactivate calls deactivateThirdParty mutation', async () => {
+    const deactivateMutate = vi.fn()
     mockUseThirdPartyMutations.mockReturnValue({
       createThirdParty: { ...noOpMutation },
       updateThirdParty: { ...noOpMutation },
-      deleteThirdParty: { ...noOpMutation, mutate: deleteMutate },
+      deactivateThirdParty: { ...noOpMutation, mutate: deactivateMutate },
+      activateThirdParty: { ...noOpMutation },
     })
 
     renderWithProviders(<ThirdPartiesPage />)
 
-    await userEvent.click(screen.getByTestId('delete-tp-tp-1'))
-    await waitFor(() => screen.getByTestId('confirm-delete-tp'))
-    await userEvent.click(screen.getByTestId('confirm-delete-tp'))
+    await userEvent.click(screen.getByTestId('deactivate-tp-tp-1'))
+    await waitFor(() => screen.getByTestId('confirm-deactivate-tp'))
+    await userEvent.click(screen.getByTestId('confirm-deactivate-tp'))
 
-    expect(deleteMutate).toHaveBeenCalledWith('tp-1', expect.any(Object))
+    expect(deactivateMutate).toHaveBeenCalledWith('tp-1', expect.any(Object))
   })
 
-  it('shows friendly message on 409 delete error', async () => {
-    const deleteMutate = vi.fn((_id, opts) => {
-      opts.onError(new Error('409 Conflict: third party has transactions'))
+  it('shows friendly message on 409 deactivate error', async () => {
+    const deactivateMutate = vi.fn((_id, opts) => {
+      opts.onError(new Error('Cannot deactivate third-party: referenced by active transactions'))
     })
     mockUseThirdPartyMutations.mockReturnValue({
       createThirdParty: { ...noOpMutation },
       updateThirdParty: { ...noOpMutation },
-      deleteThirdParty: { ...noOpMutation, mutate: deleteMutate },
+      deactivateThirdParty: { ...noOpMutation, mutate: deactivateMutate },
+      activateThirdParty: { ...noOpMutation },
     })
 
     renderWithProviders(<ThirdPartiesPage />)
 
-    await userEvent.click(screen.getByTestId('delete-tp-tp-1'))
-    await waitFor(() => screen.getByTestId('confirm-delete-tp'))
-    await userEvent.click(screen.getByTestId('confirm-delete-tp'))
+    await userEvent.click(screen.getByTestId('deactivate-tp-tp-1'))
+    await waitFor(() => screen.getByTestId('confirm-deactivate-tp'))
+    await userEvent.click(screen.getByTestId('confirm-deactivate-tp'))
 
     await waitFor(() => {
       expect(
-        screen.getByText(/has transactions or balances and cannot be deleted/i),
+        screen.getByText(/has active transactions and cannot be deactivated/i),
       ).toBeInTheDocument()
     })
   })
