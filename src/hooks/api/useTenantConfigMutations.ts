@@ -1,14 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
 import type { components } from '@/api/generated/config-command-api'
+import type { TenantConfig } from '@/hooks/api/useTenantConfig'
 
 type TenantConfigResponse = components['schemas']['TenantConfigResponse']
 
 export function useTenantConfigMutations(tenantId: string) {
   const qc = useQueryClient()
 
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ['tenantConfig', tenantId] })
+  const queryKey = ['tenantConfig', tenantId]
+
+  const patchCache = (patch: Partial<TenantConfig>) => {
+    qc.setQueryData<TenantConfig>(queryKey, (old) => (old ? { ...old, ...patch } : old))
+    qc.invalidateQueries({ queryKey })
   }
 
   const headers = { 'X-Tenant-Id': tenantId }
@@ -23,7 +27,7 @@ export function useTenantConfigMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to set initial date')
       return data as TenantConfigResponse
     },
-    onSuccess: invalidate,
+    onSuccess: (_data, initialDate) => patchCache({ systemInitialDate: initialDate }),
   })
 
   const setClosedPeriodDate = useMutation({
@@ -36,7 +40,7 @@ export function useTenantConfigMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to set closed period date')
       return data as TenantConfigResponse
     },
-    onSuccess: invalidate,
+    onSuccess: (_data, closedPeriodDate) => patchCache({ closedPeriodDate }),
   })
 
   const setMinimumAccountLevel = useMutation({
@@ -49,7 +53,7 @@ export function useTenantConfigMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to set minimum account level')
       return data as TenantConfigResponse
     },
-    onSuccess: invalidate,
+    onSuccess: (_data, minimumAccountLevel) => patchCache({ minimumAccountLevel }),
   })
 
   const setSnapshotFrequency = useMutation({
@@ -62,7 +66,7 @@ export function useTenantConfigMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to set snapshot frequency')
       return data as TenantConfigResponse
     },
-    onSuccess: invalidate,
+    onSuccess: (_data, snapshotFrequencyDays) => patchCache({ snapshotFrequencyDays }),
   })
 
   return { setInitialDate, setClosedPeriodDate, setMinimumAccountLevel, setSnapshotFrequency }
