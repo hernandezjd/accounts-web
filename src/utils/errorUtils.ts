@@ -38,6 +38,15 @@ export function translateApiError(error: unknown, t: TFunction): string {
     return t('errors.closedPeriod')
   }
 
+  // Duplicate transaction type name (must come before duplicateTransactionNumber)
+  if (
+    lower.includes('transaction type') &&
+    lower.includes('name') &&
+    (lower.includes('already exists') || lower.includes('duplicate'))
+  ) {
+    return t('errors.duplicateTransactionTypeName')
+  }
+
   // Duplicate transaction number
   if (
     (lower.includes('duplicate') || lower.includes('already exists')) &&

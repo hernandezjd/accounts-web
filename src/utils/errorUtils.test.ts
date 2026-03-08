@@ -30,6 +30,11 @@ describe('translateApiError', () => {
     expect(translateApiError(err, t)).toBe(t('errors.duplicateTransactionNumber'))
   })
 
+  it('returns duplicateTransactionTypeName for duplicate transaction type name error', () => {
+    const err = new Error("A transaction type with name 'Income' already exists")
+    expect(translateApiError(err, t)).toBe(t('errors.duplicateTransactionTypeName'))
+  })
+
   it('returns duplicateCode for duplicate account code error', () => {
     const err = new Error('Account code already exists in this tenant')
     expect(translateApiError(err, t)).toBe(t('errors.duplicateCode'))

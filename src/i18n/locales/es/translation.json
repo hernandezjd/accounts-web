@@ -40,6 +40,7 @@
     "transactionDateBeforeInitialDate": "La fecha de la transacción no puede ser anterior a la fecha inicial del sistema.",
     "duplicateCode": "Ya existe una cuenta con este código.",
     "duplicateTransactionNumber": "Ya existe una transacción con este número para el tipo seleccionado.",
+    "duplicateTransactionTypeName": "Ya existe un tipo de transacción con este nombre.",
     "accountNotDeletable": "Esta cuenta tiene transacciones o subcuentas y no puede desactivarse.",
     "thirdPartyNotDeactivatable": "Este tercero tiene transacciones activas y no puede desactivarse.",
     "thirdPartyRequired": "Se requiere un tercero para esta cuenta.",
