@@ -18,6 +18,7 @@ interface PeriodControlsProps {
   onPrevPeriod: () => void
   onNextPeriod: () => void
   onGranularityChange: (g: Granularity) => void
+  systemInitialDate?: string | null
 }
 
 export function PeriodControls({
@@ -27,10 +28,12 @@ export function PeriodControls({
   onPrevPeriod,
   onNextPeriod,
   onGranularityChange,
+  systemInitialDate,
 }: PeriodControlsProps) {
   const { t, i18n } = useTranslation()
 
   const label = formatPeriodLabel(from, to, granularity, i18n.language)
+  const isPrevDisabled = !!(systemInitialDate && from <= systemInitialDate)
 
   function handleGranularityChange(e: SelectChangeEvent) {
     onGranularityChange(e.target.value as Granularity)
@@ -42,6 +45,7 @@ export function PeriodControls({
         onClick={onPrevPeriod}
         aria-label={t('accounting.period.prevPeriod')}
         size="small"
+        disabled={isPrevDisabled}
       >
         <NavigateBeforeIcon />
       </IconButton>
