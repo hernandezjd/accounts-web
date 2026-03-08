@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { TransactionForm } from './TransactionForm'
@@ -351,5 +351,34 @@ describe('TransactionForm', () => {
     renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
 
     expect(screen.queryByTestId('initial-date-warning')).not.toBeInTheDocument()
+  })
+
+  // FR-070: date before initial date validation
+  it('renders date field with min attribute equal to systemInitialDate', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    const dateInput = screen.getByTestId('date-field').querySelector('input')
+    expect(dateInput).toHaveAttribute('min', '2025-01-01')
+  })
+
+  it('shows error and disables save when entered date is before systemInitialDate', async () => {
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    const dateInput = screen.getByTestId('date-field').querySelector('input')!
+    fireEvent.change(dateInput, { target: { value: '2024-12-31' } })
+
+    expect(screen.getByTestId('date-before-initial-date-error')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /save/i })).toBeDisabled()
+  })
+
+  it('clears error and enables save when date is corrected to equal systemInitialDate', async () => {
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    const dateInput = screen.getByTestId('date-field').querySelector('input')!
+    fireEvent.change(dateInput, { target: { value: '2024-12-31' } })
+    expect(screen.getByTestId('date-before-initial-date-error')).toBeInTheDocument()
+
+    fireEvent.change(dateInput, { target: { value: '2025-01-01' } })
+    expect(screen.queryByTestId('date-before-initial-date-error')).not.toBeInTheDocument()
   })
 })

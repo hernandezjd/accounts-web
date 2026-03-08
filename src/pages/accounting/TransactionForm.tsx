@@ -7,6 +7,7 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
+import FormHelperText from '@mui/material/FormHelperText'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -253,6 +254,12 @@ export function TransactionForm({
   // ── REQ-INIT-09: initial date guard (create mode only) ──
   const initialDateMissing = mode === 'create' && !tenantConfig?.systemInitialDate
 
+  // ── FR-070: date-before-initial-date validation (regular transaction modes) ──
+  const systemInitialDate = tenantConfig?.systemInitialDate ?? null
+  const isRegularMode = mode === 'create' || mode === 'edit'
+  const dateBeforeInitialDate =
+    isRegularMode && !!date && !!systemInitialDate && date < systemInitialDate
+
   // ── Totals ──
   const totalDebits = items.reduce((sum, item) => sum + parseAmount(item.debitAmount), 0)
   const totalCredits = items.reduce((sum, item) => sum + parseAmount(item.creditAmount), 0)
@@ -290,6 +297,7 @@ export function TransactionForm({
   // ── Save ──
   const canSave =
     !initialDateMissing &&
+    !dateBeforeInitialDate &&
     isBalanced &&
     number.trim() &&
     (mode === 'createInitialBalance' || mode === 'editInitialBalance' || (selectedType && date)) &&
@@ -475,16 +483,26 @@ export function TransactionForm({
             data-testid="initial-balance-date"
           />
         ) : (
-          <TextField
-            label={t('transactionForm.date')}
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            size="small"
-            sx={{ minWidth: 160 }}
-            InputLabelProps={{ shrink: true }}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <TextField
+              label={t('transactionForm.date')}
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+              size="small"
+              sx={{ minWidth: 160 }}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ min: systemInitialDate ?? undefined }}
+              error={dateBeforeInitialDate}
+              data-testid="date-field"
+            />
+            {dateBeforeInitialDate && (
+              <FormHelperText error data-testid="date-before-initial-date-error">
+                {t('transactionForm.dateBeforeInitialDate', { date: systemInitialDate })}
+              </FormHelperText>
+            )}
+          </Box>
         )}
 
         <TextField
