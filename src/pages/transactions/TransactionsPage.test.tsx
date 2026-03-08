@@ -22,6 +22,9 @@ vi.mock('@/hooks/api/useTransactionTypes', () => ({
 vi.mock('@/hooks/api/useAccounts', () => ({
   useAccounts: vi.fn(),
 }))
+vi.mock('@/hooks/api/useTenantConfig', () => ({
+  useTenantConfig: vi.fn(),
+}))
 
 // Mock the inline form to avoid setting up all its sub-hooks
 vi.mock('../accounting/TransactionForm', () => ({
@@ -44,10 +47,12 @@ vi.mock('../accounting/TransactionForm', () => ({
 import { useTransactions } from '@/hooks/api/useTransactions'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useAccounts } from '@/hooks/api/useAccounts'
+import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 
 const mockUseTransactions = vi.mocked(useTransactions)
 const mockUseTransactionTypes = vi.mocked(useTransactionTypes)
 const mockUseAccounts = vi.mocked(useAccounts)
+const mockUseTenantConfig = vi.mocked(useTenantConfig)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -111,6 +116,13 @@ beforeEach(() => {
     isError: false,
     error: null,
   } as ReturnType<typeof useAccounts>)
+
+  mockUseTenantConfig.mockReturnValue({
+    data: { systemInitialDate: '2024-01-01', closedPeriodDate: null },
+    isLoading: false,
+    isError: false,
+    error: null,
+  } as ReturnType<typeof useTenantConfig>)
 })
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
