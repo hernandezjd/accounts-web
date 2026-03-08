@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Collapse from '@mui/material/Collapse'
@@ -16,6 +17,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useInitialBalances } from '@/hooks/api/useInitialBalances'
+import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from '@/pages/accounting/TransactionForm'
 
@@ -29,9 +31,12 @@ export function InitialBalancesPage() {
   const { t } = useTranslation()
   const { tenantId } = useParams<{ tenantId: string }>()
   const { data, isLoading, isError } = useInitialBalances(tenantId)
+  const { data: tenantConfig } = useTenantConfig(tenantId)
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
 
   if (!tenantId) return null
+
+  const initialDateMissing = !tenantConfig?.systemInitialDate
 
   return (
     <Box sx={{ p: 3 }}>
@@ -43,11 +48,17 @@ export function InitialBalancesPage() {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setFormConfig({ mode: 'createInitialBalance' })}
-          disabled={!!formConfig}
+          disabled={!!formConfig || initialDateMissing}
         >
           {t('initialBalances.newInitialBalance')}
         </Button>
       </Box>
+
+      {initialDateMissing && (
+        <Alert severity="warning" sx={{ mb: 2 }} data-testid="initial-date-warning">
+          {t('initialBalances.initialDateNotConfiguredWarning')}
+        </Alert>
+      )}
 
       <Collapse in={Boolean(formConfig)} unmountOnExit>
         {formConfig && (
