@@ -10,9 +10,10 @@ export function useTenantConfigMutations(tenantId: string) {
 
   const queryKey = ['tenantConfig', tenantId]
 
-  const patchCache = (patch: Partial<TenantConfig>) => {
+  const patchCache = async (patch: Partial<TenantConfig>) => {
+    await qc.cancelQueries({ queryKey })
     qc.setQueryData<TenantConfig>(queryKey, (old) => (old ? { ...old, ...patch } : old))
-    qc.invalidateQueries({ queryKey })
+    setTimeout(() => qc.invalidateQueries({ queryKey }), 3000)
   }
 
   const headers = { 'X-Tenant-Id': tenantId }
