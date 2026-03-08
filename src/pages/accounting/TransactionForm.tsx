@@ -295,11 +295,13 @@ export function TransactionForm({
     }))
 
   // ── Save ──
+  const isRegularTransactionMode = mode === 'create' || mode === 'edit'
   const canSave =
     !initialDateMissing &&
     !dateBeforeInitialDate &&
     isBalanced &&
     number.trim() &&
+    (!isRegularTransactionMode || description.trim()) &&
     (mode === 'createInitialBalance' || mode === 'editInitialBalance' || (selectedType && date)) &&
     items.every((item) => item.account && (parseAmount(item.debitAmount) > 0 || parseAmount(item.creditAmount) > 0))
 
@@ -503,6 +505,7 @@ export function TransactionForm({
           label={t('transactionForm.description')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          required={isRegularTransactionMode}
           size="small"
           sx={{ minWidth: 240, flexGrow: 1 }}
         />

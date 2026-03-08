@@ -320,20 +320,7 @@ describe('TransactionForm', () => {
     expect(input).toHaveValue('2025-01-01')
   })
 
-  // REQ-INIT-09: warning when initial date not configured
-  it('shows warning alert in create mode when systemInitialDate is null', () => {
-    mockUseTenantConfig.mockReturnValue({
-      data: { systemInitialDate: null, closedPeriodDate: null },
-      isLoading: false,
-      isError: false,
-      error: null,
-    } as ReturnType<typeof useTenantConfig>)
-
-    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
-
-    expect(screen.getByTestId('initial-date-warning')).toBeInTheDocument()
-  })
-
+  // REQ-INIT-09: warning when initial date not configured (warning shown at page level, not in form — see FR-073)
   it('disables save button in create mode when systemInitialDate is null', () => {
     mockUseTenantConfig.mockReturnValue({
       data: { systemInitialDate: null, closedPeriodDate: null },
@@ -351,6 +338,91 @@ describe('TransactionForm', () => {
     renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
 
     expect(screen.queryByTestId('initial-date-warning')).not.toBeInTheDocument()
+  })
+
+  // FR-077: description mandatory for regular transactions
+  it('disables save button when description is empty in create mode', async () => {
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    // Fill required fields except description
+    const numberInput = screen.getByLabelText(/transaction number/i)
+    await userEvent.type(numberInput, 'TXN-001')
+
+    const dateInput = screen.getByTestId('date-field').querySelector('input')!
+    fireEvent.change(dateInput, { target: { value: '2025-06-01' } })
+
+    expect(screen.getByRole('button', { name: /save/i })).toBeDisabled()
+  })
+
+  it('disables save button when description is empty in edit mode', () => {
+    renderWithProviders(
+      <TransactionForm
+        {...defaultProps}
+        mode="edit"
+        transactionId="txn-1"
+        initialData={{
+          transactionTypeId: 'type-1',
+          transactionTypeName: 'Invoice',
+          transactionNumber: 'INV-001',
+          date: '2026-01-15',
+          description: '',
+          items: [
+            {
+              accountId: 'acc-1',
+              accountCode: '1000',
+              accountName: 'Cash',
+              debitAmount: 100,
+              creditAmount: 0,
+            },
+          ],
+        }}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /save/i })).toBeDisabled()
+  })
+
+  it('shows description field as required in create mode', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    const descriptionInput = screen.getByLabelText(/description \*/i)
+    expect(descriptionInput).toBeInTheDocument()
+  })
+
+  it('shows description field as required in edit mode', () => {
+    renderWithProviders(
+      <TransactionForm
+        {...defaultProps}
+        mode="edit"
+        transactionId="txn-1"
+        initialData={{
+          transactionTypeId: 'type-1',
+          transactionTypeName: 'Invoice',
+          transactionNumber: 'INV-001',
+          date: '2026-01-15',
+          description: 'Test',
+          items: [
+            {
+              accountId: 'acc-1',
+              accountCode: '1000',
+              accountName: 'Cash',
+              debitAmount: 100,
+              creditAmount: 0,
+            },
+          ],
+        }}
+      />,
+    )
+
+    const descriptionInput = screen.getByLabelText(/description \*/i)
+    expect(descriptionInput).toBeInTheDocument()
+  })
+
+  it('description field is not required in createInitialBalance mode', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} mode="createInitialBalance" />)
+
+    expect(screen.queryByLabelText(/description \*/i)).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
   })
 
   // FR-070: date before initial date validation
