@@ -37,6 +37,7 @@
     "networkError": "Error de red. Por favor, inténtalo de nuevo.",
     "serverError": "Error del servidor. Por favor, inténtalo más tarde.",
     "closedPeriod": "Esta fecha pertenece a un período cerrado y no puede modificarse.",
+    "transactionDateBeforeInitialDate": "La fecha de la transacción no puede ser anterior a la fecha inicial del sistema.",
     "duplicateCode": "Ya existe una cuenta con este código.",
     "duplicateTransactionNumber": "Ya existe una transacción con este número para el tipo seleccionado.",
     "accountNotDeletable": "Esta cuenta tiene transacciones o subcuentas y no puede desactivarse.",
@@ -390,6 +391,7 @@
     "draftBannerMessage": "Tienes un borrador no guardado. ¿Deseas restaurarlo?",
     "draftRestore": "Restaurar",
     "draftDiscard": "Descartar",
-    "initialDateNotConfiguredWarning": "La fecha inicial del sistema debe configurarse en Configuración antes de ingresar transacciones."
+    "initialDateNotConfiguredWarning": "La fecha inicial del sistema debe configurarse en Configuración antes de ingresar transacciones.",
+    "dateBeforeInitialDate": "La fecha debe ser igual o posterior a la fecha inicial del sistema ({{ date }})."
   }
 }

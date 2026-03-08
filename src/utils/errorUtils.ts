@@ -25,6 +25,14 @@ export function translateApiError(error: unknown, t: TFunction): string {
     return t('errors.networkError')
   }
 
+  // Transaction date before initial date
+  if (
+    lower.includes('transaction_date_before_initial_date') ||
+    lower.includes('before the system initial date')
+  ) {
+    return t('errors.transactionDateBeforeInitialDate')
+  }
+
   // Closed period
   if (lower.includes('closed period') || lower.includes('closed_period')) {
     return t('errors.closedPeriod')
