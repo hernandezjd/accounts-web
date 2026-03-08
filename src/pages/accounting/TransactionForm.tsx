@@ -123,7 +123,7 @@ export function TransactionForm({
   const { t } = useTranslation()
   const { data: transactionTypes } = useTransactionTypes()
   const { data: tenantConfig } = useTenantConfig(
-    mode === 'createInitialBalance' || mode === 'editInitialBalance' ? tenantId : undefined,
+    mode === 'create' || mode === 'createInitialBalance' || mode === 'editInitialBalance' ? tenantId : undefined,
   )
   const { data: accounts } = useAccounts(tenantId)
   const { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance } =
@@ -250,6 +250,9 @@ export function TransactionForm({
     }
   }, [mode, initialData, transactionTypes, selectedType])
 
+  // ── REQ-INIT-09: initial date guard (create mode only) ──
+  const initialDateMissing = mode === 'create' && !tenantConfig?.systemInitialDate
+
   // ── Totals ──
   const totalDebits = items.reduce((sum, item) => sum + parseAmount(item.debitAmount), 0)
   const totalCredits = items.reduce((sum, item) => sum + parseAmount(item.creditAmount), 0)
@@ -286,6 +289,7 @@ export function TransactionForm({
 
   // ── Save ──
   const canSave =
+    !initialDateMissing &&
     isBalanced &&
     number.trim() &&
     (mode === 'createInitialBalance' || mode === 'editInitialBalance' || (selectedType && date)) &&
@@ -414,6 +418,12 @@ export function TransactionForm({
           }
         >
           {t('transactionForm.draftBannerMessage')}
+        </Alert>
+      )}
+
+      {initialDateMissing && (
+        <Alert severity="warning" sx={{ mb: 2 }} data-testid="initial-date-warning">
+          {t('transactionForm.initialDateNotConfiguredWarning')}
         </Alert>
       )}
 

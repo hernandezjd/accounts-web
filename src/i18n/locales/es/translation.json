@@ -347,7 +347,8 @@
     "number": "Número",
     "description": "Descripción",
     "date": "Fecha",
-    "items": "Líneas"
+    "items": "Líneas",
+    "initialDateNotConfiguredWarning": "La fecha inicial del sistema debe configurarse en Configuración antes de ingresar saldos iniciales."
   },
   "transactionForm": {
     "newTransaction": "Nueva Transacción",
@@ -388,6 +389,7 @@
     "country": "País",
     "draftBannerMessage": "Tienes un borrador no guardado. ¿Deseas restaurarlo?",
     "draftRestore": "Restaurar",
-    "draftDiscard": "Descartar"
+    "draftDiscard": "Descartar",
+    "initialDateNotConfiguredWarning": "La fecha inicial del sistema debe configurarse en Configuración antes de ingresar transacciones."
   }
 }

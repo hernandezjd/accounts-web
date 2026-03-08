@@ -347,7 +347,8 @@
     "number": "Number",
     "description": "Description",
     "date": "Date",
-    "items": "Items"
+    "items": "Items",
+    "initialDateNotConfiguredWarning": "The system initial date must be configured in Setup before entering initial balances."
   },
   "transactionForm": {
     "newTransaction": "New Transaction",
@@ -388,6 +389,7 @@
     "country": "Country",
     "draftBannerMessage": "You have an unsaved draft. Would you like to restore it?",
     "draftRestore": "Restore",
-    "draftDiscard": "Discard"
+    "draftDiscard": "Discard",
+    "initialDateNotConfiguredWarning": "The system initial date must be configured in Setup before transactions can be entered."
   }
 }

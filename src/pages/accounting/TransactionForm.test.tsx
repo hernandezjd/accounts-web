@@ -319,4 +319,37 @@ describe('TransactionForm', () => {
     const input = dateField.querySelector('input')
     expect(input).toHaveValue('2025-01-01')
   })
+
+  // REQ-INIT-09: warning when initial date not configured
+  it('shows warning alert in create mode when systemInitialDate is null', () => {
+    mockUseTenantConfig.mockReturnValue({
+      data: { systemInitialDate: null, closedPeriodDate: null },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTenantConfig>)
+
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    expect(screen.getByTestId('initial-date-warning')).toBeInTheDocument()
+  })
+
+  it('disables save button in create mode when systemInitialDate is null', () => {
+    mockUseTenantConfig.mockReturnValue({
+      data: { systemInitialDate: null, closedPeriodDate: null },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTenantConfig>)
+
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    expect(screen.getByRole('button', { name: /save/i })).toBeDisabled()
+  })
+
+  it('does not show warning in create mode when systemInitialDate is set', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    expect(screen.queryByTestId('initial-date-warning')).not.toBeInTheDocument()
+  })
 })
