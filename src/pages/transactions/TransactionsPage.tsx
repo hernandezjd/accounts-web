@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { useTransactions, type Transaction, type TransactionFilters } from '@/hooks/api/useTransactions'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useAccounts } from '@/hooks/api/useAccounts'
+import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { TransactionForm, type TransactionFormInitialData } from '../accounting/TransactionForm'
 
 // ─── TransactionsPage ──────────────────────────────────────────────────────────
@@ -41,6 +42,9 @@ export function TransactionsPage() {
   const { data: transactions, isLoading, isError } = useTransactions(tenantId || null, appliedFilters)
   const { data: transactionTypes } = useTransactionTypes()
   const { data: accounts } = useAccounts(tenantId || null)
+  const { data: tenantConfig } = useTenantConfig(tenantId || null)
+
+  const initialDateMissing = !tenantConfig?.systemInitialDate
 
   const typeOptions = (transactionTypes ?? []).map((tt) => ({ id: tt.id!, name: tt.name! }))
   const accountOptions = (accounts ?? []).map((a) => ({ id: a.id!, label: `${a.code} — ${a.name}` }))
@@ -106,12 +110,19 @@ export function TransactionsPage() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleNewTransaction}
+            disabled={initialDateMissing}
             data-testid="new-transaction-btn"
           >
             {t('transactionsPage.newTransaction')}
           </Button>
         )}
       </Box>
+
+      {initialDateMissing && (
+        <Alert severity="warning" sx={{ mb: 2 }} data-testid="initial-date-warning">
+          {t('transactionsPage.initialDateNotConfiguredWarning')}
+        </Alert>
+      )}
 
       {/* Inline form for create/edit */}
       {activeFormMode !== null && tenantId && (

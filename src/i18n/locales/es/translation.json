@@ -205,7 +205,8 @@
     "actions": "Acciones",
     "loading": "Cargando transacciones...",
     "error": "Error al cargar las transacciones.",
-    "noTransactions": "No se encontraron transacciones."
+    "noTransactions": "No se encontraron transacciones.",
+    "initialDateNotConfiguredWarning": "La fecha inicial del sistema debe configurarse en Configuración antes de ingresar transacciones."
   },
   "reports": {
     "title": "Informes",

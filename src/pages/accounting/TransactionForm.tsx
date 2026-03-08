@@ -429,12 +429,6 @@ export function TransactionForm({
         </Alert>
       )}
 
-      {initialDateMissing && (
-        <Alert severity="warning" sx={{ mb: 2 }} data-testid="initial-date-warning">
-          {t('transactionForm.initialDateNotConfiguredWarning')}
-        </Alert>
-      )}
-
       {errorMsg && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {errorMsg}

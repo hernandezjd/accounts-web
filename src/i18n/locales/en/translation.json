@@ -205,7 +205,8 @@
     "actions": "Actions",
     "loading": "Loading transactions...",
     "error": "Failed to load transactions.",
-    "noTransactions": "No transactions found."
+    "noTransactions": "No transactions found.",
+    "initialDateNotConfiguredWarning": "The system initial date must be configured in Setup before transactions can be entered."
   },
   "reports": {
     "title": "Reports",
