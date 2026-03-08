@@ -14,6 +14,7 @@ import {
   getPrevPeriod,
 } from '@/utils/period'
 import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
+import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { PeriodControls } from './PeriodControls'
 import { AccountTree } from './AccountTree'
@@ -113,6 +114,8 @@ export function AccountingPage() {
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { data, isLoading, isError, refetch } = usePeriodAccountSummary(tenantId, from, to)
+  const { data: tenantConfig } = useTenantConfig(tenantId)
+  const systemInitialDate = tenantConfig?.systemInitialDate
 
   // ── Search bar ref (for "/" shortcut) ─────────────────────────────────────
   const searchBarRef = useRef<SearchBarHandle>(null)
@@ -149,6 +152,10 @@ export function AccountingPage() {
   }
 
   function handlePrevPeriod() {
+    if (systemInitialDate && from <= systemInitialDate) {
+      // Already at or before initial date, don't navigate further back
+      return
+    }
     const prev = getPrevPeriod(from, to, granularity)
     setPeriod(prev.from, prev.to, granularity)
   }
@@ -359,6 +366,7 @@ export function AccountingPage() {
             onPrevPeriod={handlePrevPeriod}
             onNextPeriod={handleNextPeriod}
             onGranularityChange={handleGranularityChange}
+            systemInitialDate={systemInitialDate}
           />
 
           <SearchBar

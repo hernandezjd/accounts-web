@@ -250,7 +250,9 @@
       "noData": "No accounts found at the selected level.",
       "loading": "Loading balances...",
       "error": "Failed to load balance report."
-    }
+    },
+    "dateRangeRestriction": "Data is available from {{ initialDate }} onwards.",
+    "dateBeforeInitial": "Date must be on or after the system initial date."
   },
   "setup": {
     "title": "Setup",

@@ -250,7 +250,9 @@
       "noData": "No se encontraron cuentas en el nivel seleccionado.",
       "loading": "Cargando saldos...",
       "error": "Error al cargar el informe de saldos."
-    }
+    },
+    "dateRangeRestriction": "Los datos están disponibles a partir del {{ initialDate }}.",
+    "dateBeforeInitial": "La fecha debe ser igual o posterior a la fecha inicial del sistema."
   },
   "setup": {
     "title": "Configuración",

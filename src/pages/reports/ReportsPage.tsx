@@ -14,8 +14,10 @@ import TableRow from '@mui/material/TableRow'
 import TableCell from '@mui/material/TableCell'
 import Collapse from '@mui/material/Collapse'
 import CircularProgress from '@mui/material/CircularProgress'
+import Alert from '@mui/material/Alert'
 import { usePeriodReport } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
+import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { QueryErrorAlert } from '@/components/QueryErrorAlert'
 
 // ─── Tab panel helper ────────────────────────────────────────────────────────
@@ -36,7 +38,7 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 
 // ─── Period Report Tab ───────────────────────────────────────────────────────
 
-function PeriodReportTab({ tenantId }: { tenantId: string }) {
+function PeriodReportTab({ tenantId, systemInitialDate }: { tenantId: string; systemInitialDate?: string | null }) {
   const { t } = useTranslation()
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -58,6 +60,9 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
     appliedParams.enabled,
   )
 
+  const isFromDateBeforeInitial = !!(systemInitialDate && fromDate && fromDate < systemInitialDate)
+  const isToDateBeforeInitial = !!(systemInitialDate && toDate && toDate < systemInitialDate)
+
   const handleRun = () => {
     const level = levelStr ? parseInt(levelStr, 10) : undefined
     setAppliedParams({ fromDate, toDate, level, enabled: true })
@@ -70,6 +75,11 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
 
   return (
     <Box>
+      {systemInitialDate && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {t('reports.dateRangeRestriction', { initialDate: systemInitialDate })}
+        </Alert>
+      )}
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
         <TextField
           label={t('reports.form.fromDate')}
@@ -78,7 +88,9 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
           InputLabelProps={{ shrink: true }}
           value={fromDate}
           onChange={(e) => setFromDate(e.target.value)}
-          inputProps={{ 'data-testid': 'period-from-date' }}
+          inputProps={{ min: systemInitialDate || '', 'data-testid': 'period-from-date' }}
+          error={isFromDateBeforeInitial}
+          helperText={isFromDateBeforeInitial ? t('reports.dateBeforeInitial') : ''}
         />
         <TextField
           label={t('reports.form.toDate')}
@@ -87,7 +99,9 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
           InputLabelProps={{ shrink: true }}
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
-          inputProps={{ 'data-testid': 'period-to-date' }}
+          inputProps={{ min: systemInitialDate || '', 'data-testid': 'period-to-date' }}
+          error={isToDateBeforeInitial}
+          helperText={isToDateBeforeInitial ? t('reports.dateBeforeInitial') : ''}
         />
         <TextField
           label={t('reports.form.levelOptional')}
@@ -101,7 +115,7 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
         <Button
           variant="contained"
           onClick={handleRun}
-          disabled={!fromDate || !toDate}
+          disabled={!fromDate || !toDate || isFromDateBeforeInitial || isToDateBeforeInitial}
           data-testid="run-period-report-btn"
         >
           {t('reports.form.run')}
@@ -199,7 +213,7 @@ function PeriodReportTab({ tenantId }: { tenantId: string }) {
 
 // ─── Balance at Date Tab ─────────────────────────────────────────────────────
 
-function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
+function BalanceAtDateTab({ tenantId, systemInitialDate }: { tenantId: string; systemInitialDate?: string | null }) {
   const { t } = useTranslation()
   const [date, setDate] = useState('')
   const [appliedDate, setAppliedDate] = useState('')
@@ -213,6 +227,8 @@ function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
     enabled,
   )
 
+  const isDateBeforeInitial = !!(systemInitialDate && date && date < systemInitialDate)
+
   const handleRun = () => {
     setAppliedDate(date)
     setEnabled(true)
@@ -220,6 +236,11 @@ function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
 
   return (
     <Box>
+      {systemInitialDate && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {t('reports.dateRangeRestriction', { initialDate: systemInitialDate })}
+        </Alert>
+      )}
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
         <TextField
           label={t('reports.form.date')}
@@ -228,12 +249,14 @@ function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
           InputLabelProps={{ shrink: true }}
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          inputProps={{ 'data-testid': 'balance-date' }}
+          inputProps={{ min: systemInitialDate || '', 'data-testid': 'balance-date' }}
+          error={isDateBeforeInitial}
+          helperText={isDateBeforeInitial ? t('reports.dateBeforeInitial') : ''}
         />
         <Button
           variant="contained"
           onClick={handleRun}
-          disabled={!date}
+          disabled={!date || isDateBeforeInitial}
           data-testid="run-balance-at-date-btn"
         >
           {t('reports.form.run')}
@@ -287,7 +310,7 @@ function BalanceAtDateTab({ tenantId }: { tenantId: string }) {
 
 // ─── Balance at Level Tab ────────────────────────────────────────────────────
 
-function BalanceAtLevelTab({ tenantId }: { tenantId: string }) {
+function BalanceAtLevelTab({ tenantId, systemInitialDate }: { tenantId: string; systemInitialDate?: string | null }) {
   const { t } = useTranslation()
   const [date, setDate] = useState('')
   const [levelStr, setLevelStr] = useState('')
@@ -304,15 +327,21 @@ function BalanceAtLevelTab({ tenantId }: { tenantId: string }) {
     appliedParams.enabled,
   )
 
+  const isDateBeforeInitial = !!(systemInitialDate && date && date < systemInitialDate)
+  const canRun = Boolean(date) && Boolean(levelStr) && parseInt(levelStr, 10) >= 1 && !isDateBeforeInitial
+
   const handleRun = () => {
     const level = levelStr ? parseInt(levelStr, 10) : undefined
     setAppliedParams({ date, level, enabled: true })
   }
 
-  const canRun = Boolean(date) && Boolean(levelStr) && parseInt(levelStr, 10) >= 1
-
   return (
     <Box>
+      {systemInitialDate && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {t('reports.dateRangeRestriction', { initialDate: systemInitialDate })}
+        </Alert>
+      )}
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
         <TextField
           label={t('reports.form.date')}
@@ -321,7 +350,9 @@ function BalanceAtLevelTab({ tenantId }: { tenantId: string }) {
           InputLabelProps={{ shrink: true }}
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          inputProps={{ 'data-testid': 'level-date' }}
+          inputProps={{ min: systemInitialDate || '', 'data-testid': 'level-date' }}
+          error={isDateBeforeInitial}
+          helperText={isDateBeforeInitial ? t('reports.dateBeforeInitial') : ''}
         />
         <TextField
           label={t('reports.form.level')}
@@ -395,6 +426,7 @@ export function ReportsPage() {
   const { t } = useTranslation()
   const { tenantId = '' } = useParams<{ tenantId: string }>()
   const [activeTab, setActiveTab] = useState(0)
+  const { data: tenantConfig } = useTenantConfig(tenantId)
 
   return (
     <Box>
@@ -409,13 +441,13 @@ export function ReportsPage() {
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
-        <PeriodReportTab tenantId={tenantId} />
+        <PeriodReportTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} />
       </TabPanel>
       <TabPanel value={activeTab} index={1}>
-        <BalanceAtDateTab tenantId={tenantId} />
+        <BalanceAtDateTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} />
       </TabPanel>
       <TabPanel value={activeTab} index={2}>
-        <BalanceAtLevelTab tenantId={tenantId} />
+        <BalanceAtLevelTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} />
       </TabPanel>
     </Box>
   )
