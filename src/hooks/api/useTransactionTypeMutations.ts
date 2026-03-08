@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
 import type { components } from '@/api/generated/transaction-type-command-api'
+import type { TransactionType } from '@/hooks/api/useTransactionTypes'
 
 type CreateTransactionTypeRequest = components['schemas']['CreateTransactionTypeRequest']
 type UpdateTransactionTypeRequest = components['schemas']['UpdateTransactionTypeRequest']
@@ -9,7 +10,20 @@ type TransactionTypeCommandResponse = components['schemas']['TransactionTypeComm
 export function useTransactionTypeMutations() {
   const qc = useQueryClient()
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['transactionTypes'] })
+  const queryKey = ['transactionTypes']
+
+  const cancelAndDelayInvalidate = async () => {
+    await qc.cancelQueries({ queryKey })
+    setTimeout(() => qc.invalidateQueries({ queryKey }), 3000)
+  }
+
+  const patchAllCaches = (patch: (list: TransactionType[]) => TransactionType[]) => {
+    qc.getQueryCache()
+      .findAll({ queryKey })
+      .forEach(({ queryKey: key }) => {
+        qc.setQueryData<TransactionType[]>(key, (old) => (old ? patch(old) : old))
+      })
+  }
 
   const createTransactionType = useMutation({
     mutationFn: async (body: CreateTransactionTypeRequest): Promise<TransactionTypeCommandResponse> => {
@@ -21,7 +35,11 @@ export function useTransactionTypeMutations() {
         throw new Error((error as { error?: string }).error ?? 'Failed to create transaction type')
       return data as TransactionTypeCommandResponse
     },
-    onSuccess: invalidate,
+    onSuccess: async (data, variables) => {
+      await cancelAndDelayInvalidate()
+      const newType: TransactionType = { id: data.id, name: variables.name }
+      patchAllCaches((old) => [...old, newType])
+    },
   })
 
   const updateTransactionType = useMutation({
@@ -41,7 +59,10 @@ export function useTransactionTypeMutations() {
         throw new Error((error as { error?: string }).error ?? 'Failed to update transaction type')
       return data as TransactionTypeCommandResponse
     },
-    onSuccess: invalidate,
+    onSuccess: async (_data, { id, body }) => {
+      await cancelAndDelayInvalidate()
+      patchAllCaches((old) => old.map((t) => (t.id === id ? { ...t, name: body.name } : t)))
+    },
   })
 
   const deleteTransactionType = useMutation({
@@ -53,7 +74,10 @@ export function useTransactionTypeMutations() {
       if (error)
         throw new Error((error as { error?: string }).error ?? 'Failed to delete transaction type')
     },
-    onSuccess: invalidate,
+    onSuccess: async (_data, id) => {
+      await cancelAndDelayInvalidate()
+      patchAllCaches((old) => old.filter((t) => t.id !== id))
+    },
   })
 
   return { createTransactionType, updateTransactionType, deleteTransactionType }
