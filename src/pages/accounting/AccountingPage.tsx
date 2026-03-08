@@ -113,9 +113,28 @@ export function AccountingPage() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  const { data, isLoading, isError, refetch } = usePeriodAccountSummary(tenantId, from, to)
-  const { data: tenantConfig } = useTenantConfig(tenantId)
+  const { data: tenantConfig, isLoading: isConfigLoading } = useTenantConfig(tenantId)
   const systemInitialDate = tenantConfig?.systemInitialDate
+
+  // Clamp `from` so we never request data before systemInitialDate.
+  // This matters when systemInitialDate falls mid-period (e.g. initial=Apr 8,
+  // period=Apr 1–30: we send Apr 8–30 to the backend instead of Apr 1–30).
+  const effectiveFrom =
+    systemInitialDate && from < systemInitialDate ? systemInitialDate : from
+
+  const { data, isLoading, isError, refetch } = usePeriodAccountSummary(tenantId, effectiveFrom, to)
+
+  // ── Snap period forward if it ends before systemInitialDate ──────────────
+  // Use `to < systemInitialDate` (not `from`) so a yearly period that straddles
+  // the initial date (e.g. 2026-01-01–2026-12-31 with initial=2026-04-01) is
+  // kept as-is. Only entirely-before periods (March 2026, Q1 2026, etc.) snap.
+  useEffect(() => {
+    if (systemInitialDate && to < systemInitialDate) {
+      const adjusted = getPeriodContaining(systemInitialDate, granularity)
+      setPeriod(adjusted.from, adjusted.to, granularity)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [systemInitialDate, to, granularity])
 
   // ── Search bar ref (for "/" shortcut) ─────────────────────────────────────
   const searchBarRef = useRef<SearchBarHandle>(null)
@@ -386,7 +405,7 @@ export function AccountingPage() {
               </Box>
             )}
 
-            {isError && (
+            {isError && !isConfigLoading && !(systemInitialDate && to < systemInitialDate) && (
               <QueryErrorAlert message={t('accounting.error')} onRetry={refetch} />
             )}
 
