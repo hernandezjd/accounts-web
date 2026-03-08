@@ -40,6 +40,7 @@
     "transactionDateBeforeInitialDate": "Transaction date cannot be before the system initial date.",
     "duplicateCode": "An account with this code already exists.",
     "duplicateTransactionNumber": "A transaction with this number already exists for the selected type.",
+    "duplicateTransactionTypeName": "A transaction type with this name already exists.",
     "accountNotDeletable": "This account has transactions or child accounts and cannot be deactivated.",
     "thirdPartyNotDeactivatable": "This third party has active transactions and cannot be deactivated.",
     "thirdPartyRequired": "A third party is required for this account.",
