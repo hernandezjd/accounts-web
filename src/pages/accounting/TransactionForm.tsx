@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
-import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
@@ -17,7 +16,6 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { useTranslation } from 'react-i18next'
-import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
@@ -25,6 +23,7 @@ import { translateApiError } from '@/utils/errorUtils'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { AccountSearchField, type AccountOption } from './AccountSearchField'
 import { ThirdPartySearchField, type ThirdPartyOption } from './ThirdPartySearchField'
+import { TransactionTypeSearchField, type TransactionTypeOption } from './TransactionTypeSearchField'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,11 +35,6 @@ interface FormItem {
   thirdParty: ThirdPartyOption | null
   debitAmount: string
   creditAmount: string
-}
-
-interface TransactionTypeOption {
-  id: string
-  name: string
 }
 
 export interface TransactionFormInitialData {
@@ -122,7 +116,6 @@ export function TransactionForm({
   onCancel,
 }: TransactionFormProps) {
   const { t } = useTranslation()
-  const { data: transactionTypes } = useTransactionTypes()
   const { data: tenantConfig } = useTenantConfig(
     mode === 'create' || mode === 'createInitialBalance' || mode === 'editInitialBalance' ? tenantId : undefined,
   )
@@ -243,13 +236,6 @@ export function TransactionForm({
       }),
     )
   }, [accounts, initialData])
-
-  // Reset type if transaction types load and we're in create mode
-  useEffect(() => {
-    if (mode === 'create' && !initialData && transactionTypes?.length && !selectedType) {
-      // Leave null – user must select
-    }
-  }, [mode, initialData, transactionTypes, selectedType])
 
   // ── REQ-INIT-09: initial date guard (create mode only) ──
   const initialDateMissing = mode === 'create' && !tenantConfig?.systemInitialDate
@@ -441,22 +427,9 @@ export function TransactionForm({
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
         {/* Type — hidden for initial balance modes */}
         {mode !== 'createInitialBalance' && mode !== 'editInitialBalance' && (
-          <Autocomplete<TransactionTypeOption>
-            options={(transactionTypes ?? []).map((tt) => ({ id: tt.id!, name: tt.name! }))}
+          <TransactionTypeSearchField
             value={selectedType}
-            onChange={(_, v) => setSelectedType(v)}
-            getOptionLabel={(opt) => opt.name}
-            isOptionEqualToValue={(a, b) => a.id === b.id}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label={t('transactionForm.transactionType')}
-                required
-                size="small"
-              />
-            )}
-            sx={{ minWidth: 200 }}
-            size="small"
+            onChange={(v) => setSelectedType(v)}
           />
         )}
 
