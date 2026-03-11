@@ -103,7 +103,7 @@ export function AccountSearchField({ tenantId, value, onChange }: AccountSearchF
             id: created.id,
             code: created.code,
             name: created.name,
-            hasThirdParties: false,
+            hasThirdParties: created.hasThirdParties,
           })
           setDialogOpen(false)
         }}
