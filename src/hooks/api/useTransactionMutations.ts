@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
 import type { components as TxnCmd } from '@/api/generated/transaction-command-api'
 import type { components as IbCmd } from '@/api/generated/initial-balance-command-api'
+import type { InitialBalance } from '@/hooks/api/useInitialBalances'
 
 type CreateTransactionRequest = TxnCmd['schemas']['CreateTransactionRequest']
 type EditTransactionRequest = TxnCmd['schemas']['EditTransactionRequest']
@@ -15,6 +16,24 @@ export function useTransactionMutations(tenantId: string) {
     qc.invalidateQueries({ queryKey: ['accountTransactions', tenantId] })
     qc.invalidateQueries({ queryKey: ['transactions', tenantId] })
     qc.invalidateQueries({ queryKey: ['initialBalances', tenantId] })
+  }
+
+  const patchInitialBalanceCache = (newBalance: InitialBalance) => {
+    const queryKey = ['initialBalances', tenantId]
+    qc.cancelQueries({ queryKey })
+    qc.setQueryData<InitialBalance[]>(queryKey, (old) =>
+      old ? [...old, newBalance] : old
+    )
+    setTimeout(() => qc.invalidateQueries({ queryKey }), 3000)
+  }
+
+  const updateInitialBalanceInCache = (id: string, updated: InitialBalance) => {
+    const queryKey = ['initialBalances', tenantId]
+    qc.cancelQueries({ queryKey })
+    qc.setQueryData<InitialBalance[]>(queryKey, (old) =>
+      old ? old.map((ib) => (ib.id === id ? updated : ib)) : old
+    )
+    setTimeout(() => qc.invalidateQueries({ queryKey }), 3000)
   }
 
   const createTransaction = useMutation({
@@ -64,7 +83,7 @@ export function useTransactionMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create initial balance')
       return data
     },
-    onSuccess: invalidate,
+    onSuccess: (data) => patchInitialBalanceCache(data as InitialBalance),
   })
 
   const editInitialBalance = useMutation({
@@ -77,7 +96,7 @@ export function useTransactionMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to edit initial balance')
       return data
     },
-    onSuccess: invalidate,
+    onSuccess: (data) => updateInitialBalanceInCache(data.id as string, data as InitialBalance),
   })
 
   const deleteInitialBalance = useMutation({
