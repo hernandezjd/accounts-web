@@ -11,13 +11,23 @@ export function useThirdPartyMutations() {
   const qc = useQueryClient()
 
   /**
-   * Invalidate all third-party related queries.
+   * Invalidate all third-party related queries and force immediate refetch.
    * Third-party mutations affect: third-party lists and transaction forms that reference third-parties.
    */
-  const invalidateThirdPartyQueries = () => {
+  const invalidateThirdPartyQueries = async () => {
     // Invalidate both global and tenant-scoped variants
-    qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() })
-    qc.invalidateQueries({ queryKey: queryKeys.transactions.all() })
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
+      qc.invalidateQueries({ queryKey: queryKeys.transactions.all() }),
+    ])
+    // Force immediate refetch of active third-party queries
+    await qc.refetchQueries({
+      predicate: (query) => {
+        const key = query.queryKey
+        return Array.isArray(key) && key[0] === 'third-parties'
+      },
+      type: 'active',
+    })
   }
 
   const createThirdParty = useMutation({
@@ -29,7 +39,9 @@ export function useThirdPartyMutations() {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create third party')
       return data as ThirdPartyCommandResponse
     },
-    onSuccess: invalidateThirdPartyQueries,
+    onSuccess: async () => {
+      await invalidateThirdPartyQueries()
+    },
   })
 
   const updateThirdParty = useMutation({
@@ -48,7 +60,9 @@ export function useThirdPartyMutations() {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to update third party')
       return data as ThirdPartyCommandResponse
     },
-    onSuccess: invalidateThirdPartyQueries,
+    onSuccess: async () => {
+      await invalidateThirdPartyQueries()
+    },
   })
 
   const deactivateThirdParty = useMutation({
@@ -59,7 +73,9 @@ export function useThirdPartyMutations() {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to deactivate third party')
     },
-    onSuccess: invalidateThirdPartyQueries,
+    onSuccess: async () => {
+      await invalidateThirdPartyQueries()
+    },
   })
 
   const activateThirdParty = useMutation({
@@ -70,7 +86,9 @@ export function useThirdPartyMutations() {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to activate third party')
     },
-    onSuccess: invalidateThirdPartyQueries,
+    onSuccess: async () => {
+      await invalidateThirdPartyQueries()
+    },
   })
 
   return { createThirdParty, updateThirdParty, deactivateThirdParty, activateThirdParty }

@@ -12,6 +12,19 @@ type AccountCommandResponse = components['schemas']['AccountCommandResponse']
 export function useAccountMutations(tenantId: string) {
   const qc = useQueryClient()
 
+  /**
+   * Force refetch of all account list queries (with any filters)
+   */
+  const refetchAccountQueries = async () => {
+    await qc.refetchQueries({
+      predicate: (query) => {
+        const key = query.queryKey
+        return Array.isArray(key) && key[0] === 'accounts' && key[1] === 'list'
+      },
+      type: 'active',
+    })
+  }
+
   const createAccount = useMutation({
     mutationFn: async (body: CreateAccountRequest): Promise<AccountCommandResponse> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,8 +64,9 @@ export function useAccountMutations(tenantId: string) {
       }
       // Delay the authoritative refetch to avoid a race where the query service
       // hasn't yet projected the event, which would overwrite the optimistic data.
-      setTimeout(() => {
-        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+      setTimeout(async () => {
+        await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+        await refetchAccountQueries()
       }, 500)
     },
   })
@@ -73,8 +87,9 @@ export function useAccountMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to update account')
       return data as AccountCommandResponse
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+      await refetchAccountQueries()
     },
   })
 
@@ -86,10 +101,13 @@ export function useAccountMutations(tenantId: string) {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to deactivate account')
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Deactivation affects accounts, third-parties, and reports
-      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
-      qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() })
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
+        qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
+      ])
+      await refetchAccountQueries()
     },
   })
 
@@ -101,10 +119,13 @@ export function useAccountMutations(tenantId: string) {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to activate account')
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Activation affects accounts, third-parties, and reports
-      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
-      qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() })
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
+        qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
+      ])
+      await refetchAccountQueries()
     },
   })
 
@@ -126,10 +147,13 @@ export function useAccountMutations(tenantId: string) {
           (error as { error?: string }).error ?? 'Failed to toggle has-third-parties',
         )
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Toggle affects accounts and third-parties
-      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
-      qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() })
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
+        qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
+      ])
+      await refetchAccountQueries()
     },
   })
 

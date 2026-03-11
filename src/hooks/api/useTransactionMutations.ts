@@ -16,12 +16,15 @@ export function useTransactionMutations(tenantId: string) {
   /**
    * Invalidate all transaction and initial balance related queries.
    * Transaction mutations affect: transaction lists, account balances, and reports.
+   * Returns a Promise that resolves when invalidation is complete.
    */
-  const invalidateTransactionQueries = () => {
-    qc.invalidateQueries({ queryKey: queryKeys.transactions.all() })
-    qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() })
-    qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
-    qc.invalidateQueries({ queryKey: queryKeys.reports.all() })
+  const invalidateTransactionQueries = async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: queryKeys.transactions.all() }),
+      qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() }),
+      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
+      qc.invalidateQueries({ queryKey: queryKeys.reports.all() }),
+    ])
   }
 
   /**
@@ -79,7 +82,18 @@ export function useTransactionMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create transaction')
       return data
     },
-    onSuccess: invalidateTransactionQueries,
+    onSuccess: async () => {
+      await invalidateTransactionQueries()
+      // Force immediate refetch to ensure UI updates without delay
+      await qc.refetchQueries({
+        predicate: (query) => {
+          // Refetch all transaction list queries (with any filters)
+          const key = query.queryKey
+          return Array.isArray(key) && key[0] === 'transactions' && key[1] === 'list'
+        },
+        type: 'active',
+      })
+    },
   })
 
   const editTransaction = useMutation({
@@ -92,7 +106,18 @@ export function useTransactionMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to edit transaction')
       return data
     },
-    onSuccess: invalidateTransactionQueries,
+    onSuccess: async () => {
+      await invalidateTransactionQueries()
+      // Force immediate refetch to ensure UI updates without delay
+      await qc.refetchQueries({
+        predicate: (query) => {
+          // Refetch all transaction list queries (with any filters)
+          const key = query.queryKey
+          return Array.isArray(key) && key[0] === 'transactions' && key[1] === 'list'
+        },
+        type: 'active',
+      })
+    },
   })
 
   const deleteTransaction = useMutation({
@@ -103,7 +128,18 @@ export function useTransactionMutations(tenantId: string) {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete transaction')
     },
-    onSuccess: invalidateTransactionQueries,
+    onSuccess: async () => {
+      await invalidateTransactionQueries()
+      // Force immediate refetch to ensure UI updates without delay
+      await qc.refetchQueries({
+        predicate: (query) => {
+          // Refetch all transaction list queries (with any filters)
+          const key = query.queryKey
+          return Array.isArray(key) && key[0] === 'transactions' && key[1] === 'list'
+        },
+        type: 'active',
+      })
+    },
   })
 
   const createInitialBalance = useMutation({
