@@ -11,9 +11,12 @@ import Popover from '@mui/material/Popover'
 import Switch from '@mui/material/Switch'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTranslation } from 'react-i18next'
 import { useUnifiedSearch } from '@/hooks/api/useUnifiedSearch'
+import { formatError } from '@/lib/error/useErrorHandler'
 import type { components } from '@/api/generated/reporting-api'
 
 type AccountSearchResult = components['schemas']['AccountSearchResult']
@@ -40,6 +43,7 @@ export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function Se
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [allHistory, setAllHistory] = useState(false)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+  const [displayedError, setDisplayedError] = useState<ReturnType<typeof formatError> | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useImperativeHandle(ref, () => ({
@@ -57,7 +61,16 @@ export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function Se
   const fromDate = allHistory ? undefined : from
   const toDate = allHistory ? undefined : to
 
-  const { data, isLoading } = useUnifiedSearch(tenantId, debouncedQuery, fromDate, toDate)
+  const { data, isLoading, isError, error } = useUnifiedSearch(tenantId, debouncedQuery, fromDate, toDate)
+
+  // Format error when it changes
+  useEffect(() => {
+    if (error) {
+      setDisplayedError(formatError(error))
+    } else {
+      setDisplayedError(null)
+    }
+  }, [error])
 
   const open = debouncedQuery.trim().length >= 1 && Boolean(anchorEl)
 
@@ -106,7 +119,7 @@ export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function Se
   const accounts = data?.accounts ?? []
   const transactions = data?.transactions ?? []
   const hasResults = accounts.length > 0 || transactions.length > 0
-  const showNoResults = !isLoading && debouncedQuery.trim().length >= 1 && !hasResults && data !== undefined
+  const showNoResults = !isLoading && !isError && debouncedQuery.trim().length >= 1 && !hasResults && data !== undefined
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -166,6 +179,21 @@ export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function Se
             <Typography variant="body2" color="text.secondary">
               {t('accounting.search.loading')}
             </Typography>
+          </Box>
+        )}
+
+        {displayedError && (
+          <Box sx={{ p: 2 }}>
+            <Alert
+              severity="error"
+              action={
+                <Button color="inherit" size="small" onClick={() => setDebouncedQuery(inputValue)}>
+                  {t('errors.retry')}
+                </Button>
+              }
+            >
+              {displayedError.userMessage}
+            </Alert>
           </Box>
         )}
 
