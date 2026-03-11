@@ -54,6 +54,21 @@ export function useTransactionMutations(tenantId: string) {
     setTimeout(() => qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() }), 1000)
   }
 
+  /**
+   * Cache removal for initial balance deletion:
+   * - Immediately remove from cache so UI reflects deletion
+   * - Schedule refetch to ensure consistency with server
+   */
+  const removeInitialBalanceFromCache = (id: string) => {
+    const listKey = queryKeys.initialBalances.list(tenantId)
+    qc.cancelQueries({ queryKey: listKey })
+    qc.setQueryData<InitialBalance[]>(listKey, (old) =>
+      old ? old.filter((ib) => ib.id !== id) : old
+    )
+    // Background refetch after delay to verify consistency
+    setTimeout(() => qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() }), 1000)
+  }
+
   const createTransaction = useMutation({
     mutationFn: async (body: CreateTransactionRequest) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,8 +139,9 @@ export function useTransactionMutations(tenantId: string) {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete initial balance')
+      return id
     },
-    onSuccess: invalidateTransactionQueries,
+    onSuccess: (id) => removeInitialBalanceFromCache(id),
   })
 
   return { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance }
