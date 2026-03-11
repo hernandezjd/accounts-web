@@ -491,7 +491,6 @@ function AccountingConfigTab({ tenantId }: { tenantId: string }) {
   ) => {
     setEditError(null)
     mutationFn(value)
-    setEditMode(null)
   }
 
   const rows: {

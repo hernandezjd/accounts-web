@@ -38,6 +38,7 @@
     "serverError": "Error del servidor. Por favor, inténtalo más tarde.",
     "closedPeriod": "Esta fecha pertenece a un período cerrado y no puede modificarse.",
     "transactionDateBeforeInitialDate": "La fecha de la transacción no puede ser anterior a la fecha inicial del sistema.",
+    "initialDateConflict": "La fecha inicial no puede establecerse a este valor porque hay transacciones existentes o la fecha de cierre de período entra en conflicto.",
     "duplicateCode": "Ya existe una cuenta con este código.",
     "duplicateTransactionNumber": "Ya existe una transacción con este número para el tipo seleccionado.",
     "duplicateTransactionTypeName": "Ya existe un tipo de transacción con este nombre.",
