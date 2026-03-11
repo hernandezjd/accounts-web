@@ -72,6 +72,13 @@ const loadingResult = {
   isError: false,
 }
 
+const errorResult = {
+  data: undefined,
+  isLoading: false,
+  isError: true,
+  error: new Error('Failed to fetch search results'),
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('SearchBar', () => {
@@ -229,5 +236,42 @@ describe('SearchBar', () => {
     await waitFor(() => {
       expect(screen.getByText(/searching/i)).toBeInTheDocument()
     })
+  })
+
+  it('shouldShowErrorAlert_whenSearchFails', async () => {
+    mockUseSearch.mockReturnValue(errorResult as ReturnType<typeof useUnifiedSearch>)
+
+    renderWithProviders(<SearchBar {...defaultProps} />)
+
+    const input = screen.getByRole('textbox')
+    await userEvent.type(input, 'xyz')
+
+    await waitFor(() => {
+      // Verify error alert appears instead of "no results"
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(screen.getByText(/error occurred/i)).toBeInTheDocument()
+      expect(screen.queryByText(/no results found/i)).not.toBeInTheDocument()
+    })
+  })
+
+  it('shouldShowRetryButton_whenSearchFails', async () => {
+    mockUseSearch.mockReturnValue(errorResult as ReturnType<typeof useUnifiedSearch>)
+
+    renderWithProviders(<SearchBar {...defaultProps} />)
+
+    const input = screen.getByRole('textbox')
+    await userEvent.type(input, 'xyz')
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+
+    // Verify retry button is present
+    const retryButton = screen.getByRole('button', { name: /try again/i })
+    expect(retryButton).toBeInTheDocument()
+
+    // Verify retry button is clickable
+    fireEvent.click(retryButton)
+    expect(retryButton).toBeInTheDocument()
   })
 })
