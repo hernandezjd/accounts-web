@@ -454,4 +454,116 @@ describe('TransactionForm', () => {
     fireEvent.change(dateInput, { target: { value: '2025-01-01' } })
     expect(screen.queryByTestId('date-before-initial-date-error')).not.toBeInTheDocument()
   })
+
+  // FR-085: debit/credit field input validation
+  it('renders debit and credit fields with correct testid', () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    expect(within(row).getByTestId('debit-input')).toBeInTheDocument()
+    expect(within(row).getByTestId('credit-input')).toBeInTheDocument()
+  })
+
+  it('accepts valid digit input in debit field', async () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    const debitInput = within(row).getByTestId('debit-input').querySelector('input')!
+    await userEvent.type(debitInput, '100')
+
+    expect(debitInput).toHaveValue('100')
+  })
+
+  it('accepts valid digit input in credit field', async () => {
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    const creditInput = within(row).getByTestId('credit-input').querySelector('input')!
+    await userEvent.type(creditInput, '100')
+
+    expect(creditInput).toHaveValue('100')
+  })
+
+  it('normalises comma to dot in debit field', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    const debitInput = within(row).getByTestId('debit-input').querySelector('input')!
+    await user.type(debitInput, '12,50')
+
+    expect(debitInput).toHaveValue('12.50')
+  })
+
+  it('normalises comma to dot in credit field', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    const creditInput = within(row).getByTestId('credit-input').querySelector('input')!
+    await user.type(creditInput, '12,50')
+
+    expect(creditInput).toHaveValue('12.50')
+  })
+
+  it('blocks invalid keys in debit field', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    const debitInput = within(row).getByTestId('debit-input').querySelector('input')!
+    await user.type(debitInput, '100a')
+
+    // 'a' should be blocked, only '100' remains
+    expect(debitInput).toHaveValue('100')
+  })
+
+  it('blocks invalid keys in credit field', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    const creditInput = within(row).getByTestId('credit-input').querySelector('input')!
+    await user.type(creditInput, '100-')
+
+    // '-' should be blocked, only '100' remains
+    expect(creditInput).toHaveValue('100')
+  })
+
+
+  it('preserves mutual-exclusion: entering debit clears credit', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    const debitInput = within(row).getByTestId('debit-input').querySelector('input')!
+    const creditInput = within(row).getByTestId('credit-input').querySelector('input')!
+
+    // Enter credit first
+    await user.type(creditInput, '100')
+    expect(creditInput).toHaveValue('100')
+
+    // Enter debit — should clear credit
+    await user.type(debitInput, '50')
+    expect(debitInput).toHaveValue('50')
+    expect(creditInput).toHaveValue('')
+  })
+
+  it('preserves mutual-exclusion: entering credit clears debit', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionForm {...defaultProps} />)
+
+    const row = screen.getByTestId('form-item-row')
+    const debitInput = within(row).getByTestId('debit-input').querySelector('input')!
+    const creditInput = within(row).getByTestId('credit-input').querySelector('input')!
+
+    // Enter debit first
+    await user.type(debitInput, '100')
+    expect(debitInput).toHaveValue('100')
+
+    // Enter credit — should clear debit
+    await user.type(creditInput, '50')
+    expect(creditInput).toHaveValue('50')
+    expect(debitInput).toHaveValue('')
+  })
 })

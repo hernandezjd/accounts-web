@@ -101,8 +101,33 @@ function makeEmptyItem(): FormItem {
 }
 
 function parseAmount(s: string): number {
-  const n = parseFloat(s)
+  const n = parseFloat(s.replace(',', '.'))
   return isNaN(n) ? 0 : n
+}
+
+/** Normalise comma decimal separator to dot before storing in state. */
+function normaliseAmountInput(raw: string): string {
+  return raw.replace(',', '.')
+}
+
+/** Allow only digits and a single decimal separator; block everything else. */
+function handleAmountKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  const allowed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ',',
+    'Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']
+  if (!allowed.includes(e.key) && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault()
+  }
+}
+
+/** Strip invalid characters from pasted text. */
+function handleAmountPaste(
+  e: React.ClipboardEvent<HTMLInputElement>,
+  onParsed: (value: string) => void
+) {
+  e.preventDefault()
+  const raw = e.clipboardData.getData('text')
+  const cleaned = raw.replace(/[^0-9.,]/g, '').replace(',', '.')
+  onParsed(cleaned)
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -526,18 +551,42 @@ export function TransactionForm({
 
             <TextField
               value={item.debitAmount}
-              onChange={(e) => updateItem(item.id, { debitAmount: e.target.value, creditAmount: '' })}
+              onChange={(e) =>
+                updateItem(item.id, {
+                  debitAmount: normaliseAmountInput(e.target.value),
+                  creditAmount: '',
+                })
+              }
+              onKeyDown={handleAmountKeyDown}
+              onPaste={(e) =>
+                handleAmountPaste(e, (v) =>
+                  updateItem(item.id, { debitAmount: v, creditAmount: '' })
+                )
+              }
               size="small"
               sx={{ width: 110 }}
-              inputProps={{ style: { textAlign: 'right' } }}
+              inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
+              data-testid="debit-input"
             />
 
             <TextField
               value={item.creditAmount}
-              onChange={(e) => updateItem(item.id, { creditAmount: e.target.value, debitAmount: '' })}
+              onChange={(e) =>
+                updateItem(item.id, {
+                  creditAmount: normaliseAmountInput(e.target.value),
+                  debitAmount: '',
+                })
+              }
+              onKeyDown={handleAmountKeyDown}
+              onPaste={(e) =>
+                handleAmountPaste(e, (v) =>
+                  updateItem(item.id, { creditAmount: v, debitAmount: '' })
+                )
+              }
               size="small"
               sx={{ width: 110 }}
-              inputProps={{ style: { textAlign: 'right' } }}
+              inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
+              data-testid="credit-input"
             />
 
             <IconButton
