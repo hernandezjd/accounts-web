@@ -38,6 +38,7 @@
     "serverError": "Server error. Please try again later.",
     "closedPeriod": "This date falls within a closed period and cannot be modified.",
     "transactionDateBeforeInitialDate": "Transaction date cannot be before the system initial date.",
+    "initialDateConflict": "The initial date cannot be set to this value because existing transactions or the closed period date conflict with it.",
     "duplicateCode": "An account with this code already exists.",
     "duplicateTransactionNumber": "A transaction with this number already exists for the selected type.",
     "duplicateTransactionTypeName": "A transaction type with this name already exists.",
