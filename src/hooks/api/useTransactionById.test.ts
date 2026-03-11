@@ -1,0 +1,133 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { renderHook, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createElement } from 'react'
+import { useTransactionById } from './useTransactionById'
+
+// ─── Mock the API client ───────────────────────────────────────────────────────
+
+vi.mock('@/api/clients', () => ({
+  queryClient: {
+    GET: vi.fn(),
+  },
+}))
+
+import { queryClient as apiClient } from '@/api/clients'
+const mockGet = vi.mocked((apiClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET)
+
+// ─── Wrapper ───────────────────────────────────────────────────────────────────
+
+function makeWrapper() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+  return ({ children }: { children: React.ReactNode }) =>
+    createElement(QueryClientProvider, { client: qc }, children)
+}
+
+// ─── Sample data ───────────────────────────────────────────────────────────────
+
+const sampleTransaction = {
+  id: 'txn-1',
+  description: 'Office supplies',
+  date: '2026-03-01',
+  amount: 500,
+  items: [
+    { id: 'item-1', accountId: 'acc-1', amount: 250 },
+    { id: 'item-2', accountId: 'acc-2', amount: 250 },
+  ],
+}
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+describe('useTransactionById', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('fetches transaction when id and tenantId are provided', async () => {
+    mockGet.mockResolvedValueOnce({ data: sampleTransaction, error: null })
+
+    const { result } = renderHook(
+      () => useTransactionById('tenant-1', 'txn-1'),
+      { wrapper: makeWrapper() }
+    )
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    expect(result.current.data).toEqual(sampleTransaction)
+    expect(mockGet).toHaveBeenCalled()
+  })
+
+  it('does not fetch when transactionId is null', () => {
+    const { result } = renderHook(
+      () => useTransactionById('tenant-1', null),
+      { wrapper: makeWrapper() }
+    )
+
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.data).toBeUndefined()
+    expect(mockGet).not.toHaveBeenCalled()
+  })
+
+  it('does not fetch when tenantId is null', () => {
+    const { result } = renderHook(
+      () => useTransactionById(null, 'txn-1'),
+      { wrapper: makeWrapper() }
+    )
+
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.data).toBeUndefined()
+    expect(mockGet).not.toHaveBeenCalled()
+  })
+
+  it('refetches when transactionId changes', async () => {
+    mockGet.mockResolvedValueOnce({ data: sampleTransaction, error: null })
+
+    const wrapper = makeWrapper()
+    const { rerender } = renderHook(
+      ({ id }) => useTransactionById('tenant-1', id),
+      { wrapper, initialProps: { id: 'txn-1' } }
+    )
+
+    await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(1))
+
+    mockGet.mockResolvedValueOnce({
+      ...sampleTransaction,
+      id: 'txn-2',
+    } as typeof sampleTransaction & { id: string }, null as any)
+
+    rerender({ id: 'txn-2' })
+
+    await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(2))
+  })
+
+  it('handles transaction not found errors', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: null,
+      error: { status: 404, message: 'Transaction not found' },
+    })
+
+    const { result } = renderHook(
+      () => useTransactionById('tenant-1', 'invalid-txn'),
+      { wrapper: makeWrapper() }
+    )
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(result.current.error).toBeDefined()
+  })
+
+  it('caches results by tenantId and transactionId', async () => {
+    mockGet.mockResolvedValueOnce({ data: sampleTransaction, error: null })
+
+    const wrapper = makeWrapper()
+    const { rerender } = renderHook(
+      () => useTransactionById('tenant-1', 'txn-1'),
+      { wrapper }
+    )
+
+    await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(1))
+
+    // Re-render — should use cache
+    rerender()
+    expect(mockGet).toHaveBeenCalledTimes(1)
+  })
+})
