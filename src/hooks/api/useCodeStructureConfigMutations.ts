@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/account-command-api'
 
 type CodeStructureConfigRequest = components['schemas']['CodeStructureConfigRequest']
@@ -23,7 +24,9 @@ export function useCodeStructureConfigMutations(tenantId: string) {
       return data as CodeStructureConfigResponse
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['codeStructureConfig', tenantId] })
+      // Code structure config change affects account validation
+      qc.invalidateQueries({ queryKey: queryKeys.codeStructureConfig.all() })
+      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
     },
   })
 

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components as TxnCmd } from '@/api/generated/transaction-command-api'
 import type { components as IbCmd } from '@/api/generated/initial-balance-command-api'
 import type { InitialBalance } from '@/hooks/api/useInitialBalances'
@@ -12,28 +13,45 @@ type EditInitialBalanceRequest = IbCmd['schemas']['EditInitialBalanceRequest']
 export function useTransactionMutations(tenantId: string) {
   const qc = useQueryClient()
 
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ['accountTransactions', tenantId] })
-    qc.invalidateQueries({ queryKey: ['transactions', tenantId] })
-    qc.invalidateQueries({ queryKey: ['initialBalances', tenantId] })
+  /**
+   * Invalidate all transaction and initial balance related queries.
+   * Transaction mutations affect: transaction lists, account balances, and reports.
+   */
+  const invalidateTransactionQueries = () => {
+    qc.invalidateQueries({ queryKey: queryKeys.transactions.all() })
+    qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() })
+    qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+    qc.invalidateQueries({ queryKey: queryKeys.reports.all() })
   }
 
+  /**
+   * Cache patching for initial balance creation:
+   * - Immediately add to cache so UI updates instantly
+   * - Schedule refetch to ensure consistency with server
+   */
   const patchInitialBalanceCache = (newBalance: InitialBalance) => {
-    const queryKey = ['initialBalances', tenantId]
-    qc.cancelQueries({ queryKey })
-    qc.setQueryData<InitialBalance[]>(queryKey, (old) =>
+    const listKey = queryKeys.initialBalances.list(tenantId)
+    qc.cancelQueries({ queryKey: listKey })
+    qc.setQueryData<InitialBalance[]>(listKey, (old) =>
       old ? [...old, newBalance] : old
     )
-    setTimeout(() => qc.invalidateQueries({ queryKey }), 3000)
+    // Background refetch after delay to verify consistency
+    setTimeout(() => qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() }), 1000)
   }
 
+  /**
+   * Cache patching for initial balance update:
+   * - Immediately update in cache so UI reflects change
+   * - Schedule refetch to ensure consistency with server
+   */
   const updateInitialBalanceInCache = (id: string, updated: InitialBalance) => {
-    const queryKey = ['initialBalances', tenantId]
-    qc.cancelQueries({ queryKey })
-    qc.setQueryData<InitialBalance[]>(queryKey, (old) =>
+    const listKey = queryKeys.initialBalances.list(tenantId)
+    qc.cancelQueries({ queryKey: listKey })
+    qc.setQueryData<InitialBalance[]>(listKey, (old) =>
       old ? old.map((ib) => (ib.id === id ? updated : ib)) : old
     )
-    setTimeout(() => qc.invalidateQueries({ queryKey }), 3000)
+    // Background refetch after delay to verify consistency
+    setTimeout(() => qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() }), 1000)
   }
 
   const createTransaction = useMutation({
@@ -46,7 +64,7 @@ export function useTransactionMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create transaction')
       return data
     },
-    onSuccess: invalidate,
+    onSuccess: invalidateTransactionQueries,
   })
 
   const editTransaction = useMutation({
@@ -59,7 +77,7 @@ export function useTransactionMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to edit transaction')
       return data
     },
-    onSuccess: invalidate,
+    onSuccess: invalidateTransactionQueries,
   })
 
   const deleteTransaction = useMutation({
@@ -70,7 +88,7 @@ export function useTransactionMutations(tenantId: string) {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete transaction')
     },
-    onSuccess: invalidate,
+    onSuccess: invalidateTransactionQueries,
   })
 
   const createInitialBalance = useMutation({
@@ -107,7 +125,7 @@ export function useTransactionMutations(tenantId: string) {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete initial balance')
     },
-    onSuccess: invalidate,
+    onSuccess: invalidateTransactionQueries,
   })
 
   return { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance }

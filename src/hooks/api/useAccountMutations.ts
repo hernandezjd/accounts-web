@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/account-command-api'
 import type { Account } from '@/hooks/api/useAccounts'
 
@@ -10,8 +11,6 @@ type AccountCommandResponse = components['schemas']['AccountCommandResponse']
 
 export function useAccountMutations(tenantId: string) {
   const qc = useQueryClient()
-
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['accounts', tenantId] })
 
   const createAccount = useMutation({
     mutationFn: async (body: CreateAccountRequest): Promise<AccountCommandResponse> => {
@@ -27,8 +26,8 @@ export function useAccountMutations(tenantId: string) {
       // Optimistically add the new account to the cache so it appears immediately,
       // before the event processor has had time to project it to the read side.
       const cachedAccounts =
-        qc.getQueryData<Account[]>(['accounts', tenantId, true]) ??
-        qc.getQueryData<Account[]>(['accounts', tenantId, false]) ??
+        qc.getQueryData<Account[]>(queryKeys.accounts.list(tenantId, true)) ??
+        qc.getQueryData<Account[]>(queryKeys.accounts.list(tenantId, false)) ??
         []
       const parent = variables.parentId
         ? cachedAccounts.find((a) => a.id === variables.parentId)
@@ -42,8 +41,9 @@ export function useAccountMutations(tenantId: string) {
         level: parent?.level != null ? parent.level + 1 : 1,
         active: true,
       }
+      // Update both includeInactive variants if they exist
       for (const includeInactive of [true, false]) {
-        const key = ['accounts', tenantId, includeInactive]
+        const key = queryKeys.accounts.list(tenantId, includeInactive)
         const existing = qc.getQueryData<Account[]>(key)
         if (existing !== undefined) {
           qc.setQueryData(key, [...existing, newAccount])
@@ -51,7 +51,9 @@ export function useAccountMutations(tenantId: string) {
       }
       // Delay the authoritative refetch to avoid a race where the query service
       // hasn't yet projected the event, which would overwrite the optimistic data.
-      setTimeout(invalidate, 500)
+      setTimeout(() => {
+        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+      }, 500)
     },
   })
 
@@ -71,7 +73,9 @@ export function useAccountMutations(tenantId: string) {
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to update account')
       return data as AccountCommandResponse
     },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+    },
   })
 
   const deactivateAccount = useMutation({
@@ -82,7 +86,11 @@ export function useAccountMutations(tenantId: string) {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to deactivate account')
     },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      // Deactivation affects accounts, third-parties, and reports
+      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+      qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() })
+    },
   })
 
   const activateAccount = useMutation({
@@ -93,7 +101,11 @@ export function useAccountMutations(tenantId: string) {
       })
       if (error) throw new Error((error as { error?: string }).error ?? 'Failed to activate account')
     },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      // Activation affects accounts, third-parties, and reports
+      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+      qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() })
+    },
   })
 
   const toggleHasThirdParties = useMutation({
@@ -114,7 +126,11 @@ export function useAccountMutations(tenantId: string) {
           (error as { error?: string }).error ?? 'Failed to toggle has-third-parties',
         )
     },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      // Toggle affects accounts and third-parties
+      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+      qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() })
+    },
   })
 
   return { createAccount, updateAccount, deactivateAccount, activateAccount, toggleHasThirdParties }

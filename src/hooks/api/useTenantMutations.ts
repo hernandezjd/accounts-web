@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tenantClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/tenant-api'
 
 type CreateTenantRequest = components['schemas']['CreateTenantRequest']
@@ -10,7 +11,7 @@ export function useTenantMutations() {
   const qc = useQueryClient()
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ['tenants'] })
+    qc.invalidateQueries({ queryKey: queryKeys.tenants.all() })
   }
 
   const createTenant = useMutation({
