@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { formatError } from '@/lib/error/useErrorHandler'
 import type { components } from '@/api/generated/transaction-query-api'
 
 export type Transaction = components['schemas']['Transaction']
@@ -21,15 +22,28 @@ async function fetchTransactions(
   if (filters.dateFrom) query.dateFrom = filters.dateFrom
   if (filters.dateTo) query.dateTo = filters.dateTo
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (queryClient as any).GET('/transactions', {
-    params: {
-      query,
-      header: { 'X-Tenant-Id': tenantId },
-    },
-  })
-  if (error) throw new Error('Failed to fetch transactions')
-  return data as Transaction[]
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (queryClient as any).GET('/transactions', {
+      params: {
+        query,
+        header: { 'X-Tenant-Id': tenantId },
+      },
+    })
+
+    if (error) {
+      // Preserve structured error response for better error handling
+      throw formatError(error)
+    }
+    return data as Transaction[]
+  } catch (err) {
+    // If it's already a formatted error, re-throw it
+    if (err instanceof Error && 'errorCode' in err) {
+      throw err
+    }
+    // Otherwise format it
+    throw formatError(err)
+  }
 }
 
 export function useTransactions(
