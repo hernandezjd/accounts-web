@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/config-query-api'
 
 export type TenantConfig = components['schemas']['TenantConfigResponse']
@@ -17,7 +18,7 @@ async function fetchTenantConfig(tenantId: string): Promise<TenantConfig> {
 
 export function useTenantConfig(tenantId: string | null | undefined) {
   return useQuery({
-    queryKey: ['tenantConfig', tenantId],
+    queryKey: queryKeys.tenantConfig.detail(tenantId!),
     queryFn: () => fetchTenantConfig(tenantId!),
     enabled: Boolean(tenantId),
   })
