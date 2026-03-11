@@ -382,6 +382,8 @@
     "confirmDelete": "¿Estás seguro de que deseas eliminar esta transacción? Esta acción no se puede deshacer.",
     "createAccount": "Crear Nueva Cuenta",
     "createThirdParty": "Crear Nuevo Tercero",
+    "createTransactionType": "Crear Nuevo Tipo de Transacción",
+    "transactionTypeName": "Nombre del Tipo de Transacción",
     "accountCode": "Código de Cuenta",
     "accountName": "Nombre de Cuenta",
     "parentAccount": "Cuenta Padre (opcional)",

@@ -382,6 +382,8 @@
     "confirmDelete": "Are you sure you want to delete this transaction? This action cannot be undone.",
     "createAccount": "Create New Account",
     "createThirdParty": "Create New Third Party",
+    "createTransactionType": "Create New Transaction Type",
+    "transactionTypeName": "Transaction Type Name",
     "accountCode": "Account Code",
     "accountName": "Account Name",
     "parentAccount": "Parent Account (optional)",
