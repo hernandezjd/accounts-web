@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import { formatError } from '@/lib/error/useErrorHandler'
 import type { components } from '@/api/generated/transaction-query-api'
 
@@ -51,7 +52,7 @@ export function useTransactions(
   filters: TransactionFilters = {},
 ) {
   return useQuery({
-    queryKey: ['transactions', tenantId, filters],
+    queryKey: queryKeys.transactions.list(tenantId!, filters),
     queryFn: () => fetchTransactions(tenantId!, filters),
     enabled: Boolean(tenantId),
   })

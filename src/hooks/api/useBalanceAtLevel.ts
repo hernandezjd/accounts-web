@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/reporting-api'
 
 export type AccountBalanceResponse = components['schemas']['AccountBalanceResponse']
@@ -27,7 +28,7 @@ export function useBalanceAtLevel(
   enabled = false,
 ) {
   return useQuery({
-    queryKey: ['balanceAtLevel', tenantId, date, level],
+    queryKey: queryKeys.reports.balanceAtLevel(tenantId!, level ?? 0, date),
     queryFn: () => fetchBalanceAtLevel(tenantId!, date, level!),
     enabled: Boolean(tenantId) && level !== undefined && level >= 1 && enabled,
   })

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/initial-balance-query-api'
 
 export type InitialBalance = components['schemas']['InitialBalanceResponse']
@@ -16,7 +17,7 @@ async function fetchInitialBalances(tenantId: string): Promise<InitialBalance[]>
 
 export function useInitialBalances(tenantId: string | null | undefined) {
   return useQuery({
-    queryKey: ['initialBalances', tenantId],
+    queryKey: queryKeys.initialBalances.list(tenantId!),
     queryFn: () => fetchInitialBalances(tenantId!),
     enabled: Boolean(tenantId),
   })

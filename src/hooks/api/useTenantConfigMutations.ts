@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/config-command-api'
 import type { TenantConfig } from '@/hooks/api/useTenantConfig'
 
@@ -8,12 +9,22 @@ type TenantConfigResponse = components['schemas']['TenantConfigResponse']
 export function useTenantConfigMutations(tenantId: string) {
   const qc = useQueryClient()
 
-  const queryKey = ['tenantConfig', tenantId]
+  const configKey = queryKeys.tenantConfig.detail(tenantId)
 
-  const patchCache = async (patch: Partial<TenantConfig>) => {
-    await qc.cancelQueries({ queryKey })
-    qc.setQueryData<TenantConfig>(queryKey, (old) => (old ? { ...old, ...patch } : old))
-    setTimeout(() => qc.invalidateQueries({ queryKey }), 3000)
+  /**
+   * Patch the tenant config cache immediately with response data,
+   * then schedule a background refetch for consistency verification.
+   */
+  const patchCache = (patch: Partial<TenantConfig>) => {
+    qc.cancelQueries({ queryKey: queryKeys.tenantConfig.all() })
+    qc.setQueryData<TenantConfig>(configKey, (old) => (old ? { ...old, ...patch } : old))
+    // Background refetch after delay to verify consistency
+    setTimeout(() => {
+      qc.invalidateQueries({ queryKey: queryKeys.tenantConfig.all() })
+      // Config changes may affect reports, so invalidate those too
+      qc.invalidateQueries({ queryKey: queryKeys.reports.all() })
+      qc.invalidateQueries({ queryKey: queryKeys.transactions.all() })
+    }, 1000)
   }
 
   const headers = { 'X-Tenant-Id': tenantId }
