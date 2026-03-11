@@ -455,6 +455,88 @@ describe('TransactionForm', () => {
     expect(screen.queryByTestId('date-before-initial-date-error')).not.toBeInTheDocument()
   })
 
+  // FR-086: pre-fill date with today's date
+  it('prefills date with today when creating transaction and today >= systemInitialDate', () => {
+    // Mock today as 2025-06-15, systemInitialDate as 2025-01-01 (before today)
+    mockUseTenantConfig.mockReturnValue({
+      data: { systemInitialDate: '2025-01-01', closedPeriodDate: null },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTenantConfig>)
+
+    // Temporarily set today's date for the test by mocking Date
+    const mockDate = new Date(2025, 5, 15) // June 15, 2025
+    vi.useFakeTimers()
+    vi.setSystemTime(mockDate)
+
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    const dateInput = screen.getByTestId('date-field').querySelector('input') as HTMLInputElement
+    expect(dateInput.value).toBe('2025-06-15')
+
+    vi.useRealTimers()
+  })
+
+  it('leaves date empty when creating transaction and today < systemInitialDate', () => {
+    // Mock today as 2024-12-15, systemInitialDate as 2025-01-01 (after today)
+    mockUseTenantConfig.mockReturnValue({
+      data: { systemInitialDate: '2025-01-01', closedPeriodDate: null },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTenantConfig>)
+
+    // Temporarily set today's date for the test
+    const mockDate = new Date(2024, 11, 15) // December 15, 2024
+    vi.useFakeTimers()
+    vi.setSystemTime(mockDate)
+
+    renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
+
+    const dateInput = screen.getByTestId('date-field').querySelector('input') as HTMLInputElement
+    expect(dateInput.value).toBe('')
+
+    vi.useRealTimers()
+  })
+
+  it('does not prefill date in edit mode', () => {
+    // Even though today is 2025-06-15 and systemInitialDate is 2025-01-01,
+    // edit mode should use the provided initialData date, not today
+    const mockDate = new Date(2025, 5, 15) // June 15, 2025
+    vi.useFakeTimers()
+    vi.setSystemTime(mockDate)
+
+    renderWithProviders(
+      <TransactionForm
+        {...defaultProps}
+        mode="edit"
+        transactionId="txn-1"
+        initialData={{
+          transactionTypeId: 'type-1',
+          transactionTypeName: 'Invoice',
+          transactionNumber: 'INV-001',
+          date: '2025-03-10',
+          description: 'Test',
+          items: [
+            {
+              accountId: 'acc-1',
+              accountCode: '1000',
+              accountName: 'Cash',
+              debitAmount: 100,
+              creditAmount: 0,
+            },
+          ],
+        }}
+      />,
+    )
+
+    const dateInput = screen.getByTestId('date-field').querySelector('input') as HTMLInputElement
+    expect(dateInput.value).toBe('2025-03-10') // Should use initialData date, not today
+
+    vi.useRealTimers()
+  })
+
   // FR-085: debit/credit field input validation
   it('renders debit and credit fields with correct testid', () => {
     renderWithProviders(<TransactionForm {...defaultProps} />)

@@ -155,7 +155,29 @@ export function TransactionForm({
       : null,
   )
   const [number, setNumber] = useState(initialData?.transactionNumber ?? '')
-  const [date, setDate] = useState(initialData?.date ?? '')
+
+  // FR-086: pre-fill date with today's date if applicable
+  const getTodayDate = () => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const [date, setDate] = useState(() => {
+    if (initialData) {
+      return initialData.date
+    }
+    // For create mode, pre-fill with today's date if today >= systemInitialDate
+    if (mode === 'create' && tenantConfig?.systemInitialDate) {
+      const today = getTodayDate()
+      if (today >= tenantConfig.systemInitialDate) {
+        return today
+      }
+    }
+    return ''
+  })
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [items, setItems] = useState<FormItem[]>(() => {
     if (initialData?.items?.length) {
