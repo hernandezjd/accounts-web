@@ -418,11 +418,12 @@ describe('TransactionForm', () => {
     expect(descriptionInput).toBeInTheDocument()
   })
 
-  it('description field is not required in createInitialBalance mode', () => {
+  it('description field is required in createInitialBalance mode', () => {
     renderWithProviders(<TransactionForm {...defaultProps} mode="createInitialBalance" />)
 
-    expect(screen.queryByLabelText(/description \*/i)).not.toBeInTheDocument()
-    expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
+    const descriptionField = screen.getByLabelText(/description/i) as HTMLInputElement
+    expect(descriptionField).toBeInTheDocument()
+    expect(descriptionField).toHaveAttribute('required')
   })
 
   // FR-070: date before initial date validation
