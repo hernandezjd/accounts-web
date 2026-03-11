@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/reporting-api'
 
 export type UnifiedSearchResponse = components['schemas']['UnifiedSearchResponse']
@@ -32,7 +33,7 @@ export function useUnifiedSearch(
   toDate?: string,
 ) {
   return useQuery({
-    queryKey: ['unifiedSearch', tenantId, query, fromDate ?? null, toDate ?? null],
+    queryKey: [...queryKeys.search.all(), { tenantId, query, fromDate: fromDate ?? null, toDate: toDate ?? null }],
     queryFn: () => fetchUnifiedSearch(tenantId!, query, fromDate, toDate),
     enabled: Boolean(tenantId) && query.trim().length >= 1,
   })

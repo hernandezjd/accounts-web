@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { tenantClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { Tenant } from '@/types'
 
 async function fetchTenants(): Promise<Tenant[]> {
@@ -11,7 +12,7 @@ async function fetchTenants(): Promise<Tenant[]> {
 
 export function useTenants() {
   return useQuery({
-    queryKey: ['tenants'],
+    queryKey: queryKeys.tenants.list(),
     queryFn: fetchTenants,
   })
 }

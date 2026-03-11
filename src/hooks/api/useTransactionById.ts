@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/transaction-query-api'
 
 export type Transaction = components['schemas']['Transaction']
@@ -21,7 +22,7 @@ export function useTransactionById(
   id: string | null | undefined,
 ) {
   return useQuery({
-    queryKey: ['transaction', tenantId, id],
+    queryKey: queryKeys.transactions.detail(id!),
     queryFn: () => fetchTransactionById(tenantId!, id!),
     enabled: Boolean(tenantId) && Boolean(id),
   })

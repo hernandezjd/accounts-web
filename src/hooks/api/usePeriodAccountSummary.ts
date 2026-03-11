@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { PeriodAccountSummary } from '@/types/accounting'
 import type { components } from '@/api/generated/reporting-api'
 
@@ -32,7 +33,7 @@ export function usePeriodAccountSummary(
   toDate: string,
 ) {
   return useQuery({
-    queryKey: ['periodAccountSummary', tenantId, fromDate, toDate],
+    queryKey: queryKeys.reports.periodAccountSummary(tenantId!, { fromDate, toDate }),
     queryFn: () => fetchPeriodAccountSummary(tenantId!, fromDate, toDate),
     enabled: Boolean(tenantId) && Boolean(fromDate) && Boolean(toDate),
   })

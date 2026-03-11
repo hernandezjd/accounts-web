@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/third-party-query-api'
 
 export type ThirdParty = components['schemas']['ThirdParty']
@@ -18,7 +19,7 @@ async function fetchThirdParties(tenantId: string, name: string): Promise<ThirdP
 
 export function useThirdParties(tenantId: string | null | undefined, name: string) {
   return useQuery({
-    queryKey: ['thirdParties', tenantId, name],
+    queryKey: queryKeys.thirdParties.list(tenantId!, name),
     queryFn: () => fetchThirdParties(tenantId!, name),
     enabled: Boolean(tenantId) && name.trim().length >= 1,
   })

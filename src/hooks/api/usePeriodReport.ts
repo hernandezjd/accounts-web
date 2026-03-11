@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/reporting-api'
 
 export type PeriodReportResponse = components['schemas']['PeriodReportResponse']
@@ -31,7 +32,7 @@ export function usePeriodReport(
   enabled = false,
 ) {
   return useQuery({
-    queryKey: ['periodReport', tenantId, fromDate, toDate, level],
+    queryKey: queryKeys.reports.periodReport(tenantId!, { fromDate, toDate, level }),
     queryFn: () => fetchPeriodReport(tenantId!, fromDate, toDate, level),
     enabled: Boolean(tenantId) && enabled,
   })

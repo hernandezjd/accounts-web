@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/account-query-api'
 
 export type Account = components['schemas']['Account']
@@ -18,7 +19,7 @@ async function fetchAccounts(tenantId: string, includeInactive: boolean): Promis
 
 export function useAccounts(tenantId: string | null | undefined, includeInactive = false) {
   return useQuery({
-    queryKey: ['accounts', tenantId, includeInactive],
+    queryKey: queryKeys.accounts.list(tenantId!, includeInactive),
     queryFn: () => fetchAccounts(tenantId!, includeInactive),
     enabled: Boolean(tenantId),
   })

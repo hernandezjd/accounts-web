@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { commandClient } from '@/api/clients'
+import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/account-command-api'
 
 export type CodeStructureConfig = components['schemas']['CodeStructureConfigResponse']
@@ -15,7 +16,7 @@ async function fetchCodeStructureConfig(tenantId: string): Promise<CodeStructure
 
 export function useCodeStructureConfig(tenantId: string | null | undefined) {
   return useQuery({
-    queryKey: ['codeStructureConfig', tenantId],
+    queryKey: queryKeys.codeStructureConfig.detail(tenantId!),
     queryFn: () => fetchCodeStructureConfig(tenantId!),
     enabled: Boolean(tenantId),
   })
