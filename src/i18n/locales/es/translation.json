@@ -398,5 +398,8 @@
     "draftDiscard": "Descartar",
     "initialDateNotConfiguredWarning": "La fecha inicial del sistema debe configurarse en Configuración antes de ingresar transacciones.",
     "dateBeforeInitialDate": "La fecha debe ser igual o posterior a la fecha inicial del sistema ({{ date }})."
+  },
+  "accountForm": {
+    "hasThirdParties": "Tiene Terceros"
   }
 }

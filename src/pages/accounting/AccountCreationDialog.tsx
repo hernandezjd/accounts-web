@@ -6,6 +6,8 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
 import Alert from '@mui/material/Alert'
+import Checkbox from '@mui/material/Checkbox'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import { useTranslation } from 'react-i18next'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
@@ -14,6 +16,7 @@ interface CreatedAccount {
   id: string
   code: string
   name: string
+  hasThirdParties: boolean
 }
 
 interface AccountCreationDialogProps {
@@ -35,18 +38,20 @@ export function AccountCreationDialog({
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
+  const [hasThirdParties, setHasThirdParties] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleSubmit = () => {
     setErrorMsg(null)
     createAccount.mutate(
-      { code, name, hasThirdParties: false, parentId: parentAccount?.id },
+      { code, name, hasThirdParties, parentId: parentAccount?.id },
       {
         onSuccess: (data) => {
-          onCreated({ id: data.accountId!, code: data.code!, name: data.name! })
+          onCreated({ id: data.accountId!, code: data.code!, name: data.name!, hasThirdParties })
           setCode('')
           setName('')
           setParentAccount(null)
+          setHasThirdParties(false)
           onClose()
         },
         onError: (err) => setErrorMsg(err.message),
@@ -58,6 +63,7 @@ export function AccountCreationDialog({
     setCode('')
     setName('')
     setParentAccount(null)
+    setHasThirdParties(false)
     setErrorMsg(null)
     onClose()
   }
@@ -88,6 +94,16 @@ export function AccountCreationDialog({
           value={parentAccount}
           onChange={setParentAccount}
           label={t('transactionForm.parentAccount')}
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={hasThirdParties}
+              onChange={(e) => setHasThirdParties(e.target.checked)}
+              data-testid="has-third-parties-checkbox"
+            />
+          }
+          label={t('accountForm.hasThirdParties')}
         />
       </DialogContent>
       <DialogActions>

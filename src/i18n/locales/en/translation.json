@@ -398,5 +398,8 @@
     "draftDiscard": "Discard",
     "initialDateNotConfiguredWarning": "The system initial date must be configured in Setup before transactions can be entered.",
     "dateBeforeInitialDate": "Date must be on or after the system initial date ({{ date }})."
+  },
+  "accountForm": {
+    "hasThirdParties": "Has Third Parties"
   }
 }
