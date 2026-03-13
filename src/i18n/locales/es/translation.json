@@ -367,6 +367,8 @@
     "items": "Líneas",
     "addItem": "Agregar Línea",
     "removeItem": "Eliminar Línea",
+    "insertAbove": "Insertar arriba",
+    "insertBelow": "Insertar abajo",
     "account": "Cuenta",
     "thirdParty": "Tercero",
     "debit": "Débito",

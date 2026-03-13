@@ -4,6 +4,7 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -15,6 +16,8 @@ import DialogTitle from '@mui/material/DialogTitle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp'
+import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown'
 import { useTranslation } from 'react-i18next'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { useAccounts } from '@/hooks/api/useAccounts'
@@ -304,6 +307,24 @@ export function TransactionForm({
   const removeItem = (id: string) =>
     setItems((prev) => (prev.length > 1 ? prev.filter((item) => item.id !== id) : prev))
 
+  const insertAbove = (id: string) =>
+    setItems((prev) => {
+      const idx = prev.findIndex((item) => item.id === id)
+      if (idx === -1) return prev
+      const next = [...prev]
+      next.splice(idx, 0, makeEmptyItem())
+      return next
+    })
+
+  const insertBelow = (id: string) =>
+    setItems((prev) => {
+      const idx = prev.findIndex((item) => item.id === id)
+      if (idx === -1) return prev
+      const next = [...prev]
+      next.splice(idx + 1, 0, makeEmptyItem())
+      return next
+    })
+
   const updateItem = (id: string, patch: Partial<FormItem>) =>
     setItems((prev) =>
       prev.map((item) =>
@@ -544,7 +565,7 @@ export function TransactionForm({
           <Typography variant="body2" sx={{ width: 110, textAlign: 'center', color: 'text.secondary' }}>
             {t('transactionForm.credit')}
           </Typography>
-          <Box sx={{ width: 28 }} />
+          <Box sx={{ width: 84 }} />
         </Box>
 
         {items.map((item) => (
@@ -611,14 +632,27 @@ export function TransactionForm({
               data-testid="credit-input"
             />
 
-            <IconButton
-              size="small"
-              onClick={() => removeItem(item.id)}
-              aria-label={t('transactionForm.removeItem')}
-              disabled={items.length === 1}
-            >
-              <RemoveCircleOutlineIcon fontSize="small" />
-            </IconButton>
+            <Tooltip title={t('transactionForm.insertAbove')}>
+              <IconButton size="small" onClick={() => insertAbove(item.id)}
+                aria-label={t('transactionForm.insertAbove')} data-testid="insert-above-btn">
+                <KeyboardArrowUp fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('transactionForm.insertBelow')}>
+              <IconButton size="small" onClick={() => insertBelow(item.id)}
+                aria-label={t('transactionForm.insertBelow')} data-testid="insert-below-btn">
+                <KeyboardArrowDown fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('transactionForm.removeItem')}>
+              <span>
+                <IconButton size="small" onClick={() => removeItem(item.id)}
+                  aria-label={t('transactionForm.removeItem')}
+                  disabled={items.length === 1} data-testid="remove-item-btn">
+                  <RemoveCircleOutlineIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
           </Box>
         ))}
 
@@ -654,7 +688,7 @@ export function TransactionForm({
             {parseFloat(totalCredits.toFixed(2))}
           </Typography>
         </Box>
-        <Box sx={{ width: 28 }} />
+        <Box sx={{ width: 84 }} />
       </Box>
 
       {/* Actions */}
