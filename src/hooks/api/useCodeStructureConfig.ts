@@ -10,7 +10,7 @@ async function fetchCodeStructureConfig(tenantId: string): Promise<CodeStructure
   const { data, error } = await (commandClient as any).GET('/tenants/{tenantId}/code-structure-config', {
     params: { path: { tenantId } },
   })
-  if (error) throw new Error('Failed to fetch code structure config')
+  if (error) throw error
   return data as CodeStructureConfig
 }
 

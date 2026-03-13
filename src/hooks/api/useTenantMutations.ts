@@ -18,7 +18,7 @@ export function useTenantMutations() {
     mutationFn: async (body: CreateTenantRequest): Promise<Tenant> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (tenantClient as any).POST('/tenants', { body })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create tenant')
+      if (error) throw error
       return data as Tenant
     },
     onSuccess: invalidate,
@@ -31,7 +31,7 @@ export function useTenantMutations() {
         params: { path: { id } },
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to update tenant')
+      if (error) throw error
       return data as Tenant
     },
     onSuccess: invalidate,
@@ -43,7 +43,7 @@ export function useTenantMutations() {
       const { data, error } = await (tenantClient as any).POST('/tenants/{id}/deactivate', {
         params: { path: { id } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to deactivate tenant')
+      if (error) throw error
       return data as Tenant
     },
     onSuccess: invalidate,
@@ -55,7 +55,7 @@ export function useTenantMutations() {
       const { data, error } = await (tenantClient as any).POST('/tenants/{id}/reactivate', {
         params: { path: { id } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to reactivate tenant')
+      if (error) throw error
       return data as Tenant
     },
     onSuccess: invalidate,
@@ -67,7 +67,7 @@ export function useTenantMutations() {
       const { error } = await (tenantClient as any).DELETE('/tenants/{id}', {
         params: { path: { id } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete tenant')
+      if (error) throw error
     },
     onSuccess: invalidate,
   })

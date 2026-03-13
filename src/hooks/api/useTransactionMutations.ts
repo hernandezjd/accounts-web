@@ -79,7 +79,7 @@ export function useTransactionMutations(tenantId: string) {
         params: { header: { 'X-Tenant-Id': tenantId } },
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create transaction')
+      if (error) throw error
       return data
     },
     onSuccess: async () => {
@@ -103,7 +103,7 @@ export function useTransactionMutations(tenantId: string) {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to edit transaction')
+      if (error) throw error
       return data
     },
     onSuccess: async () => {
@@ -126,7 +126,7 @@ export function useTransactionMutations(tenantId: string) {
       const { error } = await (commandClient as any).DELETE('/transactions/{id}', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete transaction')
+      if (error) throw error
     },
     onSuccess: async () => {
       await invalidateTransactionQueries()
@@ -149,7 +149,7 @@ export function useTransactionMutations(tenantId: string) {
         params: { header: { 'X-Tenant-Id': tenantId } },
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create initial balance')
+      if (error) throw error
       return data
     },
     onSuccess: (data) => patchInitialBalanceCache(data as InitialBalance),
@@ -162,7 +162,7 @@ export function useTransactionMutations(tenantId: string) {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to edit initial balance')
+      if (error) throw error
       return data
     },
     onSuccess: (data) => updateInitialBalanceInCache(data.id as string, data as InitialBalance),
@@ -174,7 +174,7 @@ export function useTransactionMutations(tenantId: string) {
       const { error } = await (commandClient as any).DELETE('/transactions/initial-balances/{id}', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to delete initial balance')
+      if (error) throw error
       return id
     },
     onSuccess: (id) => removeInitialBalanceFromCache(id),

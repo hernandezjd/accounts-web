@@ -26,7 +26,7 @@ async function fetchAccountTransactionsInPeriod(
       },
     },
   )
-  if (error) throw new Error('Failed to fetch account transactions')
+  if (error) throw error
   const resp = data as ApiResponse
   return {
     accountId: resp.accountId,

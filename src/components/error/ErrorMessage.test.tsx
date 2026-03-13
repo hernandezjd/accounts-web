@@ -42,10 +42,16 @@ describe('ErrorMessage', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('renders suggestion when provided', () => {
-    renderWithProviders(<ErrorMessage error={sampleError} />)
+  it('renders suggestion only for retryable errors', () => {
+    renderWithProviders(<ErrorMessage error={retryableError} />)
 
     expect(screen.getByText(/Try refreshing the page/i)).toBeInTheDocument()
+  })
+
+  it('does not render suggestion for non-retryable errors', () => {
+    renderWithProviders(<ErrorMessage error={sampleError} />)
+
+    expect(screen.queryByText(/Try refreshing the page/i)).not.toBeInTheDocument()
   })
 
   it('displays error with alert styling', () => {

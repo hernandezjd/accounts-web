@@ -101,8 +101,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
         <Stack spacing={1}>
           <AlertTitle>{error.userMessage}</AlertTitle>
 
-          {/* Show suggestion if available */}
-          {error.suggestion && (
+          {/* Show suggestion only for retryable errors */}
+          {error.suggestion && error.isRetryable && (
             <Typography variant="body2" sx={{ mt: 1 }}>
               <strong>What you can try:</strong> {error.suggestion}
             </Typography>

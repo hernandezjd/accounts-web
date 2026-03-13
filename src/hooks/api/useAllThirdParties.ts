@@ -10,7 +10,7 @@ async function fetchAllThirdParties(): Promise<ThirdParty[]> {
   const { data, error } = await (queryClient as any).GET('/third-parties', {
     params: { query: {} },
   })
-  if (error) throw new Error('Failed to fetch third parties')
+  if (error) throw error
   return data as ThirdParty[]
 }
 
