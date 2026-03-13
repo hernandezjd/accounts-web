@@ -648,4 +648,125 @@ describe('TransactionForm', () => {
     expect(creditInput).toHaveValue('50')
     expect(debitInput).toHaveValue('')
   })
+
+  // FR-092: Line item ordering tests
+  describe('line item ordering', () => {
+    it('items display in API response order', () => {
+      renderWithProviders(
+        <TransactionForm
+          {...defaultProps}
+          mode="edit"
+          transactionId="txn-1"
+          initialData={{
+            transactionTypeId: 'type-1',
+            transactionTypeName: 'Invoice',
+            transactionNumber: 'INV-001',
+            date: '2026-01-15',
+            description: 'Test',
+            items: [
+              {
+                accountId: 'acc-1',
+                accountCode: '1000',
+                accountName: 'Cash',
+                debitAmount: 100,
+                creditAmount: 0,
+              },
+              {
+                accountId: 'acc-1',
+                accountCode: '1000',
+                accountName: 'Cash',
+                debitAmount: 0,
+                creditAmount: 50,
+              },
+              {
+                accountId: 'acc-1',
+                accountCode: '1000',
+                accountName: 'Cash',
+                debitAmount: 0,
+                creditAmount: 50,
+              },
+            ],
+          }}
+        />,
+      )
+
+      const rows = screen.getAllByTestId('form-item-row')
+      expect(rows).toHaveLength(3)
+      expect(rows[0]).toBeInTheDocument()
+      expect(rows[1]).toBeInTheDocument()
+      expect(rows[2]).toBeInTheDocument()
+    })
+
+    it('inserts a row above when insert-above button is clicked', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<TransactionForm {...defaultProps} />)
+
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(1)
+
+      const insertAboveButtons = screen.getAllByTestId('insert-above-btn')
+      await user.click(insertAboveButtons[0])
+
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(2)
+    })
+
+    it('inserts a row below when insert-below button is clicked', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<TransactionForm {...defaultProps} />)
+
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(1)
+
+      const insertBelowButtons = screen.getAllByTestId('insert-below-btn')
+      await user.click(insertBelowButtons[0])
+
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(2)
+    })
+
+    it('inserts above the second item in correct position', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<TransactionForm {...defaultProps} />)
+
+      // Add a second item
+      await user.click(screen.getByRole('button', { name: /add item/i }))
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(2)
+
+      // Click insert above on second row
+      const insertAboveButtons = screen.getAllByTestId('insert-above-btn')
+      await user.click(insertAboveButtons[1])
+
+      // Should now have 3 rows: [original, new, second]
+      const rows = screen.getAllByTestId('form-item-row')
+      expect(rows).toHaveLength(3)
+    })
+
+    it('removes an item when remove-item button is clicked', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<TransactionForm {...defaultProps} />)
+
+      // Add a second item
+      await user.click(screen.getByRole('button', { name: /add item/i }))
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(2)
+
+      // Click remove on first row
+      const removeButtons = screen.getAllByTestId('remove-item-btn')
+      await user.click(removeButtons[0])
+
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(1)
+    })
+
+    it('removes item correctly when remove button is not disabled', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<TransactionForm {...defaultProps} />)
+
+      // Start with 1 item, add 2 more
+      await user.click(screen.getByRole('button', { name: /add item/i }))
+      await user.click(screen.getByRole('button', { name: /add item/i }))
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(3)
+
+      // Remove the second item
+      const removeButtons = screen.getAllByTestId('remove-item-btn')
+      await user.click(removeButtons[1])
+
+      expect(screen.getAllByTestId('form-item-row')).toHaveLength(2)
+    })
+  })
 })

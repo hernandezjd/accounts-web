@@ -367,6 +367,8 @@
     "items": "Line Items",
     "addItem": "Add Item",
     "removeItem": "Remove Item",
+    "insertAbove": "Insert Above",
+    "insertBelow": "Insert Below",
     "account": "Account",
     "thirdParty": "Third Party",
     "debit": "Debit",
