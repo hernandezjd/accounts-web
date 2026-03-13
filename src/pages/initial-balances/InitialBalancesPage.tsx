@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Collapse from '@mui/material/Collapse'
@@ -19,6 +18,7 @@ import { useParams } from 'react-router-dom'
 import { useInitialBalances } from '@/hooks/api/useInitialBalances'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { formatError } from '@/lib/error/useErrorHandler'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from '@/pages/accounting/TransactionForm'
 
@@ -59,9 +59,11 @@ export function InitialBalancesPage() {
       </Box>
 
       {initialDateMissing && (
-        <Alert severity="warning" sx={{ mb: 2 }} data-testid="initial-date-warning">
-          {t('initialBalances.initialDateNotConfiguredWarning')}
-        </Alert>
+        <InitialDateConfigurationAlert
+          tenantId={tenantId}
+          messageKey="initialBalances.initialDateNotConfiguredWarning"
+          testId="initial-date-warning"
+        />
       )}
 
       <Collapse in={Boolean(formConfig)} unmountOnExit>
