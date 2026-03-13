@@ -29,7 +29,8 @@ import { useTranslation } from 'react-i18next'
 import { useAllThirdParties, type ThirdParty } from '@/hooks/api/useAllThirdParties'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
 import { translateApiError } from '@/utils/errorUtils'
-import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError } from '@/lib/error/useErrorHandler'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -297,8 +298,11 @@ function ConfirmActionDialog({
 
 export function ThirdPartiesPage() {
   const { t } = useTranslation()
-  const { data: thirdParties, isLoading, isError, refetch } = useAllThirdParties()
+  const { data: thirdParties, isLoading, isError, error: apiError, refetch } = useAllThirdParties()
   const { deactivateThirdParty, activateThirdParty } = useThirdPartyMutations()
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<ThirdParty | undefined>(undefined)
@@ -323,7 +327,7 @@ export function ThirdPartiesPage() {
       </Box>
 
       {isLoading && <Typography>{t('thirdParties.loading')}</Typography>}
-      {isError && <QueryErrorAlert message={t('thirdParties.error')} onRetry={refetch} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <Box sx={{ overflowX: 'auto' }}>

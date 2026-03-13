@@ -18,7 +18,8 @@ import Alert from '@mui/material/Alert'
 import { usePeriodReport } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
-import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError } from '@/lib/error/useErrorHandler'
 
 // ─── Tab panel helper ────────────────────────────────────────────────────────
 
@@ -52,13 +53,16 @@ function PeriodReportTab({ tenantId, systemInitialDate }: { tenantId: string; sy
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
-  const { data, isLoading, isError, refetch } = usePeriodReport(
+  const { data, isLoading, isError, error: apiError, refetch } = usePeriodReport(
     tenantId,
     appliedParams.fromDate,
     appliedParams.toDate,
     appliedParams.level,
     appliedParams.enabled,
   )
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   const isFromDateBeforeInitial = !!(systemInitialDate && fromDate && fromDate < systemInitialDate)
   const isToDateBeforeInitial = !!(systemInitialDate && toDate && toDate < systemInitialDate)
@@ -130,7 +134,7 @@ function PeriodReportTab({ tenantId, systemInitialDate }: { tenantId: string; sy
       )}
 
       {isError && (
-        <QueryErrorAlert message={t('reports.periodReport.error')} onRetry={refetch} sx={{ mt: 2 }} />
+        <ErrorMessage error={formattedError} onRetry={refetch} />
       )}
 
       {!isLoading && !isError && data && data.entries.length === 0 && (
@@ -219,13 +223,16 @@ function BalanceAtDateTab({ tenantId, systemInitialDate }: { tenantId: string; s
   const [appliedDate, setAppliedDate] = useState('')
   const [enabled, setEnabled] = useState(false)
 
-  const { data, isLoading, isError, refetch } = usePeriodReport(
+  const { data, isLoading, isError, error: apiError, refetch } = usePeriodReport(
     tenantId,
     appliedDate,
     appliedDate,
     undefined,
     enabled,
   )
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   const isDateBeforeInitial = !!(systemInitialDate && date && date < systemInitialDate)
 
@@ -271,7 +278,7 @@ function BalanceAtDateTab({ tenantId, systemInitialDate }: { tenantId: string; s
       )}
 
       {isError && (
-        <QueryErrorAlert message={t('reports.balanceAtDate.error')} onRetry={refetch} sx={{ mt: 2 }} />
+        <ErrorMessage error={formattedError} onRetry={refetch} />
       )}
 
       {!isLoading && !isError && data && data.entries.length === 0 && (
@@ -320,12 +327,15 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate }: { tenantId: string; 
     enabled: boolean
   }>({ date: '', level: undefined, enabled: false })
 
-  const { data, isLoading, isError, refetch } = useBalanceAtLevel(
+  const { data, isLoading, isError, error: apiError, refetch } = useBalanceAtLevel(
     tenantId,
     appliedParams.date,
     appliedParams.level,
     appliedParams.enabled,
   )
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   const isDateBeforeInitial = !!(systemInitialDate && date && date < systemInitialDate)
   const canRun = Boolean(date) && Boolean(levelStr) && parseInt(levelStr, 10) >= 1 && !isDateBeforeInitial
@@ -381,7 +391,7 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate }: { tenantId: string; 
       )}
 
       {isError && (
-        <QueryErrorAlert message={t('reports.balanceAtLevel.error')} onRetry={refetch} sx={{ mt: 2 }} />
+        <ErrorMessage error={formattedError} onRetry={refetch} />
       )}
 
       {!isLoading && !isError && data && data.length === 0 && (

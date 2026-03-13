@@ -18,7 +18,8 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useInitialBalances } from '@/hooks/api/useInitialBalances'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
-import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError } from '@/lib/error/useErrorHandler'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from '@/pages/accounting/TransactionForm'
 
 interface FormConfig {
@@ -30,9 +31,12 @@ interface FormConfig {
 export function InitialBalancesPage() {
   const { t } = useTranslation()
   const { tenantId } = useParams<{ tenantId: string }>()
-  const { data, isLoading, isError } = useInitialBalances(tenantId)
+  const { data, isLoading, isError, error: apiError, refetch } = useInitialBalances(tenantId)
   const { data: tenantConfig } = useTenantConfig(tenantId)
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   if (!tenantId) return null
 
@@ -82,7 +86,7 @@ export function InitialBalancesPage() {
         </Box>
       )}
 
-      {isError && <QueryErrorAlert message={t('initialBalances.error')} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
 
       {data && !isLoading && (
         data.length === 0 ? (

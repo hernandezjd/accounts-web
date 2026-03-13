@@ -131,7 +131,7 @@ describe('AccountingPage', () => {
       routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
     })
 
-    expect(screen.getByText(/failed to load account data/i)).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
   })
 
   it('renders tree when data is returned', async () => {

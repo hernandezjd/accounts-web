@@ -26,7 +26,8 @@ import { useAccountTransactionsInPeriod } from '@/hooks/api/useAccountTransactio
 import { useTransactionById } from '@/hooks/api/useTransactionById'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
-import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError } from '@/lib/error/useErrorHandler'
 import { PeriodControls } from './PeriodControls'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from './TransactionForm'
 
@@ -72,13 +73,16 @@ export function TransactionView({
   onGranularityChange,
 }: TransactionViewProps) {
   const { t } = useTranslation()
-  const { data, isLoading, isError } = useAccountTransactionsInPeriod(
+  const { data, isLoading, isError, error: apiError, refetch } = useAccountTransactionsInPeriod(
     tenantId,
     accountId,
     from,
     to,
     thirdPartyId,
   )
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   // ── Form state ──
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
@@ -212,7 +216,7 @@ export function TransactionView({
         )}
 
         {isError && (
-          <QueryErrorAlert message={t('accounting.transactions.error')} />
+          <ErrorMessage error={formattedError} onRetry={refetch} />
         )}
 
         {data && !isLoading && (

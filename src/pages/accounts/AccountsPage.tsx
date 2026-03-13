@@ -28,7 +28,8 @@ import { useAccounts, type Account } from '@/hooks/api/useAccounts'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { translateApiError } from '@/utils/errorUtils'
-import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError } from '@/lib/error/useErrorHandler'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 
 // ─── AccountFormDialog ─────────────────────────────────────────────────────────
@@ -361,7 +362,10 @@ export function AccountsPage() {
   const { t } = useTranslation()
   const { tenantId = '' } = useParams<{ tenantId: string }>()
 
-  const { data: accounts, isLoading, isError, refetch } = useAccounts(tenantId || null, true)
+  const { data: accounts, isLoading, isError, error: apiError, refetch } = useAccounts(tenantId || null, true)
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Account | undefined>(undefined)
@@ -392,7 +396,7 @@ export function AccountsPage() {
       </Box>
 
       {isLoading && <Typography>{t('accounts.loading')}</Typography>}
-      {isError && <QueryErrorAlert message={t('accounts.error')} onRetry={refetch} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <Box sx={{ overflowX: 'auto' }}>
