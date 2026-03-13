@@ -7,7 +7,8 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "back": "Volver",
-    "search": "Buscar..."
+    "search": "Buscar...",
+    "goToSetup": "Ir a Configuración"
   },
   "nav": {
     "accounting": "Contabilidad",

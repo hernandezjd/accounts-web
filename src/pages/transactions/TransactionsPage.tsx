@@ -22,6 +22,7 @@ import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { formatError } from '@/lib/error/useErrorHandler'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData } from '../accounting/TransactionForm'
 
 // ─── TransactionsPage ──────────────────────────────────────────────────────────
@@ -133,9 +134,11 @@ export function TransactionsPage() {
       </Box>
 
       {initialDateMissing && (
-        <Alert severity="warning" sx={{ mb: 2 }} data-testid="initial-date-warning">
-          {t('transactionsPage.initialDateNotConfiguredWarning')}
-        </Alert>
+        <InitialDateConfigurationAlert
+          tenantId={tenantId}
+          messageKey="transactionsPage.initialDateNotConfiguredWarning"
+          testId="initial-date-warning"
+        />
       )}
 
       {/* Inline form for create/edit */}

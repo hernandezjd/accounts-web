@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
 import Tabs from '@mui/material/Tabs'
@@ -463,14 +463,14 @@ function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructure
 
 // ─── AccountingConfigTab ──────────────────────────────────────────────────────
 
-function AccountingConfigTab({ tenantId }: { tenantId: string }) {
+function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; initialEditMode?: string | null }) {
   const { t } = useTranslation()
   const { data: config, isLoading: configLoading, isError: configError } = useTenantConfig(tenantId)
   const { data: codeStructure, isLoading: csLoading, isError: csError } = useCodeStructureConfig(tenantId)
   const mutations = useTenantConfigMutations(tenantId)
 
   type EditMode = 'initialDate' | 'closedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | null
-  const [editMode, setEditMode] = useState<EditMode>(null)
+  const [editMode, setEditMode] = useState<EditMode>(initialEditMode === 'initialDate' ? 'initialDate' : null)
   const [editError, setEditError] = useState<string | null>(null)
 
   const isLoading = configLoading || csLoading
@@ -681,7 +681,19 @@ function AccountingConfigTab({ tenantId }: { tenantId: string }) {
 export function SetupPage() {
   const { t } = useTranslation()
   const { tenantId = '' } = useParams<{ tenantId: string }>()
+  const location = useLocation()
   const [activeTab, setActiveTab] = useState(0)
+  const [initialEditMode, setInitialEditMode] = useState<'initialDate' | null>(null)
+
+  useEffect(() => {
+    const state = location.state as { initialTab?: number; initialEditMode?: string } | null
+    if (state?.initialTab !== undefined) {
+      setActiveTab(state.initialTab)
+    }
+    if (state?.initialEditMode === 'initialDate') {
+      setInitialEditMode('initialDate')
+    }
+  }, [location.state])
 
   return (
     <Box>
@@ -700,7 +712,7 @@ export function SetupPage() {
         <TenantsTab />
       </TabPanel>
       <TabPanel value={activeTab} index={1} testId="tabpanel-accounting-config">
-        <AccountingConfigTab tenantId={tenantId} />
+        <AccountingConfigTab tenantId={tenantId} initialEditMode={initialEditMode} />
       </TabPanel>
       <TabPanel value={activeTab} index={2} testId="tabpanel-transaction-types">
         <TransactionTypesContent hideTitle={true} />
