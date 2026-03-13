@@ -21,10 +21,19 @@ export function useTransactionMutations(tenantId: string) {
   const invalidateTransactionQueries = async () => {
     await Promise.all([
       qc.invalidateQueries({ queryKey: queryKeys.transactions.all() }),
+      qc.invalidateQueries({ queryKey: ['accountTransactions'] }),
       qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() }),
       qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
       qc.invalidateQueries({ queryKey: queryKeys.reports.all() }),
     ])
+    // Re-invalidate after delay to handle CQRS eventual consistency:
+    // the command service returns before the event is projected to the read model
+    setTimeout(() => {
+      qc.invalidateQueries({ queryKey: queryKeys.transactions.all() })
+      qc.invalidateQueries({ queryKey: ['accountTransactions'] })
+      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+      qc.invalidateQueries({ queryKey: queryKeys.reports.all() })
+    }, 1000)
   }
 
   /**
@@ -84,15 +93,6 @@ export function useTransactionMutations(tenantId: string) {
     },
     onSuccess: async () => {
       await invalidateTransactionQueries()
-      // Force immediate refetch to ensure UI updates without delay
-      await qc.refetchQueries({
-        predicate: (query) => {
-          // Refetch all transaction list queries (with any filters)
-          const key = query.queryKey
-          return Array.isArray(key) && key[0] === 'transactions' && key[1] === 'list'
-        },
-        type: 'active',
-      })
     },
   })
 
@@ -108,15 +108,6 @@ export function useTransactionMutations(tenantId: string) {
     },
     onSuccess: async () => {
       await invalidateTransactionQueries()
-      // Force immediate refetch to ensure UI updates without delay
-      await qc.refetchQueries({
-        predicate: (query) => {
-          // Refetch all transaction list queries (with any filters)
-          const key = query.queryKey
-          return Array.isArray(key) && key[0] === 'transactions' && key[1] === 'list'
-        },
-        type: 'active',
-      })
     },
   })
 
@@ -130,15 +121,6 @@ export function useTransactionMutations(tenantId: string) {
     },
     onSuccess: async () => {
       await invalidateTransactionQueries()
-      // Force immediate refetch to ensure UI updates without delay
-      await qc.refetchQueries({
-        predicate: (query) => {
-          // Refetch all transaction list queries (with any filters)
-          const key = query.queryKey
-          return Array.isArray(key) && key[0] === 'transactions' && key[1] === 'list'
-        },
-        type: 'active',
-      })
     },
   })
 
