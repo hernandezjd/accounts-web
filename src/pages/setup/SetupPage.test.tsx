@@ -354,7 +354,7 @@ describe('SetupPage — loading / error states', () => {
   })
 
   it('shows error in Tenants tab', () => {
-    mockUseTenants.mockReturnValue({ data: undefined, isLoading: false, isError: true } as ReturnType<typeof useTenants>)
+    mockUseTenants.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error('load failed') } as ReturnType<typeof useTenants>)
     render()
     expect(screen.getByRole('alert')).toBeInTheDocument()
   })

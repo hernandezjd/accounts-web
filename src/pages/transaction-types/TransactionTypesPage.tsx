@@ -22,7 +22,8 @@ import { useTranslation } from 'react-i18next'
 import { useTransactionTypes, type TransactionType } from '@/hooks/api/useTransactionTypes'
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
 import { translateApiError } from '@/utils/errorUtils'
-import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError } from '@/lib/error/useErrorHandler'
 
 // ─── TransactionTypeFormDialog ─────────────────────────────────────────────────
 
@@ -167,7 +168,10 @@ interface TransactionTypesContentProps {
 
 export function TransactionTypesContent({ hideTitle = false }: TransactionTypesContentProps) {
   const { t } = useTranslation()
-  const { data: types, isLoading, isError, refetch } = useTransactionTypes()
+  const { data: types, isLoading, isError, error: apiError, refetch } = useTransactionTypes()
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<TransactionType | undefined>(undefined)
@@ -193,7 +197,7 @@ export function TransactionTypesContent({ hideTitle = false }: TransactionTypesC
       </Box>
 
       {isLoading && <Typography>{t('transactionTypes.loading')}</Typography>}
-      {isError && <QueryErrorAlert message={t('transactionTypes.error')} onRetry={refetch} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <Table size="small" data-testid="tt-table">

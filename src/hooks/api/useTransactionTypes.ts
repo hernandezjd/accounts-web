@@ -13,7 +13,7 @@ async function fetchTransactionTypes(name?: string): Promise<TransactionType[]> 
   const { data, error } = await (queryClient as any).GET('/transaction-types', {
     params: { query },
   })
-  if (error) throw new Error('Failed to fetch transaction types')
+  if (error) throw error
   return data as TransactionType[]
 }
 

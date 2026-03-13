@@ -20,7 +20,7 @@ async function fetchPeriodReport(
       header: { 'X-Tenant-Id': tenantId },
     },
   })
-  if (error) throw new Error('Failed to fetch period report')
+  if (error) throw error
   return data as PeriodReportResponse
 }
 

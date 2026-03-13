@@ -32,7 +32,7 @@ export function useAccountMutations(tenantId: string) {
         params: { header: { 'X-Tenant-Id': tenantId } },
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create account')
+      if (error) throw error
       return data as AccountCommandResponse
     },
     onSuccess: (data, variables) => {
@@ -84,7 +84,7 @@ export function useAccountMutations(tenantId: string) {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to update account')
+      if (error) throw error
       return data as AccountCommandResponse
     },
     onSuccess: async () => {
@@ -99,7 +99,7 @@ export function useAccountMutations(tenantId: string) {
       const { error } = await (commandClient as any).POST('/accounts/{id}/deactivate', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to deactivate account')
+      if (error) throw error
     },
     onSuccess: async () => {
       // Deactivation affects accounts, third-parties, and reports
@@ -117,7 +117,7 @@ export function useAccountMutations(tenantId: string) {
       const { error } = await (commandClient as any).POST('/accounts/{id}/activate', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to activate account')
+      if (error) throw error
     },
     onSuccess: async () => {
       // Activation affects accounts, third-parties, and reports

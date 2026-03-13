@@ -38,7 +38,8 @@ import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureCon
 import { TransactionTypesContent } from '@/pages/transaction-types/TransactionTypesPage'
 import { ThemeEditorTab } from './ThemeEditorTab'
 import { translateApiError } from '@/utils/errorUtils'
-import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError } from '@/lib/error/useErrorHandler'
 import { TenantFormDialog } from '@/pages/TenantFormDialog'
 import type { TenantFormData } from '@/pages/TenantFormDialog'
 
@@ -123,8 +124,11 @@ function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) 
 
 function TenantsTab() {
   const { t } = useTranslation()
-  const { data: tenants, isLoading, isError, refetch } = useTenants()
+  const { data: tenants, isLoading, isError, error: apiError, refetch } = useTenants()
   const { deactivateTenant, reactivateTenant } = useTenantMutations()
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<TenantRow | undefined>(undefined)
@@ -145,7 +149,7 @@ function TenantsTab() {
       </Box>
 
       {isLoading && <Typography>{t('setup.tenants.loading')}</Typography>}
-      {isError && <QueryErrorAlert message={t('setup.tenants.error')} onRetry={refetch} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
 
       {!isLoading && !isError && (
         <Box sx={{ overflowX: 'auto' }}>

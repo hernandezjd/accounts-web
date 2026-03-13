@@ -8,6 +8,7 @@
 
 import { useState, useCallback } from 'react';
 import { getErrorMessage, getErrorSuggestion, shouldShowSupportContact } from './errorCodeMap';
+import { isTransientError, classifyError, type ErrorClassification } from './isTransientError';
 
 export interface StructuredError {
   errorCode: string;
@@ -25,13 +26,16 @@ export interface FormattedError {
   timestamp: string;
   showSupportContact: boolean;
   rawDetails?: Record<string, unknown>;
+  classification: ErrorClassification;
+  isRetryable: boolean;
 }
 
 /**
  * Parse and format a structured error response from the backend.
  * Handles both structured error responses and fallback error messages.
+ * Includes error classification and retry eligibility.
  */
-export function formatError(error: unknown): FormattedError {
+export function formatError(error: unknown, statusCode?: number): FormattedError {
   // Handle structured error response from backend
   if (
     typeof error === 'object' &&
@@ -40,6 +44,9 @@ export function formatError(error: unknown): FormattedError {
     'requestId' in error
   ) {
     const structuredError = error as StructuredError;
+    const classification = classifyError(error, statusCode);
+    const isRetryable = isTransientError(error, statusCode);
+
     return {
       errorCode: structuredError.errorCode,
       userMessage: getErrorMessage(structuredError.errorCode),
@@ -48,10 +55,15 @@ export function formatError(error: unknown): FormattedError {
       timestamp: structuredError.timestamp,
       showSupportContact: shouldShowSupportContact(structuredError.errorCode),
       rawDetails: structuredError.details,
+      classification,
+      isRetryable,
     };
   }
 
   // Handle generic error with fallback
+  const classification = classifyError(error, statusCode);
+  const isRetryable = isTransientError(error, statusCode);
+
   return {
     errorCode: 'UNKNOWN_ERROR',
     userMessage: getErrorMessage('UNKNOWN_ERROR'),
@@ -59,6 +71,8 @@ export function formatError(error: unknown): FormattedError {
     requestId: generateFallbackRequestId(),
     timestamp: new Date().toISOString(),
     showSupportContact: true,
+    classification,
+    isRetryable,
   };
 }
 
@@ -69,15 +83,20 @@ export function formatError(error: unknown): FormattedError {
 export async function parseErrorResponse(response: Response): Promise<FormattedError> {
   try {
     const json = await response.json();
-    return formatError(json);
+    return formatError(json, response.status);
   } catch {
     // Fallback if response body is not JSON
+    const classification = classifyError(null, response.status);
+    const isRetryable = isTransientError(null, response.status);
+
     return {
       errorCode: `HTTP_${response.status}`,
       userMessage: `An error occurred (${response.status}). ${getErrorMessage('UNKNOWN_ERROR')}`,
       requestId: response.headers.get('x-request-id') || generateFallbackRequestId(),
       timestamp: new Date().toISOString(),
       showSupportContact: true,
+      classification,
+      isRetryable,
     };
   }
 }

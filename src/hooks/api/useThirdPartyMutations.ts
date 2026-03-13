@@ -36,7 +36,7 @@ export function useThirdPartyMutations() {
       const { data, error } = await (commandClient as any).POST('/third-parties', {
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to create third party')
+      if (error) throw error
       return data as ThirdPartyCommandResponse
     },
     onSuccess: async () => {
@@ -57,7 +57,7 @@ export function useThirdPartyMutations() {
         params: { path: { id } },
         body,
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to update third party')
+      if (error) throw error
       return data as ThirdPartyCommandResponse
     },
     onSuccess: async () => {
@@ -71,7 +71,7 @@ export function useThirdPartyMutations() {
       const { error } = await (commandClient as any).POST('/third-parties/{id}/deactivate', {
         params: { path: { id } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to deactivate third party')
+      if (error) throw error
     },
     onSuccess: async () => {
       await invalidateThirdPartyQueries()
@@ -84,7 +84,7 @@ export function useThirdPartyMutations() {
       const { error } = await (commandClient as any).POST('/third-parties/{id}/activate', {
         params: { path: { id } },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to activate third party')
+      if (error) throw error
     },
     onSuccess: async () => {
       await invalidateThirdPartyQueries()

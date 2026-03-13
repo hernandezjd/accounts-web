@@ -13,7 +13,7 @@ async function fetchAccounts(tenantId: string, includeInactive: boolean): Promis
       query: includeInactive ? { includeInactive: true } : undefined,
     },
   })
-  if (error) throw new Error('Failed to fetch accounts')
+  if (error) throw error
   return data as Account[]
 }
 

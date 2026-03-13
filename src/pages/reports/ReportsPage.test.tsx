@@ -182,7 +182,7 @@ describe('ReportsPage', () => {
 
       renderWithProviders(<ReportsPage />)
 
-      expect(screen.getByText(/failed to load period report/i)).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toBeInTheDocument()
     })
 
     it('shows empty state when no data', () => {
@@ -319,7 +319,7 @@ describe('ReportsPage', () => {
       await renderOnTab('tab-balance-at-date')
 
       await waitFor(() => {
-        expect(screen.getByText(/failed to load balance report/i)).toBeInTheDocument()
+        expect(screen.getByRole('alert')).toBeInTheDocument()
       })
     })
 
@@ -416,7 +416,7 @@ describe('ReportsPage', () => {
       await renderOnTab('tab-balance-at-level')
 
       await waitFor(() => {
-        expect(screen.getByText(/failed to load balance report/i)).toBeInTheDocument()
+        expect(screen.getByRole('alert')).toBeInTheDocument()
       })
     })
 

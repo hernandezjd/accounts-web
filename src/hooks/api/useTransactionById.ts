@@ -13,7 +13,7 @@ async function fetchTransactionById(tenantId: string, id: string): Promise<Trans
       header: { 'X-Tenant-Id': tenantId },
     },
   })
-  if (error) throw new Error('Failed to fetch transaction')
+  if (error) throw error
   return data as Transaction
 }
 

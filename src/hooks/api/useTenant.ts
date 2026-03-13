@@ -8,7 +8,7 @@ async function fetchTenant(id: string): Promise<Tenant> {
   const { data, error } = await (tenantClient as any).GET('/tenants/{id}', {
     params: { path: { id } },
   })
-  if (error) throw new Error(`Failed to fetch tenant ${id}`)
+  if (error) throw error
   return data as Tenant
 }
 

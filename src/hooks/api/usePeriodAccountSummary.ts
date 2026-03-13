@@ -18,7 +18,7 @@ async function fetchPeriodAccountSummary(
       header: { 'X-Tenant-Id': tenantId },
     },
   })
-  if (error) throw new Error('Failed to fetch period account summary')
+  if (error) throw error
   const resp = data as ApiResponse
   return {
     fromDate: resp.fromDate,

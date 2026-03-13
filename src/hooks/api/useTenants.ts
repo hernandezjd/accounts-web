@@ -6,7 +6,7 @@ import type { Tenant } from '@/types'
 async function fetchTenants(): Promise<Tenant[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (tenantClient as any).GET('/tenants')
-  if (error) throw new Error('Failed to fetch tenants')
+  if (error) throw error
   return (data ?? []) as Tenant[]
 }
 

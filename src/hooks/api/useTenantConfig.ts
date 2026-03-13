@@ -12,7 +12,7 @@ async function fetchTenantConfig(tenantId: string): Promise<TenantConfig> {
       header: { 'X-Tenant-Id': tenantId },
     },
   })
-  if (error) throw new Error('Failed to fetch tenant config')
+  if (error) throw error
   return data as TenantConfig
 }
 

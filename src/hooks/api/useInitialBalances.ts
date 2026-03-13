@@ -11,7 +11,7 @@ async function fetchInitialBalances(tenantId: string): Promise<InitialBalance[]>
   const { data, error } = await (queryClient as any).GET('/transactions/initial-balances', {
     params: { header: { 'X-Tenant-Id': tenantId } },
   })
-  if (error) throw new Error('Failed to fetch initial balances')
+  if (error) throw error
   return data as InitialBalance[]
 }
 

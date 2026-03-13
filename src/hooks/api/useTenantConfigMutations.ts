@@ -36,7 +36,7 @@ export function useTenantConfigMutations(tenantId: string) {
         params: { header: headers },
         body: { initialDate },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to set initial date')
+      if (error) throw error
       return data as TenantConfigResponse
     },
     onSuccess: (_data, initialDate) => patchCache({ systemInitialDate: initialDate }),
@@ -49,7 +49,7 @@ export function useTenantConfigMutations(tenantId: string) {
         params: { header: headers },
         body: { closedPeriodDate },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to set closed period date')
+      if (error) throw error
       return data as TenantConfigResponse
     },
     onSuccess: (_data, closedPeriodDate) => patchCache({ closedPeriodDate }),
@@ -62,7 +62,7 @@ export function useTenantConfigMutations(tenantId: string) {
         params: { header: headers },
         body: { minimumAccountLevel },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to set minimum account level')
+      if (error) throw error
       return data as TenantConfigResponse
     },
     onSuccess: (_data, minimumAccountLevel) => patchCache({ minimumAccountLevel }),
@@ -75,7 +75,7 @@ export function useTenantConfigMutations(tenantId: string) {
         params: { header: headers },
         body: { snapshotFrequencyDays },
       })
-      if (error) throw new Error((error as { error?: string }).error ?? 'Failed to set snapshot frequency')
+      if (error) throw error
       return data as TenantConfigResponse
     },
     onSuccess: (_data, snapshotFrequencyDays) => patchCache({ snapshotFrequencyDays }),

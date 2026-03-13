@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { QueryErrorAlert } from '@/components/QueryErrorAlert'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError } from '@/lib/error/useErrorHandler'
 import { useParams, useSearchParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -122,7 +123,10 @@ export function AccountingPage() {
   const effectiveFrom =
     systemInitialDate && from < systemInitialDate ? systemInitialDate : from
 
-  const { data, isLoading, isError, refetch } = usePeriodAccountSummary(tenantId, effectiveFrom, to)
+  const { data, isLoading, isError, error: apiError, refetch } = usePeriodAccountSummary(tenantId, effectiveFrom, to)
+
+  // Format error for display with classification
+  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
 
   // ── Snap period forward if it ends before systemInitialDate ──────────────
   // Use `to < systemInitialDate` (not `from`) so a yearly period that straddles
@@ -406,7 +410,7 @@ export function AccountingPage() {
             )}
 
             {isError && !isConfigLoading && !(systemInitialDate && to < systemInitialDate) && (
-              <QueryErrorAlert message={t('accounting.error')} onRetry={refetch} />
+              <ErrorMessage error={formattedError} onRetry={refetch} />
             )}
 
             {data && !isLoading && (

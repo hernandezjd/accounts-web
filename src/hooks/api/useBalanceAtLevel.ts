@@ -17,7 +17,7 @@ async function fetchBalanceAtLevel(
       header: { 'X-Tenant-Id': tenantId },
     },
   })
-  if (error) throw new Error('Failed to fetch balance at level')
+  if (error) throw error
   return data as AccountBalanceResponse[]
 }
 
