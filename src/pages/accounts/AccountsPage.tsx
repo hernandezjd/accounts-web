@@ -57,6 +57,9 @@ function AccountFormDialog({
 
   const [code, setCode] = useState(editAccount?.code ?? '')
   const [name, setName] = useState(editAccount?.name ?? '')
+  const [parentId, setParentId] = useState<string | null>(
+    isEdit ? editAccount?.parentId ?? null : null
+  )
   const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [hasThirdParties, setHasThirdParties] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -65,6 +68,7 @@ function AccountFormDialog({
     setCode(editAccount?.code ?? '')
     setName(editAccount?.name ?? '')
     setParentAccount(null)
+    setParentId(isEdit ? editAccount?.parentId ?? null : null)
     setHasThirdParties(false)
     setErrorMsg(null)
     onClose()
@@ -73,17 +77,16 @@ function AccountFormDialog({
   // Code-structure hint for the code field
   const codeHint = (() => {
     if (!codeStructureConfig?.enabled) return null
-    if (!isEdit && !parentAccount) {
+    const effectiveParentId = isEdit ? parentId : parentAccount?.id
+    if (!effectiveParentId) {
       const len = codeStructureConfig.rootCodeLength
       return len ? `${len}-character code` : null
     }
-    if (!isEdit && parentAccount) {
-      const parent = accounts.find((a) => a.id === parentAccount.id)
-      if (parent?.code && parent.level) {
-        const nextLevel = parent.level + 1
-        const segLen = codeStructureConfig.segmentLengthByLevel?.[nextLevel]
-        if (segLen) return `${parent.code} + ${segLen}-character segment`
-      }
+    const parent = accounts.find((a) => a.id === effectiveParentId)
+    if (parent?.code && parent.level) {
+      const nextLevel = parent.level + 1
+      const segLen = codeStructureConfig.segmentLengthByLevel?.[nextLevel]
+      if (segLen) return `${parent.code} + ${segLen}-character segment`
     }
     return null
   })()
@@ -92,7 +95,7 @@ function AccountFormDialog({
     setErrorMsg(null)
     if (isEdit) {
       updateAccount.mutate(
-        { id: editAccount!.id!, body: { code, name } },
+        { id: editAccount!.id!, body: { code, name, parentId: parentId ?? undefined } },
         {
           onSuccess: handleClose,
           onError: (err) => setErrorMsg(translateApiError(err, t)),
@@ -133,25 +136,40 @@ function AccountFormDialog({
           size="small"
           inputProps={{ 'data-testid': 'account-name-input' }}
         />
-        {!isEdit && (
-          <>
+        <div style={{opacity: isEdit && (editAccount?.hasChildren || editAccount?.hasTransactions) ? 0.6 : 1, pointerEvents: isEdit && (editAccount?.hasChildren || editAccount?.hasTransactions) ? 'none' : 'auto'}}>
+          <div style={{marginBottom: '1rem'}}>
             <AccountPicker
               tenantId={tenantId}
-              value={parentAccount}
-              onChange={setParentAccount}
+              value={isEdit && editAccount?.parentId ? { id: editAccount.parentId, code: accounts.find(a => a.id === editAccount.parentId)?.code || '', name: accounts.find(a => a.id === editAccount.parentId)?.name || '' } : parentAccount}
+              onChange={(option) => {
+                if (isEdit) {
+                  setParentId(option?.id ?? null)
+                } else {
+                  setParentAccount(option)
+                }
+              }}
               label={t('transactionForm.parentAccount')}
               excludeAccountId={editAccount?.id}
             />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={hasThirdParties}
-                  onChange={(e) => setHasThirdParties(e.target.checked)}
-                />
-              }
-              label={t('accounts.hasThirdParties')}
-            />
-          </>
+          </div>
+        </div>
+        {isEdit && (editAccount?.hasChildren || editAccount?.hasTransactions) && (
+          <Alert severity="info">
+            {editAccount.hasChildren && 'Account has children'}
+            {editAccount.hasTransactions && (editAccount.hasChildren ? ' and' : '') + ' transactions'}
+            {' - parent cannot be changed'}
+          </Alert>
+        )}
+        {!isEdit && (
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={hasThirdParties}
+                onChange={(e) => setHasThirdParties(e.target.checked)}
+              />
+            }
+            label={t('accounts.hasThirdParties')}
+          />
         )}
       </DialogContent>
       <DialogActions>
