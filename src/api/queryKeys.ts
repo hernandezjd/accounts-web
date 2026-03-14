@@ -127,8 +127,8 @@ export const queryKeys = {
       [...queryKeys.reports.all(), { tenantId }, 'period-account-summary', filters] as const,
     balanceAtDate: (tenantId: string, accountId: string, date?: string) =>
       [...queryKeys.reports.all(), { tenantId, accountId }, 'balance-at-date', date] as const,
-    balanceAtLevel: (tenantId: string, level: number, date?: string) =>
-      [...queryKeys.reports.all(), { tenantId, level }, 'balance-at-level', date] as const,
+    balanceAtLevel: (tenantId: string, level: number, date?: string, filters?: Record<string, unknown>) =>
+      [...queryKeys.reports.all(), { tenantId, level }, 'balance-at-level', date, filters] as const,
     periodReport: (tenantId: string, filters?: Record<string, unknown>) =>
       [...queryKeys.reports.all(), { tenantId }, 'period-report', filters] as const,
     thirdPartyBalanceAtDate: (

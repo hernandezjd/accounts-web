@@ -226,13 +226,17 @@
       "levelOptional": "Account Level (optional)",
       "run": "Run Report"
     },
+    "simulateClosureToggle": "Simulate Closure",
+    "simulateModeActive": "Closure simulation is active — original balances are shown grayed out",
     "periodReport": {
       "code": "Code",
       "name": "Account Name",
       "level": "Level",
       "opening": "Opening Balance",
+      "openingSimulated": "Opening (Simulated)",
       "txnCount": "Transactions",
       "closing": "Closing Balance",
+      "closingSimulated": "Closing (Simulated)",
       "noData": "No accounts found for the selected parameters.",
       "loading": "Loading period report...",
       "error": "Failed to load period report."
@@ -242,6 +246,7 @@
       "name": "Account Name",
       "level": "Level",
       "balance": "Balance",
+      "balanceSimulated": "Balance (Simulated)",
       "noData": "No accounts found for the selected date.",
       "loading": "Loading balances...",
       "error": "Failed to load balance report."
@@ -252,6 +257,7 @@
       "initialBalance": "Initial Balance",
       "runningBalance": "Running Balance",
       "totalBalance": "Total Balance",
+      "totalBalanceSimulated": "Total Balance (Simulated)",
       "noData": "No accounts found at the selected level.",
       "loading": "Loading balances...",
       "error": "Failed to load balance report."

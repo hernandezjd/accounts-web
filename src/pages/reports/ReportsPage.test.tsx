@@ -470,4 +470,89 @@ describe('ReportsPage', () => {
       })
     })
   })
+
+  describe('Closure Simulation', () => {
+    it('renders simulate closure toggle', () => {
+      renderWithProviders(<ReportsPage />)
+
+      expect(screen.getByTestId('simulate-closure-toggle')).toBeInTheDocument()
+    })
+
+    it('toggle is unchecked by default', () => {
+      renderWithProviders(<ReportsPage />)
+
+      const toggle = screen.getByTestId('simulate-closure-toggle').querySelector('input[type="checkbox"]')
+      expect(toggle).not.toBeChecked()
+    })
+
+    it('does not show simulation banner when toggle is off', () => {
+      renderWithProviders(<ReportsPage />)
+
+      expect(screen.queryByTestId('simulation-active-banner')).not.toBeInTheDocument()
+    })
+
+    it('shows simulation banner when toggle is on', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReportsPage />)
+
+      const toggle = screen.getByTestId('simulate-closure-toggle').querySelector('input[type="checkbox"]')!
+      await user.click(toggle)
+
+      expect(screen.getByTestId('simulation-active-banner')).toBeInTheDocument()
+      expect(screen.getByText(/closure simulation is active/i)).toBeInTheDocument()
+    })
+
+    it('calls usePeriodReport with simulateClosure=true when toggle is enabled', async () => {
+      const user = userEvent.setup()
+      mockUsePeriodReport.mockReturnValue({
+        data: samplePeriodReport,
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof usePeriodReport>)
+
+      renderWithProviders(<ReportsPage />)
+
+      // Set dates and run report
+      await user.type(screen.getByTestId('period-from-date'), '2026-01-01')
+      await user.type(screen.getByTestId('period-to-date'), '2026-01-31')
+      await user.click(screen.getByTestId('run-period-report-btn'))
+
+      // Enable simulation toggle
+      const toggle = screen.getByTestId('simulate-closure-toggle').querySelector('input[type="checkbox"]')!
+      await user.click(toggle)
+
+      // Wait for re-fetch with simulateClosure=true
+      await waitFor(() => {
+        const calls = mockUsePeriodReport.mock.calls
+        expect(calls[calls.length - 1][4]).toBe(true) // simulateClosure parameter (5th arg, index 4)
+      })
+    })
+
+    it('calls useBalanceAtLevel with simulateClosure=true on balance at level tab', async () => {
+      const user = userEvent.setup()
+      mockUseBalanceAtLevel.mockReturnValue({
+        data: sampleBalanceAtLevel,
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof useBalanceAtLevel>)
+
+      await renderOnTab('tab-balance-at-level')
+
+      // Set inputs and run
+      await user.type(screen.getByTestId('level-date'), '2026-01-31')
+      await user.type(screen.getByTestId('level-input'), '2')
+      await user.click(screen.getByTestId('run-balance-at-level-btn'))
+
+      // Enable toggle
+      const toggle = screen.getByTestId('simulate-closure-toggle').querySelector('input[type="checkbox"]')!
+      await user.click(toggle)
+
+      await waitFor(() => {
+        const calls = mockUseBalanceAtLevel.mock.calls
+        expect(calls[calls.length - 1][3]).toBe(true) // simulateClosure parameter (4th arg, index 3)
+      })
+    })
+  })
 })
