@@ -17,11 +17,27 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
-import { usePeriodReport } from '@/hooks/api/usePeriodReport'
-import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
+import { usePeriodReport, type PeriodReportWithClosureResponse, type PeriodReportResponse } from '@/hooks/api/usePeriodReport'
+import { useBalanceAtLevel, type AccountBalanceWithClosureResponse, type AccountBalanceResponse } from '@/hooks/api/useBalanceAtLevel'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { formatError } from '@/lib/error/useErrorHandler'
+
+// ─── Type guards ─────────────────────────────────────────────────────────────
+
+function isPeriodReportWithClosure(data: PeriodReportResponse | PeriodReportWithClosureResponse): data is PeriodReportWithClosureResponse {
+  return 'entries' in data && data.entries.length > 0 && 'original' in data.entries[0]
+}
+
+function isAccountBalanceWithClosure(entry: AccountBalanceResponse | AccountBalanceWithClosureResponse): entry is AccountBalanceWithClosureResponse {
+  return 'original' in entry && 'simulated' in entry
+}
+
+// Helper to format amounts
+function formatAmount(n: number | null | undefined): string {
+  if (n === null || n === undefined) return '—'
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
 
 // ─── Tab panel helper ────────────────────────────────────────────────────────
 
@@ -152,74 +168,88 @@ function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false 
         </Typography>
       )}
 
-      {!isLoading && !isError && data && data.entries.length > 0 && (
-        <Box sx={{ overflowX: 'auto' }}>
-        <Table size="small" data-testid="period-report-table">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('reports.periodReport.code')}</TableCell>
-              <TableCell>{t('reports.periodReport.name')}</TableCell>
-              <TableCell align="right">{t('reports.periodReport.level')}</TableCell>
-              <TableCell align="right">{t('reports.periodReport.opening')}</TableCell>
-              <TableCell align="right">{t('reports.periodReport.txnCount')}</TableCell>
-              <TableCell align="right">{t('reports.periodReport.closing')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.entries.map((entry) => (
-              <>
-                <TableRow
-                  key={entry.accountId}
-                  hover
-                  onClick={() => toggleRow(entry.accountId)}
-                  sx={{ cursor: entry.periodTransactions.length > 0 ? 'pointer' : 'default' }}
-                  data-testid={`period-row-${entry.accountId}`}
-                >
-                  <TableCell>{entry.accountCode}</TableCell>
-                  <TableCell>{entry.accountName}</TableCell>
-                  <TableCell align="right">{entry.level}</TableCell>
-                  <TableCell align="right">{entry.openingBalance}</TableCell>
-                  <TableCell align="right">{entry.periodTransactions.length}</TableCell>
-                  <TableCell align="right">{entry.closingBalance}</TableCell>
+      {!isLoading && !isError && data && data.entries.length > 0 && (() => {
+        const isClosureResponse = isPeriodReportWithClosure(data)
+        const colSpan = isClosureResponse ? 8 : 6
+        return (
+          <Box sx={{ overflowX: 'auto' }}>
+            <Table size="small" data-testid="period-report-table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('reports.periodReport.code')}</TableCell>
+                  <TableCell>{t('reports.periodReport.name')}</TableCell>
+                  <TableCell align="right">{t('reports.periodReport.level')}</TableCell>
+                  <TableCell align="right">{t('reports.periodReport.opening')}</TableCell>
+                  {isClosureResponse && <TableCell align="right">{t('reports.periodReport.openingSimulated')}</TableCell>}
+                  <TableCell align="right">{t('reports.periodReport.txnCount')}</TableCell>
+                  <TableCell align="right">{t('reports.periodReport.closing')}</TableCell>
+                  {isClosureResponse && <TableCell align="right">{t('reports.periodReport.closingSimulated')}</TableCell>}
                 </TableRow>
-                {entry.periodTransactions.length > 0 && (
-                  <TableRow key={`${entry.accountId}-expand`}>
-                    <TableCell colSpan={6} sx={{ p: 0, border: 0 }}>
-                      <Collapse in={expandedRow === entry.accountId} timeout="auto" unmountOnExit>
-                        <Box sx={{ p: 1, pl: 4, bgcolor: 'action.hover' }}>
-                          <Table size="small" data-testid={`period-txns-${entry.accountId}`}>
-                            <TableHead>
-                              <TableRow>
-                                <TableCell>Date</TableCell>
-                                <TableCell>Type</TableCell>
-                                <TableCell>Number</TableCell>
-                                <TableCell align="right">Debit</TableCell>
-                                <TableCell align="right">Credit</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {entry.periodTransactions.map((txn) => (
-                                <TableRow key={txn.transactionId}>
-                                  <TableCell>{txn.date}</TableCell>
-                                  <TableCell>{txn.transactionTypeName}</TableCell>
-                                  <TableCell>{txn.transactionNumber}</TableCell>
-                                  <TableCell align="right">{txn.debitAmount}</TableCell>
-                                  <TableCell align="right">{txn.creditAmount}</TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </Box>
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </>
-            ))}
-          </TableBody>
-        </Table>
-        </Box>
-      )}
+              </TableHead>
+              <TableBody>
+                {data.entries.map((entry) => {
+                  const original = isClosureResponse ? (entry as any).original : entry as any
+                  const simulated = isClosureResponse ? (entry as any).simulated : null
+                  const hasTransactions = original.periodTransactions?.length > 0
+                  const showSimulatedAsGrayed = isClosureResponse && simulated !== null && simulated !== undefined
+
+                  return (
+                    <>
+                      <TableRow
+                        hover
+                        onClick={() => toggleRow(original.accountId)}
+                        sx={{ cursor: hasTransactions ? 'pointer' : 'default' }}
+                        data-testid={`period-row-${original.accountId}`}
+                      >
+                        <TableCell>{original.accountCode}</TableCell>
+                        <TableCell>{original.accountName}</TableCell>
+                        <TableCell align="right">{original.level}</TableCell>
+                        <TableCell align="right" sx={showSimulatedAsGrayed ? { color: 'text.disabled' } : {}}>{formatAmount(original.openingBalance)}</TableCell>
+                        {isClosureResponse && <TableCell align="right">{formatAmount(simulated?.openingBalance)}</TableCell>}
+                        <TableCell align="right">{hasTransactions ? original.periodTransactions.length : 0}</TableCell>
+                        <TableCell align="right" sx={showSimulatedAsGrayed ? { color: 'text.disabled' } : {}}>{formatAmount(original.closingBalance)}</TableCell>
+                        {isClosureResponse && <TableCell align="right">{formatAmount(simulated?.closingBalance)}</TableCell>}
+                      </TableRow>
+                      {hasTransactions && (
+                        <TableRow key={`${original.accountId}-expand`}>
+                          <TableCell colSpan={colSpan} sx={{ p: 0, border: 0 }}>
+                            <Collapse in={expandedRow === original.accountId} timeout="auto" unmountOnExit>
+                              <Box sx={{ p: 1, pl: 4, bgcolor: 'action.hover' }}>
+                                <Table size="small" data-testid={`period-txns-${entry.accountId}`}>
+                                  <TableHead>
+                                    <TableRow>
+                                      <TableCell>Date</TableCell>
+                                      <TableCell>Type</TableCell>
+                                      <TableCell>Number</TableCell>
+                                      <TableCell align="right">Debit</TableCell>
+                                      <TableCell align="right">Credit</TableCell>
+                                    </TableRow>
+                                  </TableHead>
+                                  <TableBody>
+                                    {original.periodTransactions.map((txn: any) => (
+                                      <TableRow key={txn.transactionId}>
+                                        <TableCell>{txn.date}</TableCell>
+                                        <TableCell>{txn.transactionTypeName}</TableCell>
+                                        <TableCell>{txn.transactionNumber}</TableCell>
+                                        <TableCell align="right">{formatAmount(txn.debitAmount)}</TableCell>
+                                        <TableCell align="right">{formatAmount(txn.creditAmount)}</TableCell>
+                                      </TableRow>
+                                    ))}
+                          </TableBody>
+                        </Table>
+                      </Box>
+                    </Collapse>
+                  </TableCell>
+                </TableRow>
+              )}
+                    </>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </Box>
+        )
+      })()}
     </Box>
   )
 }
@@ -303,30 +333,49 @@ function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false
         </Typography>
       )}
 
-      {!isLoading && !isError && data && data.entries.length > 0 && (
-        <Box sx={{ overflowX: 'auto' }}>
-        <Table size="small" data-testid="balance-at-date-table">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('reports.balanceAtDate.code')}</TableCell>
-              <TableCell>{t('reports.balanceAtDate.name')}</TableCell>
-              <TableCell align="right">{t('reports.balanceAtDate.level')}</TableCell>
-              <TableCell align="right">{t('reports.balanceAtDate.balance')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.entries.map((entry) => (
-              <TableRow key={entry.accountId} data-testid={`balance-row-${entry.accountId}`}>
-                <TableCell>{entry.accountCode}</TableCell>
-                <TableCell>{entry.accountName}</TableCell>
-                <TableCell align="right">{entry.level}</TableCell>
-                <TableCell align="right">{entry.closingBalance}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        </Box>
-      )}
+      {!isLoading && !isError && data && data.entries.length > 0 && (() => {
+        const isClosureResponse = simulateClosure && 'original' in (data.entries[0] || {})
+        return (
+          <Box sx={{ overflowX: 'auto' }}>
+            <Table size="small" data-testid="balance-at-date-table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('reports.balanceAtDate.code')}</TableCell>
+                  <TableCell>{t('reports.balanceAtDate.name')}</TableCell>
+                  <TableCell align="right">{t('reports.balanceAtDate.level')}</TableCell>
+                  <TableCell align="right">{t('reports.balanceAtDate.balance')}</TableCell>
+                  {isClosureResponse && (
+                    <TableCell align="right">{t('reports.balanceAtDate.balanceSimulated')}</TableCell>
+                  )}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.entries.map((entry: any) => {
+                  const original = isClosureResponse ? (entry as any).original : (entry as any)
+                  const simulated = isClosureResponse ? (entry as any).simulated : null
+                  const showSimulatedAsGrayed = isClosureResponse && simulated !== null
+
+                  return (
+                    <TableRow key={original.accountId} data-testid={`balance-row-${original.accountId}`}>
+                      <TableCell>{original.accountCode}</TableCell>
+                      <TableCell>{original.accountName}</TableCell>
+                      <TableCell align="right">{original.level}</TableCell>
+                      <TableCell align="right" sx={showSimulatedAsGrayed ? { color: 'text.disabled' } : undefined}>
+                        {formatAmount(original.closingBalance)}
+                      </TableCell>
+                      {isClosureResponse && (
+                        <TableCell align="right">
+                          {simulated !== null ? formatAmount(simulated.closingBalance) : '—'}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </Box>
+        )
+      })()}
     </Box>
   )
 }
@@ -423,32 +472,51 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = fals
         </Typography>
       )}
 
-      {!isLoading && !isError && data && data.length > 0 && (
-        <Box sx={{ overflowX: 'auto' }}>
-        <Table size="small" data-testid="balance-at-level-table">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('reports.balanceAtLevel.code')}</TableCell>
-              <TableCell>{t('reports.balanceAtLevel.name')}</TableCell>
-              <TableCell align="right">{t('reports.balanceAtLevel.initialBalance')}</TableCell>
-              <TableCell align="right">{t('reports.balanceAtLevel.runningBalance')}</TableCell>
-              <TableCell align="right">{t('reports.balanceAtLevel.totalBalance')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((entry) => (
-              <TableRow key={entry.accountId} data-testid={`level-row-${entry.accountId}`}>
-                <TableCell>{entry.accountCode}</TableCell>
-                <TableCell>{entry.accountName}</TableCell>
-                <TableCell align="right">{entry.initialBalance}</TableCell>
-                <TableCell align="right">{entry.runningBalance}</TableCell>
-                <TableCell align="right">{entry.totalBalance}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        </Box>
-      )}
+      {!isLoading && !isError && data && data.length > 0 && (() => {
+        const isClosureResponse = simulateClosure && 'original' in (data[0] || {})
+        return (
+          <Box sx={{ overflowX: 'auto' }}>
+            <Table size="small" data-testid="balance-at-level-table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('reports.balanceAtLevel.code')}</TableCell>
+                  <TableCell>{t('reports.balanceAtLevel.name')}</TableCell>
+                  <TableCell align="right">{t('reports.balanceAtLevel.initialBalance')}</TableCell>
+                  <TableCell align="right">{t('reports.balanceAtLevel.runningBalance')}</TableCell>
+                  <TableCell align="right">{t('reports.balanceAtLevel.totalBalance')}</TableCell>
+                  {isClosureResponse && (
+                    <TableCell align="right">{t('reports.balanceAtLevel.totalBalanceSimulated')}</TableCell>
+                  )}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.map((entry: any) => {
+                  const original = isClosureResponse ? (entry as any).original : (entry as any)
+                  const simulated = isClosureResponse ? (entry as any).simulated : null
+                  const showSimulatedAsGrayed = isClosureResponse && simulated !== null
+
+                  return (
+                    <TableRow key={original.accountId} data-testid={`level-row-${original.accountId}`}>
+                      <TableCell>{original.accountCode}</TableCell>
+                      <TableCell>{original.accountName}</TableCell>
+                      <TableCell align="right">{formatAmount(original.initialBalance)}</TableCell>
+                      <TableCell align="right">{formatAmount(original.runningBalance)}</TableCell>
+                      <TableCell align="right" sx={showSimulatedAsGrayed ? { color: 'text.disabled' } : undefined}>
+                        {formatAmount(original.totalBalance)}
+                      </TableCell>
+                      {isClosureResponse && (
+                        <TableCell align="right">
+                          {simulated !== null ? formatAmount(simulated.totalBalance) : '—'}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </Box>
+        )
+      })()}
     </Box>
   )
 }
