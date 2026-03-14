@@ -5,6 +5,9 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
+import Alert from '@mui/material/Alert'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 import { useTranslation } from 'react-i18next'
 import type { AccountPeriodNode, Granularity } from '@/types/accounting'
 import {
@@ -90,6 +93,9 @@ export function AccountingPage() {
   // ── Highlight state for search account selection ───────────────────────────
   const [highlightedAccountId, setHighlightedAccountId] = useState<string | null>(null)
 
+  // ── Closure simulation toggle ──────────────────────────────────────────────
+  const [simulateClosure, setSimulateClosure] = useState(false)
+
   // Ref to trigger scroll restoration after tree re-renders
   const pendingScrollRef = useRef<number | null>(null)
 
@@ -123,7 +129,7 @@ export function AccountingPage() {
   const effectiveFrom =
     systemInitialDate && from < systemInitialDate ? systemInitialDate : from
 
-  const { data, isLoading, isError, error: apiError, refetch } = usePeriodAccountSummary(tenantId, effectiveFrom, to)
+  const { data, isLoading, isError, error: apiError, refetch } = usePeriodAccountSummary(tenantId, effectiveFrom, to, simulateClosure)
 
   // Format error for display with classification
   const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
@@ -391,6 +397,25 @@ export function AccountingPage() {
             onGranularityChange={handleGranularityChange}
             systemInitialDate={systemInitialDate}
           />
+
+          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={simulateClosure}
+                  onChange={(e) => setSimulateClosure(e.target.checked)}
+                  data-testid="simulate-closure-toggle"
+                />
+              }
+              label={t('accounting.simulateClosureToggle')}
+            />
+          </Box>
+
+          {simulateClosure && (
+            <Alert severity="info" sx={{ mb: 2 }} data-testid="simulation-active-banner">
+              {t('accounting.simulateModeActive')}
+            </Alert>
+          )}
 
           <SearchBar
             ref={searchBarRef}

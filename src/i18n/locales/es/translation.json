@@ -110,7 +110,9 @@
       "accountsSection": "Cuentas",
       "transactionsSection": "Transacciones",
       "loading": "Buscando..."
-    }
+    },
+    "simulateClosureToggle": "Simular Cierre",
+    "simulateModeActive": "La simulación de cierre está activa — los saldos originales se muestran en gris"
   },
   "accounts": {
     "title": "Cuentas",
