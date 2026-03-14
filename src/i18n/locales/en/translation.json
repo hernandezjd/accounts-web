@@ -325,7 +325,16 @@
       "level": "Level",
       "length": "Length",
       "addLevel": "Add Level",
-      "removeLevel": "Remove Level"
+      "removeLevel": "Remove Level",
+      "nominalAccountsTitle": "Nominal Accounts & P&L Configuration",
+      "nominalAccounts": "Nominal Accounts",
+      "profitLossAccount": "P&L Account",
+      "editNominalAccountsConfig": "Edit Nominal Accounts & P&L",
+      "nominalAccountsNotConfigured": "Not configured",
+      "nominalAccountsHint": "Select accounts whose balances are zeroed out on period closure",
+      "profitLossAccountHint": "Account that receives the net P&L transfer on period closure",
+      "atLeastOneNominalAccount": "At least one nominal account is required",
+      "profitLossAccountRequired": "A P&L account is required"
     },
     "theme": {
       "title": "Theme Editor",

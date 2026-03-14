@@ -81,5 +81,31 @@ export function useTenantConfigMutations(tenantId: string) {
     onSuccess: (_data, snapshotFrequencyDays) => patchCache({ snapshotFrequencyDays }),
   })
 
-  return { setInitialDate, setClosedPeriodDate, setMinimumAccountLevel, setSnapshotFrequency }
+  const setNominalAccountsConfig = useMutation({
+    mutationFn: async ({
+      nominalAccounts,
+      profitLossAccountId,
+    }: {
+      nominalAccounts: string[]
+      profitLossAccountId: string
+    }): Promise<TenantConfigResponse> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (commandClient as any).PUT('/config/nominal-accounts-config', {
+        params: { header: headers },
+        body: { nominalAccounts, profitLossAccountId },
+      })
+      if (error) throw error
+      return data as TenantConfigResponse
+    },
+    onSuccess: (_data, { nominalAccounts, profitLossAccountId }) =>
+      patchCache({ nominalAccounts, profitLossAccountId }),
+  })
+
+  return {
+    setInitialDate,
+    setClosedPeriodDate,
+    setMinimumAccountLevel,
+    setSnapshotFrequency,
+    setNominalAccountsConfig,
+  }
 }
