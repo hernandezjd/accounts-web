@@ -226,13 +226,17 @@
       "levelOptional": "Nivel de Cuenta (opcional)",
       "run": "Ejecutar Informe"
     },
+    "simulateClosureToggle": "Simular Cierre",
+    "simulateModeActive": "La simulación de cierre está activa — los saldos originales se muestran desactivados",
     "periodReport": {
       "code": "Código",
       "name": "Nombre de Cuenta",
       "level": "Nivel",
       "opening": "Saldo Inicial",
+      "openingSimulated": "Saldo Inicial (Simulado)",
       "txnCount": "Transacciones",
       "closing": "Saldo Final",
+      "closingSimulated": "Saldo Final (Simulado)",
       "noData": "No se encontraron cuentas para los parámetros seleccionados.",
       "loading": "Cargando informe de período...",
       "error": "Error al cargar el informe de período."
@@ -242,6 +246,7 @@
       "name": "Nombre de Cuenta",
       "level": "Nivel",
       "balance": "Saldo",
+      "balanceSimulated": "Saldo (Simulado)",
       "noData": "No se encontraron cuentas para la fecha seleccionada.",
       "loading": "Cargando saldos...",
       "error": "Error al cargar el informe de saldos."
@@ -252,6 +257,7 @@
       "initialBalance": "Saldo Inicial",
       "runningBalance": "Saldo Corriente",
       "totalBalance": "Saldo Total",
+      "totalBalanceSimulated": "Saldo Total (Simulado)",
       "noData": "No se encontraron cuentas en el nivel seleccionado.",
       "loading": "Cargando saldos...",
       "error": "Error al cargar el informe de saldos."

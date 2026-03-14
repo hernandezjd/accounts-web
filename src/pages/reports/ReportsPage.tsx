@@ -15,6 +15,8 @@ import TableCell from '@mui/material/TableCell'
 import Collapse from '@mui/material/Collapse'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 import { usePeriodReport } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
@@ -39,7 +41,13 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 
 // ─── Period Report Tab ───────────────────────────────────────────────────────
 
-function PeriodReportTab({ tenantId, systemInitialDate }: { tenantId: string; systemInitialDate?: string | null }) {
+interface PeriodReportTabProps {
+  tenantId: string
+  systemInitialDate?: string | null
+  simulateClosure?: boolean
+}
+
+function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false }: PeriodReportTabProps) {
   const { t } = useTranslation()
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -58,6 +66,7 @@ function PeriodReportTab({ tenantId, systemInitialDate }: { tenantId: string; sy
     appliedParams.fromDate,
     appliedParams.toDate,
     appliedParams.level,
+    simulateClosure,
     appliedParams.enabled,
   )
 
@@ -217,7 +226,13 @@ function PeriodReportTab({ tenantId, systemInitialDate }: { tenantId: string; sy
 
 // ─── Balance at Date Tab ─────────────────────────────────────────────────────
 
-function BalanceAtDateTab({ tenantId, systemInitialDate }: { tenantId: string; systemInitialDate?: string | null }) {
+interface BalanceAtDateTabProps {
+  tenantId: string
+  systemInitialDate?: string | null
+  simulateClosure?: boolean
+}
+
+function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false }: BalanceAtDateTabProps) {
   const { t } = useTranslation()
   const [date, setDate] = useState('')
   const [appliedDate, setAppliedDate] = useState('')
@@ -228,6 +243,7 @@ function BalanceAtDateTab({ tenantId, systemInitialDate }: { tenantId: string; s
     appliedDate,
     appliedDate,
     undefined,
+    simulateClosure,
     enabled,
   )
 
@@ -317,7 +333,13 @@ function BalanceAtDateTab({ tenantId, systemInitialDate }: { tenantId: string; s
 
 // ─── Balance at Level Tab ────────────────────────────────────────────────────
 
-function BalanceAtLevelTab({ tenantId, systemInitialDate }: { tenantId: string; systemInitialDate?: string | null }) {
+interface BalanceAtLevelTabProps {
+  tenantId: string
+  systemInitialDate?: string | null
+  simulateClosure?: boolean
+}
+
+function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = false }: BalanceAtLevelTabProps) {
   const { t } = useTranslation()
   const [date, setDate] = useState('')
   const [levelStr, setLevelStr] = useState('')
@@ -331,6 +353,7 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate }: { tenantId: string; 
     tenantId,
     appliedParams.date,
     appliedParams.level,
+    simulateClosure,
     appliedParams.enabled,
   )
 
@@ -436,6 +459,7 @@ export function ReportsPage() {
   const { t } = useTranslation()
   const { tenantId = '' } = useParams<{ tenantId: string }>()
   const [activeTab, setActiveTab] = useState(0)
+  const [simulateClosure, setSimulateClosure] = useState(false)
   const { data: tenantConfig } = useTenantConfig(tenantId)
 
   return (
@@ -444,6 +468,25 @@ export function ReportsPage() {
         {t('reports.title')}
       </Typography>
 
+      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={simulateClosure}
+              onChange={(e) => setSimulateClosure(e.target.checked)}
+              data-testid="simulate-closure-toggle"
+            />
+          }
+          label={t('reports.simulateClosureToggle')}
+        />
+      </Box>
+
+      {simulateClosure && (
+        <Alert severity="info" sx={{ mb: 2 }} data-testid="simulation-active-banner">
+          {t('reports.simulateModeActive')}
+        </Alert>
+      )}
+
       <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} data-testid="reports-tabs">
         <Tab label={t('reports.tabs.periodReport')} data-testid="tab-period-report" />
         <Tab label={t('reports.tabs.balanceAtDate')} data-testid="tab-balance-at-date" />
@@ -451,13 +494,13 @@ export function ReportsPage() {
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
-        <PeriodReportTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} />
+        <PeriodReportTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} />
       </TabPanel>
       <TabPanel value={activeTab} index={1}>
-        <BalanceAtDateTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} />
+        <BalanceAtDateTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} />
       </TabPanel>
       <TabPanel value={activeTab} index={2}>
-        <BalanceAtLevelTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} />
+        <BalanceAtLevelTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} />
       </TabPanel>
     </Box>
   )
