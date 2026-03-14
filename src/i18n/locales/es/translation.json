@@ -325,7 +325,16 @@
       "level": "Nivel",
       "length": "Longitud",
       "addLevel": "Agregar Nivel",
-      "removeLevel": "Eliminar Nivel"
+      "removeLevel": "Eliminar Nivel",
+      "nominalAccountsTitle": "Configuración de Cuentas Nominales y P&L",
+      "nominalAccounts": "Cuentas Nominales",
+      "profitLossAccount": "Cuenta P&L",
+      "editNominalAccountsConfig": "Editar Cuentas Nominales y P&L",
+      "nominalAccountsNotConfigured": "No configurado",
+      "nominalAccountsHint": "Selecciona cuentas cuyos saldos se cierren al final del período",
+      "profitLossAccountHint": "Cuenta que recibe la transferencia neta de P&L al cierre del período",
+      "atLeastOneNominalAccount": "Al menos una cuenta nominal es requerida",
+      "profitLossAccountRequired": "Una cuenta P&L es requerida"
     },
     "theme": {
       "title": "Editor de Tema",

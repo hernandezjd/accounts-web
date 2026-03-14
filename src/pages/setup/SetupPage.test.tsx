@@ -14,6 +14,7 @@ vi.mock('@/hooks/api/useCodeStructureConfig', () => ({ useCodeStructureConfig: v
 vi.mock('@/hooks/api/useCodeStructureConfigMutations', () => ({ useCodeStructureConfigMutations: vi.fn() }))
 vi.mock('@/hooks/api/useTransactionTypes', () => ({ useTransactionTypes: vi.fn() }))
 vi.mock('@/hooks/api/useTransactionTypeMutations', () => ({ useTransactionTypeMutations: vi.fn() }))
+vi.mock('@/hooks/api/useAccounts', () => ({ useAccounts: vi.fn() }))
 vi.mock('./ThemeEditorTab', () => ({
   ThemeEditorTab: () => <div data-testid="theme-editor-tab">Theme Editor</div>,
 }))
@@ -26,6 +27,7 @@ import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureConfigMutations'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
+import { useAccounts } from '@/hooks/api/useAccounts'
 
 const mockUseTenants = vi.mocked(useTenants)
 const mockUseTenantMutations = vi.mocked(useTenantMutations)
@@ -35,6 +37,7 @@ const mockUseCodeStructureConfig = vi.mocked(useCodeStructureConfig)
 const mockUseCodeStructureConfigMutations = vi.mocked(useCodeStructureConfigMutations)
 const mockUseTransactionTypes = vi.mocked(useTransactionTypes)
 const mockUseTransactionTypeMutations = vi.mocked(useTransactionTypeMutations)
+const mockUseAccounts = vi.mocked(useAccounts)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -48,7 +51,16 @@ const sampleConfig = {
   closedPeriodDate: '2025-06-30',
   minimumAccountLevel: 3,
   snapshotFrequencyDays: 30,
+  nominalAccounts: ['acc-2', 'acc-3'],
+  profitLossAccountId: 'acc-4',
 }
+
+const sampleAccounts = [
+  { id: 'acc-1', code: '1000', name: 'Assets', level: 1, parentCode: null, hasThirdParties: false, status: 'active' },
+  { id: 'acc-2', code: '4000', name: 'Revenue', level: 2, parentCode: '4', hasThirdParties: false, status: 'active' },
+  { id: 'acc-3', code: '5000', name: 'Expenses', level: 2, parentCode: '5', hasThirdParties: false, status: 'active' },
+  { id: 'acc-4', code: '3000', name: 'Retained Earnings', level: 2, parentCode: '3', hasThirdParties: false, status: 'active' },
+]
 
 const sampleCodeStructure = {
   tenantId: 't-1',
@@ -91,6 +103,7 @@ function setupMocks() {
     setClosedPeriodDate: { ...noOpMutation },
     setMinimumAccountLevel: { ...noOpMutation },
     setSnapshotFrequency: { ...noOpMutation },
+    setNominalAccountsConfig: { ...noOpMutation },
   })
 
   mockUseCodeStructureConfig.mockReturnValue({
@@ -114,6 +127,12 @@ function setupMocks() {
     updateTransactionType: { ...noOpMutation },
     deleteTransactionType: { ...noOpMutation },
   })
+
+  mockUseAccounts.mockReturnValue({
+    data: sampleAccounts,
+    isLoading: false,
+    isError: false,
+  } as ReturnType<typeof useAccounts>)
 }
 
 beforeEach(() => {
@@ -308,6 +327,7 @@ describe('SetupPage — Accounting Config tab', () => {
       setClosedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },
       setSnapshotFrequency: { ...noOpMutation },
+      setNominalAccountsConfig: { ...noOpMutation },
     })
 
     const user = await switchToConfigTab()
@@ -398,6 +418,78 @@ describe('SetupPage — code structure edit', () => {
     await user.click(screen.getByTestId('code-structure-save-btn'))
     await waitFor(() => {
       expect(configureFn).toHaveBeenCalled()
+    })
+  })
+})
+
+describe('SetupPage — nominal accounts configuration', () => {
+  it('displays nominal accounts panel', async () => {
+    const user = userEvent.setup()
+    render()
+    await user.click(screen.getByTestId('tab-accounting-config'))
+    expect(screen.getByTestId('nominal-accounts-panel')).toBeInTheDocument()
+  })
+
+  it('renders nominal account codes as chips', async () => {
+    const user = userEvent.setup()
+    render()
+    await user.click(screen.getByTestId('tab-accounting-config'))
+    // Should show chips for acc-2 (4000) and acc-3 (5000)
+    expect(screen.getByText('4000 — Revenue')).toBeInTheDocument()
+    expect(screen.getByText('5000 — Expenses')).toBeInTheDocument()
+  })
+
+  it('renders P&L account as chip', async () => {
+    const user = userEvent.setup()
+    render()
+    await user.click(screen.getByTestId('tab-accounting-config'))
+    // Should show chip for acc-4 (3000)
+    expect(screen.getByText('3000 — Retained Earnings')).toBeInTheDocument()
+  })
+
+  it('displays "Not set" when nominal accounts not configured', async () => {
+    mockUseTenantConfig.mockReturnValue({
+      data: { systemInitialDate: '2025-01-01', nominalAccounts: null, profitLossAccountId: null },
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useTenantConfig>)
+
+    const user = userEvent.setup()
+    render()
+    await user.click(screen.getByTestId('tab-accounting-config'))
+    const notSetElements = screen.queryAllByText('Not set')
+    expect(notSetElements.length).toBeGreaterThan(0)
+  })
+
+  it('opens nominal accounts edit dialog', async () => {
+    const user = userEvent.setup()
+    render()
+    await user.click(screen.getByTestId('tab-accounting-config'))
+    await user.click(screen.getByTestId('edit-nominal-accounts-btn'))
+    expect(screen.getByTestId('nominal-accounts-dialog')).toBeInTheDocument()
+  })
+
+  it('calls setNominalAccountsConfig on save', async () => {
+    const saveFn = vi.fn()
+    mockUseTenantConfigMutations.mockReturnValue({
+      setInitialDate: { ...noOpMutation },
+      setClosedPeriodDate: { ...noOpMutation },
+      setMinimumAccountLevel: { ...noOpMutation },
+      setSnapshotFrequency: { ...noOpMutation },
+      setNominalAccountsConfig: { mutate: saveFn, isPending: false },
+    })
+
+    const user = userEvent.setup()
+    render()
+    await user.click(screen.getByTestId('tab-accounting-config'))
+    await user.click(screen.getByTestId('edit-nominal-accounts-btn'))
+
+    // Dialog should be open and button should be enabled
+    expect(screen.getByTestId('nominal-accounts-dialog')).toBeInTheDocument()
+    await user.click(screen.getByTestId('nominal-accounts-save-btn'))
+
+    await waitFor(() => {
+      expect(saveFn).toHaveBeenCalled()
     })
   })
 })
