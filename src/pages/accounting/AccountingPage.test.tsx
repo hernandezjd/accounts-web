@@ -583,4 +583,42 @@ describe('AccountingPage', () => {
       expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
     })
   })
+
+  it('shows simulate closure toggle and info banner when enabled', async () => {
+    mockUseSummary.mockReturnValue({
+      data: sampleSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+    })
+
+    // Toggle should exist and be unchecked initially
+    const toggle = screen.getByRole('checkbox', { name: /simulate closure/i })
+    expect(toggle).toBeInTheDocument()
+    expect(toggle).not.toBeChecked()
+
+    // Banner should not be visible when toggle is off
+    expect(screen.queryByTestId('simulation-active-banner')).not.toBeInTheDocument()
+
+    // Click the toggle
+    await userEvent.click(toggle)
+
+    // Banner should now be visible
+    await waitFor(() => {
+      expect(screen.getByTestId('simulation-active-banner')).toBeInTheDocument()
+      expect(screen.getByText(/closure simulation is active/i)).toBeInTheDocument()
+    })
+
+    // Click the toggle again to turn it off
+    await userEvent.click(toggle)
+
+    // Banner should disappear
+    await waitFor(() => {
+      expect(screen.queryByTestId('simulation-active-banner')).not.toBeInTheDocument()
+    })
+  })
 })

@@ -110,7 +110,9 @@
       "accountsSection": "Accounts",
       "transactionsSection": "Transactions",
       "loading": "Searching..."
-    }
+    },
+    "simulateClosureToggle": "Simulate Closure",
+    "simulateModeActive": "Closure simulation is active — original balances are shown grayed out"
   },
   "accounts": {
     "title": "Accounts",
