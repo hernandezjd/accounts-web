@@ -74,9 +74,11 @@
       "code": "Code",
       "name": "Name",
       "openingBalance": "Opening",
+      "openingBalanceSim": "Opening (Sim.)",
       "debits": "Debits",
       "credits": "Credits",
-      "closingBalance": "Closing"
+      "closingBalance": "Closing",
+      "closingBalanceSim": "Closing (Sim.)"
     },
     "shortcuts": {
       "prevPeriod": "Previous period",

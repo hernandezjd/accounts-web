@@ -449,6 +449,7 @@ export function AccountingPage() {
                 onCollapseAll={handleCollapseAll}
                 onDrillDown={handleDrillDown}
                 highlightedAccountId={highlightedAccountId ?? undefined}
+                simulateClosure={simulateClosure}
               />
             )}
           </Box>
