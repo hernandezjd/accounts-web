@@ -14,6 +14,7 @@ interface AccountTreeRowProps {
   onToggle: (accountId: string) => void
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
   highlightedAccountId?: string
+  simulateClosure?: boolean
 }
 
 function formatAmount(n: number): string {
@@ -25,11 +26,13 @@ function ThirdPartyRow({
   accountId,
   indent,
   onDrillDown,
+  simulateClosure,
 }: {
   tp: ThirdPartyPeriodNode
   accountId: string
   indent: number
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
+  simulateClosure?: boolean
 }) {
   function handleActivate() {
     onDrillDown(accountId, tp.thirdPartyId)
@@ -56,7 +59,7 @@ function ThirdPartyRow({
           {tp.thirdPartyName}
         </Box>
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simulateClosure ? 'primary.main' : 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
         {formatAmount(tp.openingBalance)}
       </TableCell>
       <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
@@ -65,14 +68,14 @@ function ThirdPartyRow({
       <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
         {formatAmount(tp.totalCredits)}
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary' }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simulateClosure ? 'primary.main' : 'text.secondary' }}>
         {formatAmount(tp.closingBalance)}
       </TableCell>
     </TableRow>
   )
 }
 
-export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, highlightedAccountId }: AccountTreeRowProps) {
+export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, highlightedAccountId, simulateClosure }: AccountTreeRowProps) {
   const indent = (node.level - 1) * INDENT_PX
   const hasChildren = node.children.length > 0 || node.thirdPartyChildren.length > 0
   const isExpanded = expandedNodes.has(node.accountId)
@@ -127,7 +130,7 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, hig
         <TableCell sx={{ py: 0.75, fontWeight: node.level === 1 ? 600 : 400 }}>
           {node.accountName}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' } }}>
+        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' }, color: simulateClosure ? 'primary.main' : undefined }}>
           {formatAmount(node.openingBalance)}
         </TableCell>
         <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' } }}>
@@ -136,7 +139,7 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, hig
         <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' } }}>
           {formatAmount(node.totalCredits)}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75 }}>
+        <TableCell align="right" sx={{ py: 0.75, color: simulateClosure ? 'primary.main' : undefined }}>
           {formatAmount(node.closingBalance)}
         </TableCell>
       </TableRow>
@@ -150,6 +153,7 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, hig
               accountId={node.accountId}
               indent={indent + INDENT_PX}
               onDrillDown={onDrillDown}
+              simulateClosure={simulateClosure}
             />
           ))}
           {node.children.map((child) => (
@@ -160,6 +164,7 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, hig
               onToggle={onToggle}
               onDrillDown={onDrillDown}
               highlightedAccountId={highlightedAccountId}
+              simulateClosure={simulateClosure}
             />
           ))}
         </>

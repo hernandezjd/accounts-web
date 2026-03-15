@@ -74,9 +74,11 @@
       "code": "Código",
       "name": "Nombre",
       "openingBalance": "Apertura",
+      "openingBalanceSim": "Apertura (Sim.)",
       "debits": "Débitos",
       "credits": "Créditos",
-      "closingBalance": "Cierre"
+      "closingBalance": "Cierre",
+      "closingBalanceSim": "Cierre (Sim.)"
     },
     "shortcuts": {
       "prevPeriod": "Período anterior",

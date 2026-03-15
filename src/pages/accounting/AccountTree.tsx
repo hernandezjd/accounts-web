@@ -25,6 +25,7 @@ interface AccountTreeProps {
   onCollapseAll: () => void
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
   highlightedAccountId?: string
+  simulateClosure?: boolean
 }
 
 export function AccountTree({
@@ -37,6 +38,7 @@ export function AccountTree({
   onCollapseAll,
   onDrillDown,
   highlightedAccountId,
+  simulateClosure,
 }: AccountTreeProps) {
   const { t } = useTranslation()
 
@@ -87,8 +89,8 @@ export function AccountTree({
             <TableRow>
               <TableCell sx={{ fontWeight: 700 }}>{t('accounting.tree.code')}</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>{t('accounting.tree.name')}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
-                {t('accounting.tree.openingBalance')}
+              <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' }, color: simulateClosure ? 'primary.main' : undefined }}>
+                {simulateClosure ? t('accounting.tree.openingBalanceSim') : t('accounting.tree.openingBalance')}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.debits')}
@@ -96,8 +98,8 @@ export function AccountTree({
               <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.credits')}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
-                {t('accounting.tree.closingBalance')}
+              <TableCell align="right" sx={{ fontWeight: 700, color: simulateClosure ? 'primary.main' : undefined }}>
+                {simulateClosure ? t('accounting.tree.closingBalanceSim') : t('accounting.tree.closingBalance')}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -110,6 +112,7 @@ export function AccountTree({
                 onToggle={onToggle}
                 onDrillDown={onDrillDown}
                 highlightedAccountId={highlightedAccountId}
+                simulateClosure={simulateClosure}
               />
             ))}
           </TableBody>
