@@ -84,21 +84,21 @@ export function AccountTree({
       {/* Account tree table */}
       <Box sx={{ overflowX: 'auto' }}>
       <TableContainer>
-        <Table size="small" stickyHeader>
+        <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>{t('accounting.tree.code')}</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>{t('accounting.tree.name')}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' }, color: simulateClosure ? 'primary.main' : undefined }}>
+              <TableCell sx={{ fontWeight: 700, width: 140 }}>{t('accounting.tree.code')}</TableCell>
+              <TableCell sx={{ fontWeight: 700, width: 300 }}>{t('accounting.tree.name')}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' }, color: simulateClosure ? 'primary.main' : undefined }}>
                 {simulateClosure ? t('accounting.tree.openingBalanceSim') : t('accounting.tree.openingBalance')}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.debits')}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'table-cell' } }}>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.credits')}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, color: simulateClosure ? 'primary.main' : undefined }}>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120, color: simulateClosure ? 'primary.main' : undefined }}>
                 {simulateClosure ? t('accounting.tree.closingBalanceSim') : t('accounting.tree.closingBalance')}
               </TableCell>
             </TableRow>
