@@ -266,8 +266,8 @@ describe('AccountingPage', () => {
     fireEvent.dblClick(cashRow)
 
     await waitFor(() => {
-      // Transaction view shows the account name in the header
-      expect(screen.getByText(/Cash/)).toBeInTheDocument()
+      // Transaction view shows the account name in the header (looking for h2 heading)
+      expect(screen.getByRole('heading', { name: /1000 Cash/ })).toBeInTheDocument()
       // Back button appears
       expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
     })
@@ -297,7 +297,8 @@ describe('AccountingPage', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText(/Cash/)).toBeInTheDocument()
+      // Verify transaction view header shows the account
+      expect(screen.getByRole('heading', { name: /1000 Cash/ })).toBeInTheDocument()
     })
   })
 

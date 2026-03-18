@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Collapse from '@mui/material/Collapse'
@@ -262,7 +262,7 @@ export function TransactionView({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.transactions.map((txn) => {
+                    {data.transactions.map((txn, txnIndex) => {
                       const matchingItem = txn.items.find(
                         (item) =>
                           item.accountId === accountId &&
@@ -272,42 +272,76 @@ export function TransactionView({
                       const credit = matchingItem?.creditAmount ?? 0
 
                       return (
-                        <TableRow key={txn.transactionId} hover>
-                          <TableCell sx={{ py: 0.75 }}>{txn.date}</TableCell>
-                          <TableCell sx={{ py: 0.75 }}>{txn.transactionTypeName}</TableCell>
-                          <TableCell sx={{ py: 0.75, fontFamily: 'monospace' }}>
-                            {txn.transactionNumber}
-                          </TableCell>
-                          <TableCell sx={{ py: 0.75 }}>{txn.description ?? ''}</TableCell>
-                          <TableCell align="right" sx={{ py: 0.75 }}>
-                            {debit !== 0 ? formatAmount(debit) : ''}
-                          </TableCell>
-                          <TableCell align="right" sx={{ py: 0.75 }}>
-                            {credit !== 0 ? formatAmount(credit) : ''}
-                          </TableCell>
-                          <TableCell align="right" sx={{ py: 0.75, fontWeight: 600 }}>
-                            {formatAmount(txn.runningBalance)}
-                          </TableCell>
-                          <TableCell sx={{ py: 0.5 }}>
-                            <IconButton
-                              size="small"
-                              onClick={() => setEditingTxnId(txn.transactionId)}
-                              aria-label={`${t('common.edit')} ${txn.transactionNumber}`}
-                              data-testid={`edit-txn-${txn.transactionId}`}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => setDeletingTxnId(txn.transactionId)}
-                              aria-label={`${t('common.delete')} ${txn.transactionNumber}`}
-                              data-testid={`delete-txn-${txn.transactionId}`}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
+                        <Fragment key={txn.transactionId}>
+                          {/* Transaction summary row */}
+                          <TableRow hover>
+                            <TableCell sx={{ py: 0.75 }}>{txn.date}</TableCell>
+                            <TableCell sx={{ py: 0.75 }}>{txn.transactionTypeName}</TableCell>
+                            <TableCell sx={{ py: 0.75, fontFamily: 'monospace' }}>
+                              {txn.transactionNumber}
+                            </TableCell>
+                            <TableCell sx={{ py: 0.75 }}>{txn.description ?? ''}</TableCell>
+                            <TableCell align="right" sx={{ py: 0.75 }}>
+                              {debit !== 0 ? formatAmount(debit) : ''}
+                            </TableCell>
+                            <TableCell align="right" sx={{ py: 0.75 }}>
+                              {credit !== 0 ? formatAmount(credit) : ''}
+                            </TableCell>
+                            <TableCell align="right" sx={{ py: 0.75, fontWeight: 600 }}>
+                              {formatAmount(txn.runningBalance)}
+                            </TableCell>
+                            <TableCell sx={{ py: 0.5 }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => setEditingTxnId(txn.transactionId)}
+                                aria-label={`${t('common.edit')} ${txn.transactionNumber}`}
+                                data-testid={`edit-txn-${txn.transactionId}`}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => setDeletingTxnId(txn.transactionId)}
+                                aria-label={`${t('common.delete')} ${txn.transactionNumber}`}
+                                data-testid={`delete-txn-${txn.transactionId}`}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+
+                          {/* Line item rows */}
+                          {txn.items.map((item, itemIndex) => (
+                            <TableRow key={`${txn.transactionId}-item-${itemIndex}`} sx={{ bgcolor: 'action.hover' }}>
+                              <TableCell sx={{ py: 0.5, pl: 4 }} colSpan={3}>
+                                {item.accountCode} {item.accountName}
+                                {item.thirdPartyName && ` / ${item.thirdPartyName}`}
+                              </TableCell>
+                              <TableCell sx={{ py: 0.5 }} />
+                              <TableCell align="right" sx={{ py: 0.5 }}>
+                                {item.debitAmount !== 0 ? formatAmount(item.debitAmount) : ''}
+                              </TableCell>
+                              <TableCell align="right" sx={{ py: 0.5 }}>
+                                {item.creditAmount !== 0 ? formatAmount(item.creditAmount) : ''}
+                              </TableCell>
+                              <TableCell sx={{ py: 0.5 }} />
+                              <TableCell sx={{ py: 0.5 }} />
+                            </TableRow>
+                          ))}
+
+                          {/* Visual separator row after transaction */}
+                          <TableRow sx={{ height: 4 }}>
+                            <TableCell
+                              colSpan={8}
+                              sx={{
+                                p: 0,
+                                borderBottom: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            />
+                          </TableRow>
+                        </Fragment>
                       )
                     })}
                   </TableBody>

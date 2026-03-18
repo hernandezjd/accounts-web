@@ -8,7 +8,9 @@
     "edit": "Edit",
     "back": "Back",
     "search": "Search...",
-    "goToSetup": "Go to Setup"
+    "goToSetup": "Go to Setup",
+    "debit": "Debit",
+    "credit": "Credit"
   },
   "nav": {
     "accounting": "Accounting",

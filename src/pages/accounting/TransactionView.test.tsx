@@ -155,7 +155,8 @@ describe('TransactionView', () => {
       expect(screen.getByText('Invoice')).toBeInTheDocument()
       expect(screen.getByText('INV-001')).toBeInTheDocument()
       expect(screen.getByText('Office supplies')).toBeInTheDocument()
-      expect(screen.getByText('100.00')).toBeInTheDocument()
+      // 100.00 appears both in transaction summary and line item rows
+      expect(screen.getAllByText('100.00')).toHaveLength(2)
       expect(screen.getByText('5,100.00')).toBeInTheDocument()
     })
   })
@@ -407,6 +408,89 @@ describe('TransactionView', () => {
     await waitFor(() => {
       expect(screen.getByTestId('transaction-form')).toBeInTheDocument()
       expect(screen.getByTestId('transaction-form')).toHaveAttribute('data-mode', 'edit')
+    })
+  })
+
+  it('displays all transaction line items as expanded rows', async () => {
+    const dataWithMultipleItems: AccountTransactionDetail = {
+      ...sampleData,
+      transactions: [
+        {
+          ...sampleData.transactions[0],
+          items: [
+            {
+              accountId: 'acc-1',
+              accountCode: '1000',
+              accountName: 'Cash',
+              thirdPartyId: null,
+              thirdPartyName: null,
+              debitAmount: 100,
+              creditAmount: 0,
+            },
+            {
+              accountId: 'acc-2',
+              accountCode: '2000',
+              accountName: 'Revenue',
+              thirdPartyId: null,
+              thirdPartyName: null,
+              debitAmount: 0,
+              creditAmount: 100,
+            },
+          ],
+        },
+      ],
+    }
+
+    mockUseQuery.mockReturnValue({
+      data: dataWithMultipleItems,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await waitFor(() => {
+      // Verify first line item is displayed (in table, not header)
+      const lineItems = screen.getAllByText(/1000 Cash/)
+      expect(lineItems.length).toBeGreaterThan(1) // At least header + table row
+      // Verify second line item is displayed
+      expect(screen.getByText(/2000 Revenue/)).toBeInTheDocument()
+    })
+  })
+
+  it('displays line items with third-party names when applicable', async () => {
+    const dataWithThirdParty: AccountTransactionDetail = {
+      ...sampleData,
+      transactions: [
+        {
+          ...sampleData.transactions[0],
+          items: [
+            {
+              accountId: 'acc-1',
+              accountCode: '1000',
+              accountName: 'Cash',
+              thirdPartyId: 'tp-1',
+              thirdPartyName: 'ACME Corp',
+              debitAmount: 100,
+              creditAmount: 0,
+            },
+          ],
+        },
+      ],
+    }
+
+    mockUseQuery.mockReturnValue({
+      data: dataWithThirdParty,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/1000 Cash \/ ACME Corp/)).toBeInTheDocument()
     })
   })
 })

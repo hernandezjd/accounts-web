@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -63,6 +63,17 @@ export function TransactionsPage() {
 
   const typeOptions = (transactionTypes ?? []).map((tt) => ({ id: tt.id!, name: tt.name! }))
   const accountOptions = (accounts ?? []).map((a) => ({ id: a.id!, label: `${a.code} — ${a.name}` }))
+
+  function formatAmount(n: number): string {
+    return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  }
+
+  function getTransactionTotals(txn: Transaction): { debit: number; credit: number } {
+    return {
+      debit: (txn.items ?? []).reduce((sum, item) => sum + (item.debitAmount ?? 0), 0),
+      credit: (txn.items ?? []).reduce((sum, item) => sum + (item.creditAmount ?? 0), 0),
+    }
+  }
 
   const handleApplyFilters = () => {
     setAppliedFilters({
@@ -223,35 +234,76 @@ export function TransactionsPage() {
               <TableCell>{t('transactionsPage.type')}</TableCell>
               <TableCell>{t('transactionsPage.number')}</TableCell>
               <TableCell>{t('transactionsPage.description')}</TableCell>
-              <TableCell>{t('transactionsPage.items')}</TableCell>
+              <TableCell align="right">{t('common.debit')}</TableCell>
+              <TableCell align="right">{t('common.credit')}</TableCell>
               <TableCell>{t('transactionsPage.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {(transactions ?? []).length === 0 && (
               <TableRow>
-                <TableCell colSpan={6}>{t('transactionsPage.noTransactions')}</TableCell>
+                <TableCell colSpan={7}>{t('transactionsPage.noTransactions')}</TableCell>
               </TableRow>
             )}
-            {(transactions ?? []).map((txn) => (
-              <TableRow key={txn.id} data-testid={`txn-row-${txn.id}`}>
-                <TableCell>{txn.date}</TableCell>
-                <TableCell>{txn.transactionTypeName}</TableCell>
-                <TableCell>{txn.transactionNumber}</TableCell>
-                <TableCell>{txn.description}</TableCell>
-                <TableCell>{txn.items?.length ?? 0}</TableCell>
-                <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleEditTransaction(txn)}
-                    aria-label={t('common.edit')}
-                    data-testid={`edit-txn-${txn.id}`}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+            {(transactions ?? []).map((txn) => {
+              const { debit, credit } = getTransactionTotals(txn)
+              return (
+                <Fragment key={txn.id}>
+                  {/* Transaction summary row */}
+                  <TableRow data-testid={`txn-row-${txn.id}`}>
+                    <TableCell sx={{ py: 0.75 }}>{txn.date}</TableCell>
+                    <TableCell sx={{ py: 0.75 }}>{txn.transactionTypeName}</TableCell>
+                    <TableCell sx={{ py: 0.75 }}>{txn.transactionNumber}</TableCell>
+                    <TableCell sx={{ py: 0.75 }}>{txn.description}</TableCell>
+                    <TableCell align="right" sx={{ py: 0.75 }}>
+                      {debit > 0 ? formatAmount(debit) : ''}
+                    </TableCell>
+                    <TableCell align="right" sx={{ py: 0.75 }}>
+                      {credit > 0 ? formatAmount(credit) : ''}
+                    </TableCell>
+                    <TableCell sx={{ py: 0.5 }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEditTransaction(txn)}
+                        aria-label={t('common.edit')}
+                        data-testid={`edit-txn-${txn.id}`}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Line item rows */}
+                  {(txn.items ?? []).map((item, itemIndex) => (
+                    <TableRow key={`${txn.id}-item-${itemIndex}`} sx={{ bgcolor: 'action.hover' }}>
+                      <TableCell sx={{ py: 0.5, pl: 4 }} colSpan={4}>
+                        {item.accountCode} {item.accountName}
+                        {item.thirdPartyName && ` / ${item.thirdPartyName}`}
+                      </TableCell>
+                      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em' }}>
+                        {item.debitAmount && item.debitAmount !== 0 ? formatAmount(item.debitAmount) : ''}
+                      </TableCell>
+                      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em' }}>
+                        {item.creditAmount && item.creditAmount !== 0 ? formatAmount(item.creditAmount) : ''}
+                      </TableCell>
+                      <TableCell sx={{ py: 0.5 }} />
+                    </TableRow>
+                  ))}
+
+                  {/* Visual separator row */}
+                  <TableRow sx={{ height: 4 }}>
+                    <TableCell
+                      colSpan={7}
+                      sx={{
+                        p: 0,
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    />
+                  </TableRow>
+                </Fragment>
+              )
+            })}
           </TableBody>
         </Table>
       )}

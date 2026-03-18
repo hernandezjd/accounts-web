@@ -8,7 +8,9 @@
     "edit": "Editar",
     "back": "Volver",
     "search": "Buscar...",
-    "goToSetup": "Ir a Configuración"
+    "goToSetup": "Ir a Configuración",
+    "debit": "Débito",
+    "credit": "Crédito"
   },
   "nav": {
     "accounting": "Contabilidad",

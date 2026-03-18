@@ -144,7 +144,8 @@ describe('TransactionsPage', () => {
     expect(screen.getByText('Date')).toBeInTheDocument()
     expect(screen.getByText('Number')).toBeInTheDocument()
     expect(screen.getByText('Description')).toBeInTheDocument()
-    expect(screen.getByText('Items')).toBeInTheDocument()
+    expect(screen.getByText('Debit')).toBeInTheDocument()
+    expect(screen.getByText('Credit')).toBeInTheDocument()
   })
 
   it('renders transaction rows', () => {
@@ -154,6 +155,63 @@ describe('TransactionsPage', () => {
     expect(screen.getByText('2024-01-15')).toBeInTheDocument()
     expect(screen.getByText('JE-001')).toBeInTheDocument()
     expect(screen.getByText('Opening entries')).toBeInTheDocument()
+  })
+
+  it('displays all transaction line items expanded', () => {
+    renderWithProviders(<TransactionsPage />)
+
+    // Verify line item account code and name are visible
+    expect(screen.getByText(/100 Assets/)).toBeInTheDocument()
+    // Verify debit amount is shown (both in transaction summary and line item)
+    const debitAmounts = screen.getAllByText('1,000.00')
+    expect(debitAmounts.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('displays line items with multiple items in a transaction', () => {
+    const multiItemTransaction: Transaction = {
+      id: 'txn-2',
+      date: '2024-01-16',
+      transactionTypeId: 'tt-1',
+      transactionTypeName: 'Journal Entry',
+      transactionNumber: 'JE-002',
+      description: 'Multi-item transaction',
+      items: [
+        {
+          accountId: 'acc-1',
+          accountCode: '100',
+          accountName: 'Assets',
+          debitAmount: 500,
+          creditAmount: 0,
+          thirdPartyId: null,
+          thirdPartyName: null,
+        },
+        {
+          accountId: 'acc-2',
+          accountCode: '200',
+          accountName: 'Liabilities',
+          debitAmount: 0,
+          creditAmount: 500,
+          thirdPartyId: null,
+          thirdPartyName: null,
+        },
+      ],
+    }
+
+    mockUseTransactions.mockReturnValue({
+      data: [multiItemTransaction],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+
+    renderWithProviders(<TransactionsPage />)
+
+    // Both line items should be visible
+    expect(screen.getByText(/100 Assets/)).toBeInTheDocument()
+    expect(screen.getByText(/200 Liabilities/)).toBeInTheDocument()
+    // Amounts should be visible (multiple occurrences of 500.00)
+    const amounts = screen.getAllByText('500.00')
+    expect(amounts.length).toBeGreaterThanOrEqual(2)
   })
 
   it('"New Transaction" button shows inline create form', async () => {
