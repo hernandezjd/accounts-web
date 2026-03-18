@@ -50,6 +50,8 @@ const defaultProps = {
   onExpandAll: vi.fn(),
   onCollapseAll: vi.fn(),
   onDrillDown: vi.fn(),
+  from: '2026-01-01',
+  to: '2026-01-31',
 }
 
 describe('AccountTree', () => {
@@ -57,10 +59,25 @@ describe('AccountTree', () => {
     renderWithProviders(<AccountTree {...defaultProps} />)
     expect(screen.getByText('Code')).toBeInTheDocument()
     expect(screen.getByText('Name')).toBeInTheDocument()
+    // When from is first day of period, header is just "Opening"
     expect(screen.getByText('Opening')).toBeInTheDocument()
     expect(screen.getByText('Debits')).toBeInTheDocument()
     expect(screen.getByText('Credits')).toBeInTheDocument()
     expect(screen.getByText('Closing')).toBeInTheDocument()
+  })
+
+  it('shows opening balance date when from is not first day of period', () => {
+    // Opening balance set on Jan 14 when viewing monthly January period
+    renderWithProviders(
+      <AccountTree
+        {...defaultProps}
+        from="2026-01-14"
+        to="2026-01-31"
+      />
+    )
+    // Should show both "Opening" and the date on separate lines
+    expect(screen.getByText('Opening')).toBeInTheDocument()
+    expect(screen.getByText(/as of.*2026-01-14/)).toBeInTheDocument()
   })
 
   it('renders root account rows with code and name', () => {

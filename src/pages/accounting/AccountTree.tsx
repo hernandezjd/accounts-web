@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import type { AccountPeriodNode } from '@/types/accounting'
 import { AccountTreeRow } from './AccountTreeRow'
+import type { ReactNode } from 'react'
 
 const LEVEL_OPTIONS = [1, 2, 3, 4, 5]
 
@@ -26,6 +27,43 @@ interface AccountTreeProps {
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
   highlightedAccountId?: string
   simulateClosure?: boolean
+  from: string
+  to: string
+}
+
+/**
+ * Get the first day of the calendar period (e.g., 2026-01-01 for any date in January 2026).
+ * This is derived from the `from` date's year and month (YYYY-MM-DD format).
+ */
+function getFirstDayOfPeriod(from: string): string {
+  // Extract year and month from the from string (format: YYYY-MM-DD)
+  const [year, month] = from.split('-')
+  return `${year}-${month}-01`
+}
+
+/**
+ * Get the opening balance header content with date clarification if needed.
+ * If the opening balance date (from) differs from the first day of the period,
+ * show the date on a second line to prevent layout shift.
+ */
+function getOpeningBalanceHeader(from: string, simulateClosure: boolean, t: any): ReactNode {
+  const firstDay = getFirstDayOfPeriod(from)
+  const baseKey = simulateClosure ? 'accounting.tree.openingBalanceSim' : 'accounting.tree.openingBalance'
+  const baseLabel = t(baseKey)
+
+  // If opening balance date is not the first day of the period, show date on separate line
+  if (from !== firstDay) {
+    const asOf = t('accounting.tree.openingBalanceAsOf')
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3, gap: 0.25 }}>
+        <div>{baseLabel}</div>
+        <div style={{ fontSize: '0.875em' }}>
+          ({asOf} {from})
+        </div>
+      </Box>
+    )
+  }
+  return baseLabel
 }
 
 export function AccountTree({
@@ -39,6 +77,8 @@ export function AccountTree({
   onDrillDown,
   highlightedAccountId,
   simulateClosure,
+  from,
+  to,
 }: AccountTreeProps) {
   const { t } = useTranslation()
 
@@ -86,11 +126,11 @@ export function AccountTree({
       <TableContainer>
         <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ height: 80 }}>
               <TableCell sx={{ fontWeight: 700, width: 140 }}>{t('accounting.tree.code')}</TableCell>
               <TableCell sx={{ fontWeight: 700, width: 300 }}>{t('accounting.tree.name')}</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' }, color: simulateClosure ? 'primary.main' : undefined }}>
-                {simulateClosure ? t('accounting.tree.openingBalanceSim') : t('accounting.tree.openingBalance')}
+                {getOpeningBalanceHeader(from, simulateClosure ?? false, t)}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.debits')}

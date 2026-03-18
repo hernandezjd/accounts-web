@@ -495,6 +495,8 @@ export function AccountingPage() {
                 onDrillDown={handleDrillDown}
                 highlightedAccountId={highlightedAccountId ?? undefined}
                 simulateClosure={simulateClosure}
+                from={effectiveFrom}
+                to={to}
               />
             )}
           </Box>

@@ -75,6 +75,7 @@
       "name": "Nombre",
       "openingBalance": "Apertura",
       "openingBalanceSim": "Apertura (Sim.)",
+      "openingBalanceAsOf": "a partir de",
       "debits": "Débitos",
       "credits": "Créditos",
       "closingBalance": "Cierre",
