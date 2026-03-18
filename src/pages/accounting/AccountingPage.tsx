@@ -17,6 +17,8 @@ import {
   getNextPeriod,
   getPrevPeriod,
 } from '@/utils/period'
+import { PREFERENCE_KEYS } from '@/utils/preferences'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
@@ -74,6 +76,22 @@ export function AccountingPage() {
   const { tenantId } = useParams<{ tenantId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
 
+  // ── UI Preferences persistence (localStorage) ──────────────────────────────
+  const [storedLevel, setStoredLevel] = useLocalStorage<number | null>(PREFERENCE_KEYS.ACCOUNTING_LEVEL, null)
+  const [storedGranularity, setStoredGranularity] = useLocalStorage<Granularity>(
+    PREFERENCE_KEYS.ACCOUNTING_GRANULARITY,
+    'monthly',
+  )
+  const [storedPeriodFrom, setStoredPeriodFrom] = useLocalStorage<string | null>(
+    PREFERENCE_KEYS.ACCOUNTING_PERIOD_FROM,
+    null,
+  )
+  const [storedPeriodTo, setStoredPeriodTo] = useLocalStorage<string | null>(PREFERENCE_KEYS.ACCOUNTING_PERIOD_TO, null)
+  const [storedSimulateClosure, setStoredSimulateClosure] = useLocalStorage<boolean>(
+    PREFERENCE_KEYS.ACCOUNTING_SIMULATE_CLOSURE,
+    false,
+  )
+
   // ── Period state (URL is source of truth) ─────────────────────────────────
   const granularity = (searchParams.get('granularity') as Granularity) ?? 'monthly'
   const defaultPeriod = getDefaultPeriod(granularity)
@@ -93,21 +111,40 @@ export function AccountingPage() {
   // ── Highlight state for search account selection ───────────────────────────
   const [highlightedAccountId, setHighlightedAccountId] = useState<string | null>(null)
 
-  // ── Closure simulation toggle ──────────────────────────────────────────────
-  const [simulateClosure, setSimulateClosure] = useState(false)
+  // ── Closure simulation toggle with localStorage persistence ───────────────
+  const [simulateClosure, setSimulateClosureState] = useState(() => storedSimulateClosure)
+
+  const setSimulateClosure = (value: boolean | ((prev: boolean) => boolean)) => {
+    setSimulateClosureState((prev) => {
+      const next = value instanceof Function ? value(prev) : value
+      setStoredSimulateClosure(next)
+      return next
+    })
+  }
 
   // Ref to trigger scroll restoration after tree re-renders
   const pendingScrollRef = useRef<number | null>(null)
 
-  // ── Ensure URL has the default period if not set ───────────────────────────
+  // ── Ensure URL has the period if not set (use stored values if available) ────
   useEffect(() => {
     if (!searchParams.get('from') || !searchParams.get('to')) {
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev)
-          if (!next.get('from')) next.set('from', defaultPeriod.from)
-          if (!next.get('to')) next.set('to', defaultPeriod.to)
-          if (!next.get('granularity')) next.set('granularity', 'monthly')
+          // Use stored period if available, otherwise use defaults
+          if (!next.get('from')) next.set('from', storedPeriodFrom || defaultPeriod.from)
+          if (!next.get('to')) next.set('to', storedPeriodTo || defaultPeriod.to)
+          if (!next.get('granularity')) next.set('granularity', storedGranularity || 'monthly')
+          return next
+        },
+        { replace: true },
+      )
+    }
+    if (!searchParams.get('level') && storedLevel !== null) {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          next.set('level', String(storedLevel))
           return next
         },
         { replace: true },
@@ -171,6 +208,7 @@ export function AccountingPage() {
 
   // ── URL update helpers ────────────────────────────────────────────────────
   function setPeriod(nextFrom: string, nextTo: string, nextGranularity: Granularity) {
+    // Update URL (source of truth)
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
       next.set('from', nextFrom)
@@ -178,6 +216,10 @@ export function AccountingPage() {
       next.set('granularity', nextGranularity)
       return next
     })
+    // Persist to localStorage for next visit
+    setStoredPeriodFrom(nextFrom)
+    setStoredPeriodTo(nextTo)
+    setStoredGranularity(nextGranularity)
   }
 
   function handlePrevPeriod() {
@@ -200,6 +242,7 @@ export function AccountingPage() {
   }
 
   function handleLevelFilterChange(level: number | null) {
+    // Update URL (source of truth)
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
       if (level === null) {
@@ -209,6 +252,8 @@ export function AccountingPage() {
       }
       return next
     })
+    // Persist to localStorage for next visit
+    setStoredLevel(level)
   }
 
   // ── Expand/collapse callbacks ─────────────────────────────────────────────

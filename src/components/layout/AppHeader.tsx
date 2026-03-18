@@ -11,6 +11,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useTenant } from '@/hooks/api/useTenant'
 import { useTenants } from '@/hooks/api/useTenants'
 import { useAppStore } from '@/store/appStore'
+import { clearAllPreferences } from '@/utils/preferences'
 
 interface AppHeaderProps {
   onMenuToggle: () => void
@@ -26,6 +27,8 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
 
   function handleSwitchTenant() {
     sessionStorage.removeItem('lastTenantId')
+    // Clear UI preferences to avoid cross-tenant leakage
+    clearAllPreferences()
     navigate('/')
   }
 
