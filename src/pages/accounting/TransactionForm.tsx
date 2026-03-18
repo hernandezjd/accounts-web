@@ -22,6 +22,8 @@ import { useTranslation } from 'react-i18next'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
+import { PREFERENCE_KEYS } from '@/utils/preferences'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { translateApiError } from '@/utils/errorUtils'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { AccountSearchField, type AccountOption } from './AccountSearchField'
@@ -151,6 +153,9 @@ export function TransactionForm({
   const { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance } =
     useTransactionMutations(tenantId)
 
+  // ── UI Preferences persistence (localStorage) ──────────────────────────────
+  const [lastUsedDate, setLastUsedDate] = useLocalStorage<string>(PREFERENCE_KEYS.TRANSACTION_LAST_DATE, '')
+
   // ── Form state ──
   const [selectedType, setSelectedType] = useState<TransactionTypeOption | null>(
     initialData
@@ -172,7 +177,13 @@ export function TransactionForm({
     if (initialData) {
       return initialData.date
     }
-    // For create mode, pre-fill with today's date if today >= systemInitialDate
+    // For create mode, try to use the last used date if valid
+    if (mode === 'create' && lastUsedDate && tenantConfig?.systemInitialDate) {
+      if (lastUsedDate >= tenantConfig.systemInitialDate) {
+        return lastUsedDate
+      }
+    }
+    // Fall back to today's date if applicable
     if (mode === 'create' && tenantConfig?.systemInitialDate) {
       const today = getTodayDate()
       if (today >= tenantConfig.systemInitialDate) {
@@ -374,7 +385,12 @@ export function TransactionForm({
           items: requestItems,
         },
         {
-          onSuccess: () => { clearDraft(); onSuccess() },
+          onSuccess: () => {
+            // Remember the last used date for next transaction
+            setLastUsedDate(date)
+            clearDraft()
+            onSuccess()
+          },
           onError: (err) => setErrorMsg(translateApiError(err, t)),
         },
       )
