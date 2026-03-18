@@ -93,11 +93,11 @@ export function AccountingPage() {
   )
 
   // ── Period state (URL is source of truth) ─────────────────────────────────
-  const granularity = (searchParams.get('granularity') as Granularity) ?? 'monthly'
+  const granularity = (searchParams.get('granularity') as Granularity) ?? storedGranularity ?? 'monthly'
   const defaultPeriod = getDefaultPeriod(granularity)
 
-  const from = searchParams.get('from') ?? defaultPeriod.from
-  const to = searchParams.get('to') ?? defaultPeriod.to
+  const from = searchParams.get('from') ?? storedPeriodFrom ?? defaultPeriod.from
+  const to = searchParams.get('to') ?? storedPeriodTo ?? defaultPeriod.to
   const levelFilter = parseLevel(searchParams.get('level'))
 
   // ── View mode (URL) ───────────────────────────────────────────────────────
