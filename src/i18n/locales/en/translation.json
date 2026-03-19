@@ -426,5 +426,37 @@
   },
   "accountForm": {
     "hasThirdParties": "Has Third Parties"
+  },
+  "help": {
+    "title": "Help",
+    "gettingStarted": {
+      "title": "Getting Started",
+      "description": "Here's how to get your accounting system up and running:\n\n1. Create a Tenant\nStart by creating your first tenant. This isolates your accounting data. Click \"Create Your First Tenant\" on the main screen and fill in your organization details.\n\n2. Set the System Initial Date\nOnce in your tenant, go to Setup → Accounting Configuration and set your system initial date. This marks the beginning of your accounting period.\n\n3. Create Your Chart of Accounts\nGo to Accounts and create your account structure. Start with main categories (Assets, Liabilities, Equity, Income, Expenses) and add sub-accounts as needed. Remember to use unique account codes.\n\n4. Create Transaction Types\nGo to Transaction Types and create the types of transactions your business uses (e.g., Invoice, Payment, Transfer, Journal Entry).\n\n5. Enter Initial Balances (Optional)\nIf you're starting with existing account balances, go to Initial Balances and record the opening balance for each account.\n\n6. Record Transactions\nGo to Transactions and start recording your business transactions. Each transaction must balance (total debits = total credits).\n\n7. Review Balances and Reports\nGo to the Accounting page to see your account tree with current balances. Use the Reports section to view period reports, balance-at-date, and balance-by-level.\n\nThat's it! You're now ready to manage your accounting records."
+    },
+    "tenants": {
+      "title": "Tenants",
+      "description": "A tenant is an isolated instance of your accounting data. The system is designed to support multiple organizations or business units, each with their own separate accounts, transactions, and financial records. Each tenant operates independently with no data sharing between tenants. This ensures complete data isolation and privacy for each business unit you manage."
+    },
+    "accounts": {
+      "title": "Accounts",
+      "description": "Accounts are the fundamental components of your chart of accounts. Each account tracks money flows in a specific area of your business. Accounts have a code (unique identifier), a name, and a debit or credit side. Accounts are organized hierarchically with parent-child relationships. You can create accounts at multiple levels to represent different areas of your business—for example, Assets with sub-accounts for Cash, Receivables, and Equipment."
+    },
+    "accountChart": {
+      "title": "Account Chart",
+      "description": "The Account Chart is the hierarchical structure of all your accounts. It organizes accounts into groups and sub-groups, making it easy to navigate and understand your financial structure. Common account hierarchies include:\n\n• Assets (Current Assets, Fixed Assets)\n• Liabilities (Current Liabilities, Long-term Liabilities)\n• Equity\n• Income/Revenue\n• Expenses\n\nThe chart can be customized to match your business needs. Nominal accounts (income and expense accounts) are used for period reporting and can be included in period closure simulations."
+    },
+    "initialBalances": {
+      "title": "Initial Balances",
+      "description": "Initial balances are the opening balances for your accounts at a given point in time. Before recording regular transactions, you establish the starting balance for each account. This is typically done when setting up the system or when beginning a new accounting period. You specify a system initial date, and all initial balance transactions must be dated on or after this date. Initial balances ensure that your account balances reflect the state of your accounts at the beginning of your chosen period."
+    },
+    "transactions": {
+      "title": "Transactions",
+      "description": "A transaction is a business event that affects one or more accounts. Every transaction follows the principle of double-entry bookkeeping: money flows from one account (debit) to another account (credit). Each transaction must balance—total debits must equal total credits. Transactions are recorded with a date, type, description, and a list of line items specifying accounts and amounts. You can also optionally assign a third party to a transaction to track interactions with external organizations."
+    }
+  },
+  "language": {
+    "select": "Language",
+    "english": "English",
+    "spanish": "Español"
   }
 }

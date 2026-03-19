@@ -426,5 +426,37 @@
   },
   "accountForm": {
     "hasThirdParties": "Tiene Terceros"
+  },
+  "help": {
+    "title": "Ayuda",
+    "gettingStarted": {
+      "title": "Comenzar",
+      "description": "Aquí te mostramos cómo poner en funcionamiento tu sistema de contabilidad:\n\n1. Crear un Inquilino\nComienza creando tu primer inquilino. Esto aísla tus datos contables. Haz clic en \"Crear tu Primer Inquilino\" en la pantalla principal e ingresa los detalles de tu organización.\n\n2. Establecer la Fecha Inicial del Sistema\nUna vez en tu inquilino, ve a Configuración → Configuración Contable y establece tu fecha inicial del sistema. Esto marca el comienzo de tu período contable.\n\n3. Crear tu Catálogo de Cuentas\nVe a Cuentas y crea tu estructura de cuentas. Comienza con categorías principales (Activos, Pasivos, Patrimonio, Ingresos, Gastos) y añade subcuentas según sea necesario. Recuerda usar códigos de cuenta únicos.\n\n4. Crear Tipos de Transacciones\nVe a Tipos de Transacciones y crea los tipos de transacciones que utiliza tu negocio (por ejemplo, Factura, Pago, Transferencia, Asiento de Diario).\n\n5. Ingresar Saldos Iniciales (Opcional)\nSi estás comenzando con saldos de cuenta existentes, ve a Saldos Iniciales e ingresa el saldo de apertura para cada cuenta.\n\n6. Registrar Transacciones\nVe a Transacciones y comienza a registrar tus transacciones comerciales. Cada transacción debe estar balanceada (débitos totales = créditos totales).\n\n7. Revisar Saldos e Informes\nVe a la página de Contabilidad para ver tu árbol de cuentas con saldos actuales. Usa la sección Informes para ver reportes de período, saldo a fecha y saldo por nivel.\n\n¡Eso es todo! Ahora estás listo para administrar tus registros contables."
+    },
+    "tenants": {
+      "title": "Inquilinos",
+      "description": "Un inquilino (tenant) es una instancia aislada de tus datos contables. El sistema está diseñado para soportar múltiples organizaciones o unidades de negocio, cada una con sus propias cuentas, transacciones y registros financieros. Cada inquilino opera de manera independiente sin compartir datos con otros inquilinos. Esto garantiza un aislamiento completo de datos y privacidad para cada unidad de negocio que administres."
+    },
+    "accounts": {
+      "title": "Cuentas",
+      "description": "Las cuentas son los componentes fundamentales de tu catálogo de cuentas. Cada cuenta registra flujos de dinero en un área específica de tu negocio. Las cuentas tienen un código (identificador único), un nombre, y un lado deudor o acreedor. Las cuentas se organizan jerárquicamente con relaciones padre-hijo. Puedes crear cuentas en múltiples niveles para representar diferentes áreas de tu negocio—por ejemplo, Activos con subcuentas para Caja, Cuentas por Cobrar e Inmuebles."
+    },
+    "accountChart": {
+      "title": "Catálogo de Cuentas",
+      "description": "El Catálogo de Cuentas es la estructura jerárquica de todas tus cuentas. Organiza las cuentas en grupos y subgrupos, facilitando la navegación y comprensión de tu estructura financiera. Las jerarquías de cuentas comunes incluyen:\n\n• Activos (Activos Circulantes, Activos Fijos)\n• Pasivos (Pasivos Circulantes, Pasivos a Largo Plazo)\n• Patrimonio\n• Ingresos/Ganancias\n• Gastos\n\nEl catálogo puede personalizarse para adaptarse a tus necesidades comerciales. Las cuentas nominales (cuentas de ingresos y gastos) se utilizan para reportes de períodos y pueden incluirse en simulaciones de cierre de período."
+    },
+    "initialBalances": {
+      "title": "Saldos Iniciales",
+      "description": "Los saldos iniciales son los saldos de apertura de tus cuentas en un punto específico en el tiempo. Antes de registrar transacciones regulares, estableces el saldo inicial para cada cuenta. Esto generalmente se hace al configurar el sistema o al comenzar un nuevo período contable. Especificas una fecha inicial del sistema, y todas las transacciones de saldo inicial deben fecharse en o después de esta fecha. Los saldos iniciales garantizan que tus saldos de cuenta reflejen el estado de tus cuentas al comienzo de tu período elegido."
+    },
+    "transactions": {
+      "title": "Transacciones",
+      "description": "Una transacción es un evento comercial que afecta una o más cuentas. Cada transacción sigue el principio de la contabilidad de partida doble: el dinero fluye de una cuenta (débito) a otra cuenta (crédito). Cada transacción debe estar balanceada—los débitos totales deben ser iguales a los créditos totales. Las transacciones se registran con una fecha, tipo, descripción y una lista de elementos de línea especificando cuentas e importes. También puedes opcionalmente asignar un tercero a una transacción para rastrear interacciones con organizaciones externas."
+    }
+  },
+  "language": {
+    "select": "Idioma",
+    "english": "English",
+    "spanish": "Español"
   }
 }

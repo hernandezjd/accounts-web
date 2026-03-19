@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { TenantThemeProvider } from '@/context/TenantThemeProvider'
 import { TenantPickerPage } from '@/pages/TenantPickerPage'
+import { HelpPage } from '@/pages/HelpPage'
 import { AccountingPage } from '@/pages/accounting/AccountingPage'
 import { AccountsPage } from '@/pages/accounts/AccountsPage'
 import { ThirdPartiesPage } from '@/pages/third-parties/ThirdPartiesPage'
@@ -14,6 +15,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<TenantPickerPage />} />
+      <Route path="/help" element={<HelpPage />} />
 
       <Route path="/tenants/:tenantId" element={<TenantThemeProvider><AppShell /></TenantThemeProvider>}>
         <Route index element={<Navigate to="accounting" replace />} />
@@ -24,6 +26,7 @@ function App() {
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="setup" element={<SetupPage />} />
+        <Route path="help" element={<HelpPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

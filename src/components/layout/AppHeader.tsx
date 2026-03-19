@@ -6,6 +6,7 @@ import IconButton from '@mui/material/IconButton'
 import Box from '@mui/material/Box'
 import MenuIcon from '@mui/icons-material/Menu'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTenant } from '@/hooks/api/useTenant'
@@ -61,6 +62,18 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
           </Box>
         )}
         {!tenant && <Box sx={{ flexGrow: 1 }} />}
+
+        <Button
+          color="inherit"
+          size="small"
+          startIcon={<HelpOutlineIcon />}
+          onClick={() => navigate('help')}
+          aria-label={t('help.title')}
+          sx={{ mr: 1 }}
+          data-testid="help-button"
+        >
+          {t('help.title')}
+        </Button>
 
         <Button
           color="inherit"
