@@ -8,7 +8,6 @@ export type PeriodReportWithClosureResponse = components['schemas']['PeriodRepor
 export type PeriodReportEntry = components['schemas']['PeriodReportEntry']
 export type PeriodReportEntryWithClosure = components['schemas']['PeriodReportEntryWithClosure']
 export type PeriodTransactionEntry = components['schemas']['PeriodTransactionEntry']
-export type PeriodBalanceBreakdown = components['schemas']['PeriodBalanceBreakdown']
 
 async function fetchPeriodReport(
   tenantId: string,

@@ -121,7 +121,7 @@ function LivePreview({ draft }: LivePreviewProps) {
             { key: 'successMain', label: 'Success' },
             { key: 'infoMain', label: 'Info' },
           ] as const
-        ).map(({ key, label }) => (
+        ).map(({ key }) => (
           <Box
             key={key}
             data-testid={`preview-swatch-${key}`}

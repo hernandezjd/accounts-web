@@ -480,7 +480,7 @@ export function AccountingPage() {
             )}
 
             {isError && !isConfigLoading && !(systemInitialDate && to < systemInitialDate) && (
-              <ErrorMessage error={formattedError} onRetry={refetch} />
+              <ErrorMessage error={formattedError} onRetry={() => void refetch()} />
             )}
 
             {data && !isLoading && (

@@ -34,41 +34,35 @@ export function useCRUDMutation<TData, TError, TVariables>(
     ...otherOptions
   } = options;
 
-  return useMutation<TData, TError, TVariables>(
-    {
-      mutationFn,
-      onSuccess: async (data, variables, context) => {
-        // 1. Patch affected caches immediately with response data
-        if (onSuccessPatch) {
-          const patchedData = onSuccessPatch(data);
-          if (patchedData) {
-            // Update all related query caches with patched response
-            invalidateKeys.forEach((key) => {
-              queryClient.setQueryData(key, patchedData);
-            });
-          }
+  // Create the wrapped mutation with cache invalidation logic
+  const wrappedMutation = useMutation<TData, TError, TVariables>({
+    mutationFn,
+    onSuccess: async (data) => {
+      // 1. Patch affected caches immediately with response data
+      if (onSuccessPatch) {
+        const patchedData = onSuccessPatch(data);
+        if (patchedData) {
+          // Update all related query caches with patched response
+          invalidateKeys.forEach((key) => {
+            queryClient.setQueryData(key, patchedData);
+          });
         }
+      }
 
-        // 2. Schedule background refetch after delay for consistency verification
-        // This handles CQRS eventual consistency: ensures UI matches server state
-        if (invalidateKeys.length > 0) {
-          setTimeout(() => {
-            invalidateKeys.forEach((key) => {
-              queryClient.invalidateQueries({ queryKey: key });
-            });
-          }, refetchDelay);
-        }
-
-        // Call user's onSuccess handler if provided
-        if (onSuccess) {
-          await onSuccess(data, variables, context);
-        }
-      },
+      // 2. Schedule background refetch after delay for consistency verification
+      // This handles CQRS eventual consistency: ensures UI matches server state
+      if (invalidateKeys.length > 0) {
+        setTimeout(() => {
+          invalidateKeys.forEach((key) => {
+            queryClient.invalidateQueries({ queryKey: key });
+          });
+        }, refetchDelay);
+      }
     },
-    {
-      ...otherOptions,
-    }
-  );
+    ...otherOptions,
+  });
+
+  return wrappedMutation;
 }
 
 /**
@@ -82,23 +76,16 @@ export function useCRUDMutationSimple<TData, TError, TVariables>(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<TData, TError, TVariables>(
-    {
-      mutationFn,
-      onSuccess: (data, variables, context) => {
-        // Invalidate all related caches after mutation succeeds
-        if (invalidateKeys.length > 0) {
-          invalidateKeys.forEach((key) => {
-            queryClient.invalidateQueries({ queryKey: key });
-          });
-        }
-
-        // Call user's onSuccess handler if provided
-        if (options.onSuccess) {
-          options.onSuccess(data, variables, context);
-        }
-      },
+  return useMutation<TData, TError, TVariables>({
+    mutationFn,
+    onSuccess: () => {
+      // Invalidate all related caches after mutation succeeds
+      if (invalidateKeys.length > 0) {
+        invalidateKeys.forEach((key) => {
+          queryClient.invalidateQueries({ queryKey: key });
+        });
+      }
     },
-    options
-  );
+    ...options,
+  });
 }

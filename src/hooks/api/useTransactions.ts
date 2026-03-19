@@ -11,6 +11,7 @@ export interface TransactionFilters {
   accountId?: string
   dateFrom?: string
   dateTo?: string
+  [key: string]: string | undefined
 }
 
 async function fetchTransactions(

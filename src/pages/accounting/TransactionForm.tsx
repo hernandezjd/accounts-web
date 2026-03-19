@@ -126,7 +126,7 @@ function handleAmountKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
 
 /** Strip invalid characters from pasted text. */
 function handleAmountPaste(
-  e: React.ClipboardEvent<HTMLInputElement>,
+  e: React.ClipboardEvent<HTMLElement>,
   onParsed: (value: string) => void
 ) {
   e.preventDefault()
@@ -360,7 +360,6 @@ export function TransactionForm({
     }))
 
   // ── Save ──
-  const isRegularTransactionMode = mode === 'create' || mode === 'edit'
   const isInitialBalanceMode = mode === 'createInitialBalance' || mode === 'editInitialBalance'
   const canSave =
     !initialDateMissing &&

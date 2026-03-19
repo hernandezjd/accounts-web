@@ -18,7 +18,7 @@ import Alert from '@mui/material/Alert'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
 import { usePeriodReport, type PeriodReportWithClosureResponse, type PeriodReportResponse } from '@/hooks/api/usePeriodReport'
-import { useBalanceAtLevel, type AccountBalanceWithClosureResponse, type AccountBalanceResponse } from '@/hooks/api/useBalanceAtLevel'
+import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { formatError } from '@/lib/error/useErrorHandler'
@@ -27,10 +27,6 @@ import { formatError } from '@/lib/error/useErrorHandler'
 
 function isPeriodReportWithClosure(data: PeriodReportResponse | PeriodReportWithClosureResponse): data is PeriodReportWithClosureResponse {
   return 'entries' in data && data.entries.length > 0 && 'original' in data.entries[0]
-}
-
-function isAccountBalanceWithClosure(entry: AccountBalanceResponse | AccountBalanceWithClosureResponse): entry is AccountBalanceWithClosureResponse {
-  return 'original' in entry && 'simulated' in entry
 }
 
 // Helper to format amounts
@@ -159,7 +155,7 @@ function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false 
       )}
 
       {isError && (
-        <ErrorMessage error={formattedError} onRetry={refetch} />
+        <ErrorMessage error={formattedError} onRetry={() => void refetch()} />
       )}
 
       {!isLoading && !isError && data && data.entries.length === 0 && (
@@ -324,7 +320,7 @@ function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false
       )}
 
       {isError && (
-        <ErrorMessage error={formattedError} onRetry={refetch} />
+        <ErrorMessage error={formattedError} onRetry={() => void refetch()} />
       )}
 
       {!isLoading && !isError && data && data.entries.length === 0 && (
@@ -463,7 +459,7 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = fals
       )}
 
       {isError && (
-        <ErrorMessage error={formattedError} onRetry={refetch} />
+        <ErrorMessage error={formattedError} onRetry={() => void refetch()} />
       )}
 
       {!isLoading && !isError && data && data.length === 0 && (

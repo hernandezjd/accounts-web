@@ -197,7 +197,7 @@ export function TransactionTypesContent({ hideTitle = false }: TransactionTypesC
       </Box>
 
       {isLoading && <Typography>{t('transactionTypes.loading')}</Typography>}
-      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={() => void refetch()} />}
 
       {!isLoading && !isError && (
         <Table size="small" data-testid="tt-table">
