@@ -3,6 +3,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { TenantPickerPage } from './TenantPickerPage'
+import i18n from '@/i18n'
 
 // Mock the api clients module
 vi.mock('@/api/clients', () => ({
@@ -32,10 +33,14 @@ function mockPost(data: unknown, error?: unknown) {
 beforeEach(() => {
   sessionStorage.clear()
   vi.clearAllMocks()
+  // Reset language to English before each test
+  i18n.changeLanguage('en')
 })
 
 afterEach(() => {
   sessionStorage.clear()
+  // Reset language to English after each test
+  i18n.changeLanguage('en')
 })
 
 describe('TenantPickerPage', () => {
@@ -142,6 +147,54 @@ describe('TenantPickerPage', () => {
 
     await waitFor(() => {
       expect(sessionStorage.getItem('lastTenantId')).toBe('new-tenant-id')
+    })
+  })
+
+  it('renders language toggle button', async () => {
+    mockGet(mockTenants)
+    renderWithProviders(<TenantPickerPage />)
+    await waitFor(() => {
+      const languageButton = screen.getByTestId('language-toggle-button')
+      expect(languageButton).toBeInTheDocument()
+      expect(languageButton.textContent).toMatch(/EN|ES/)
+    })
+  })
+
+  it('toggles language on button click', async () => {
+    mockGet(mockTenants)
+    renderWithProviders(<TenantPickerPage />)
+    await waitFor(() => expect(screen.getByTestId('language-toggle-button')).toBeInTheDocument())
+
+    const languageButton = screen.getByTestId('language-toggle-button')
+    const initialText = languageButton.textContent
+
+    await userEvent.click(languageButton)
+
+    // After clicking, the button text should change
+    await waitFor(() => {
+      const newText = languageButton.textContent
+      expect(newText).not.toBe(initialText)
+    })
+  })
+
+  it('renders help button', async () => {
+    mockGet(mockTenants)
+    renderWithProviders(<TenantPickerPage />)
+    await waitFor(() => {
+      const helpButton = screen.getByTestId('help-button')
+      expect(helpButton).toBeInTheDocument()
+    })
+  })
+
+  it('has help button with correct aria label', async () => {
+    mockGet(mockTenants)
+    renderWithProviders(<TenantPickerPage />)
+    await waitFor(() => {
+      const helpButton = screen.getByTestId('help-button')
+      const ariaLabel = helpButton.getAttribute('aria-label')
+      expect(ariaLabel).toBeTruthy()
+      // In English, should be "Help", in Spanish "Ayuda"
+      expect(['Help', 'Ayuda']).toContain(ariaLabel)
     })
   })
 })

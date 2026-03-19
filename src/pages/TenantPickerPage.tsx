@@ -9,8 +9,10 @@ import ListItemText from '@mui/material/ListItemText'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Paper from '@mui/material/Paper'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import { useTranslation } from 'react-i18next'
 import { useTenants } from '@/hooks/api/useTenants'
+import { useAppStore } from '@/store/appStore'
 import { TenantFormDialog } from './TenantFormDialog'
 
 function tenantAccountingPath(id: string): string {
@@ -22,6 +24,15 @@ export function TenantPickerPage() {
   const navigate = useNavigate()
   const { data: tenants, isLoading, isError } = useTenants()
   const [createOpen, setCreateOpen] = useState(false)
+  const { language, setLanguage } = useAppStore()
+
+  function handleToggleLanguage() {
+    setLanguage(language === 'en' ? 'es' : 'en')
+  }
+
+  function handleHelpClick() {
+    navigate('/help')
+  }
 
   // Auto-redirect: check sessionStorage first
   useEffect(() => {
@@ -57,9 +68,33 @@ export function TenantPickerPage() {
       }}
     >
       <Paper elevation={3} sx={{ width: '100%', maxWidth: 480, p: 4 }}>
-        <Typography variant="h5" gutterBottom align="center">
-          {t('tenant.tenantPicker')}
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h5" sx={{ flex: 1 }}>
+            {t('tenant.tenantPicker')}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              color="inherit"
+              size="small"
+              onClick={handleToggleLanguage}
+              sx={{ minWidth: 40 }}
+              aria-label="toggle language"
+              data-testid="language-toggle-button"
+            >
+              {language === 'en' ? 'ES' : 'EN'}
+            </Button>
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<HelpOutlineIcon />}
+              onClick={handleHelpClick}
+              aria-label={t('help.title')}
+              data-testid="help-button"
+            >
+              {t('help.title')}
+            </Button>
+          </Box>
+        </Box>
 
         {isLoading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
