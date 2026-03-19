@@ -153,7 +153,7 @@ function TenantsTab() {
       </Box>
 
       {isLoading && <Typography>{t('setup.tenants.loading')}</Typography>}
-      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={() => void refetch()} />}
 
       {!isLoading && !isError && (
         <Box sx={{ overflowX: 'auto' }}>

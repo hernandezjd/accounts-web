@@ -216,7 +216,7 @@ export function TransactionView({
         )}
 
         {isError && (
-          <ErrorMessage error={formattedError} onRetry={refetch} />
+          <ErrorMessage error={formattedError} onRetry={() => void refetch()} />
         )}
 
         {data && !isLoading && (
@@ -262,7 +262,7 @@ export function TransactionView({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.transactions.map((txn, txnIndex) => {
+                    {data.transactions.map((txn, _) => {
                       const matchingItem = txn.items.find(
                         (item) =>
                           item.accountId === accountId &&

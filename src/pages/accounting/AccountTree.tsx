@@ -78,7 +78,6 @@ export function AccountTree({
   highlightedAccountId,
   simulateClosure,
   from,
-  to,
 }: AccountTreeProps) {
   const { t } = useTranslation()
 

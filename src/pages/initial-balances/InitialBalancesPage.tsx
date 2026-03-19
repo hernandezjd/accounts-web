@@ -88,7 +88,7 @@ export function InitialBalancesPage() {
         </Box>
       )}
 
-      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={() => void refetch()} />}
 
       {data && !isLoading && (
         data.length === 0 ? (

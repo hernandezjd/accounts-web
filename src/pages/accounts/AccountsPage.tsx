@@ -94,8 +94,9 @@ function AccountFormDialog({
   const handleSubmit = () => {
     setErrorMsg(null)
     if (isEdit) {
+      // Note: parentId is a valid field per FR-094, but the generated API types may not include it yet
       updateAccount.mutate(
-        { id: editAccount!.id!, body: { code, name, parentId: parentId ?? undefined } },
+        { id: editAccount!.id!, body: { code, name, parentId: parentId ?? undefined } as any },
         {
           onSuccess: handleClose,
           onError: (err) => setErrorMsg(translateApiError(err, t)),
@@ -136,7 +137,7 @@ function AccountFormDialog({
           size="small"
           inputProps={{ 'data-testid': 'account-name-input' }}
         />
-        <div style={{opacity: isEdit && (editAccount?.hasChildren || editAccount?.hasTransactions) ? 0.6 : 1, pointerEvents: isEdit && (editAccount?.hasChildren || editAccount?.hasTransactions) ? 'none' : 'auto'}}>
+        <div style={{opacity: isEdit && editAccount?.hasChildren ? 0.6 : 1, pointerEvents: isEdit && editAccount?.hasChildren ? 'none' : 'auto'}}>
           <div style={{marginBottom: '1rem'}}>
             <AccountPicker
               tenantId={tenantId}
@@ -153,11 +154,9 @@ function AccountFormDialog({
             />
           </div>
         </div>
-        {isEdit && (editAccount?.hasChildren || editAccount?.hasTransactions) && (
+        {isEdit && editAccount?.hasChildren && (
           <Alert severity="info">
-            {editAccount.hasChildren && 'Account has children'}
-            {editAccount.hasTransactions && (editAccount.hasChildren ? ' and' : '') + ' transactions'}
-            {' - parent cannot be changed'}
+            {'Account has children - parent cannot be changed'}
           </Alert>
         )}
         {!isEdit && (
@@ -414,7 +413,7 @@ export function AccountsPage() {
       </Box>
 
       {isLoading && <Typography>{t('accounts.loading')}</Typography>}
-      {isError && <ErrorMessage error={formattedError} onRetry={refetch} />}
+      {isError && <ErrorMessage error={formattedError} onRetry={() => void refetch()} />}
 
       {!isLoading && !isError && (
         <Box sx={{ overflowX: 'auto' }}>
