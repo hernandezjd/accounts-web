@@ -55,11 +55,11 @@ export function ThirdPartyCreationDialog({
         externalId,
         name,
         address: {
-          street: street || undefined,
-          city: city || undefined,
-          state: state || undefined,
-          postalCode: postalCode || undefined,
-          country: country || undefined,
+          street: street || '',
+          city: city || '',
+          state: state || '',
+          postalCode: postalCode || '',
+          country: country || '',
         },
       },
       {

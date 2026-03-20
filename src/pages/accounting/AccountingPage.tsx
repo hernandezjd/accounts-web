@@ -458,7 +458,9 @@ export function AccountingPage() {
 
           {simulateClosure && (
             <Alert severity="info" sx={{ mb: 2 }} data-testid="simulation-active-banner">
-              {t('accounting.simulateModeActive')}
+              {tenantConfig?.nominalAccounts && tenantConfig?.nominalAccounts.length > 0 && tenantConfig?.profitLossAccountId
+                ? t('accounting.closureSimulationInfo')
+                : t('accounting.simulateModeActive')}
             </Alert>
           )}
 

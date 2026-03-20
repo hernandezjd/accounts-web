@@ -78,12 +78,12 @@
       "code": "Code",
       "name": "Name",
       "openingBalance": "Opening",
-      "openingBalanceSim": "Opening (Sim.)",
+      "openingBalanceSim": "Opening Balance",
       "openingBalanceAsOf": "as of",
       "debits": "Debits",
       "credits": "Credits",
       "closingBalance": "Closing",
-      "closingBalanceSim": "Closing (Sim.)"
+      "closingBalanceSim": "Closing Balance"
     },
     "shortcuts": {
       "prevPeriod": "Previous period",
@@ -119,7 +119,8 @@
       "loading": "Searching..."
     },
     "simulateClosureToggle": "Simulate Closure",
-    "simulateModeActive": "Closure simulation is active — original balances are shown grayed out"
+    "simulateModeActive": "Closure simulation is active",
+    "closureSimulationInfo": "Values shown in blue represent simulated closure entries: nominal account closures (set to zero) and the resulting profit/loss transfer to the P&L account."
   },
   "accounts": {
     "title": "Accounts",
@@ -236,16 +237,17 @@
       "run": "Run Report"
     },
     "simulateClosureToggle": "Simulate Closure",
-    "simulateModeActive": "Closure simulation is active — original balances are shown grayed out",
+    "simulateModeActive": "Closure simulation is active",
+    "closureSimulationInfo": "Values shown in blue represent simulated closure entries: nominal account closures (set to zero) and the resulting profit/loss transfer to the P&L account.",
     "periodReport": {
       "code": "Code",
       "name": "Account Name",
       "level": "Level",
       "opening": "Opening Balance",
-      "openingSimulated": "Opening (Simulated)",
+      "openingSimulated": "Opening Balance",
       "txnCount": "Transactions",
       "closing": "Closing Balance",
-      "closingSimulated": "Closing (Simulated)",
+      "closingSimulated": "Closing Balance",
       "noData": "No accounts found for the selected parameters.",
       "loading": "Loading period report...",
       "error": "Failed to load period report."
@@ -255,7 +257,7 @@
       "name": "Account Name",
       "level": "Level",
       "balance": "Balance",
-      "balanceSimulated": "Balance (Simulated)",
+      "balanceSimulated": "Balance",
       "noData": "No accounts found for the selected date.",
       "loading": "Loading balances...",
       "error": "Failed to load balance report."
@@ -266,7 +268,7 @@
       "initialBalance": "Initial Balance",
       "runningBalance": "Running Balance",
       "totalBalance": "Total Balance",
-      "totalBalanceSimulated": "Total Balance (Simulated)",
+      "totalBalanceSimulated": "Total Balance",
       "noData": "No accounts found at the selected level.",
       "loading": "Loading balances...",
       "error": "Failed to load balance report."

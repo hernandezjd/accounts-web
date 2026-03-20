@@ -19,6 +19,11 @@ export interface ThirdPartyPeriodNode {
   totalDebits: number
   totalCredits: number
   closingBalance: number
+  /** Original values before closure simulation (only present when simulateClosure=true) */
+  originalOpeningBalance?: number
+  originalTotalDebits?: number
+  originalTotalCredits?: number
+  originalClosingBalance?: number
 }
 
 export interface AccountPeriodNode {
@@ -32,6 +37,11 @@ export interface AccountPeriodNode {
   closingBalance: number
   children: AccountPeriodNode[]
   thirdPartyChildren: ThirdPartyPeriodNode[]
+  /** Original values before closure simulation (only present when simulateClosure=true) */
+  originalOpeningBalance?: number
+  originalTotalDebits?: number
+  originalTotalCredits?: number
+  originalClosingBalance?: number
 }
 
 export interface PeriodAccountSummary {

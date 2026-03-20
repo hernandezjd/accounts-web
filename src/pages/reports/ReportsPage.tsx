@@ -23,7 +23,7 @@ import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { formatError } from '@/lib/error/useErrorHandler'
 
-// ─── Type guards ─────────────────────────────────────────────────────────────
+// ─── Type guards & Helpers ──────────────────────────────────────────────────
 
 function isPeriodReportWithClosure(data: PeriodReportResponse | PeriodReportWithClosureResponse): data is PeriodReportWithClosureResponse {
   return 'entries' in data && data.entries.length > 0 && 'original' in data.entries[0]
@@ -33,6 +33,18 @@ function isPeriodReportWithClosure(data: PeriodReportResponse | PeriodReportWith
 function formatAmount(n: number | null | undefined): string {
   if (n === null || n === undefined) return '—'
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+// Helper to determine if a simulated value should be highlighted in blue (closure-related)
+function isNominalOrPLAccount(
+  accountId: string | undefined,
+  nominalAccountIds: string[] | undefined,
+  plAccountId: string | undefined,
+): boolean {
+  if (!accountId || (!nominalAccountIds && !plAccountId)) return false
+  if (nominalAccountIds?.includes(accountId)) return true
+  if (plAccountId && accountId === plAccountId) return true
+  return false
 }
 
 // ─── Tab panel helper ────────────────────────────────────────────────────────
@@ -57,9 +69,11 @@ interface PeriodReportTabProps {
   tenantId: string
   systemInitialDate?: string | null
   simulateClosure?: boolean
+  nominalAccountIds?: string[]
+  plAccountId?: string
 }
 
-function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false }: PeriodReportTabProps) {
+function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: PeriodReportTabProps) {
   const { t } = useTranslation()
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -187,7 +201,8 @@ function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false 
                   const original = isClosureResponse ? (entry as any).original : entry as any
                   const simulated = isClosureResponse ? (entry as any).simulated : null
                   const hasTransactions = original.periodTransactions?.length > 0
-                  const showSimulatedAsGrayed = isClosureResponse && simulated !== null && simulated !== undefined
+                  const isClosureRelated = isNominalOrPLAccount(original.accountId, nominalAccountIds, plAccountId)
+                  const showSimulatedAsBlue = isClosureResponse && simulated !== null && simulated !== undefined && isClosureRelated
 
                   return (
                     <>
@@ -200,11 +215,11 @@ function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false 
                         <TableCell>{original.accountCode}</TableCell>
                         <TableCell>{original.accountName}</TableCell>
                         <TableCell align="right">{original.level}</TableCell>
-                        <TableCell align="right" sx={showSimulatedAsGrayed ? { color: 'text.disabled' } : {}}>{formatAmount(original.openingBalance)}</TableCell>
-                        {isClosureResponse && <TableCell align="right">{formatAmount(simulated?.openingBalance)}</TableCell>}
+                        <TableCell align="right">{formatAmount(original.openingBalance)}</TableCell>
+                        {isClosureResponse && <TableCell align="right" sx={showSimulatedAsBlue ? { color: 'primary.main' } : {}}>{formatAmount(simulated?.openingBalance)}</TableCell>}
                         <TableCell align="right">{hasTransactions ? original.periodTransactions.length : 0}</TableCell>
-                        <TableCell align="right" sx={showSimulatedAsGrayed ? { color: 'text.disabled' } : {}}>{formatAmount(original.closingBalance)}</TableCell>
-                        {isClosureResponse && <TableCell align="right">{formatAmount(simulated?.closingBalance)}</TableCell>}
+                        <TableCell align="right">{formatAmount(original.closingBalance)}</TableCell>
+                        {isClosureResponse && <TableCell align="right" sx={showSimulatedAsBlue ? { color: 'primary.main' } : {}}>{formatAmount(simulated?.closingBalance)}</TableCell>}
                       </TableRow>
                       {hasTransactions && (
                         <TableRow key={`${original.accountId}-expand`}>
@@ -256,9 +271,11 @@ interface BalanceAtDateTabProps {
   tenantId: string
   systemInitialDate?: string | null
   simulateClosure?: boolean
+  nominalAccountIds?: string[]
+  plAccountId?: string
 }
 
-function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false }: BalanceAtDateTabProps) {
+function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: BalanceAtDateTabProps) {
   const { t } = useTranslation()
   const [date, setDate] = useState('')
   const [appliedDate, setAppliedDate] = useState('')
@@ -349,18 +366,19 @@ function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false
                 {data.entries.map((entry: any) => {
                   const original = isClosureResponse ? (entry as any).original : (entry as any)
                   const simulated = isClosureResponse ? (entry as any).simulated : null
-                  const showSimulatedAsGrayed = isClosureResponse && simulated !== null
+                  const isClosureRelated = isNominalOrPLAccount(original.accountId, nominalAccountIds, plAccountId)
+                  const showSimulatedAsBlue = isClosureResponse && simulated !== null && isClosureRelated
 
                   return (
                     <TableRow key={original.accountId} data-testid={`balance-row-${original.accountId}`}>
                       <TableCell>{original.accountCode}</TableCell>
                       <TableCell>{original.accountName}</TableCell>
                       <TableCell align="right">{original.level}</TableCell>
-                      <TableCell align="right" sx={showSimulatedAsGrayed ? { color: 'text.disabled' } : undefined}>
+                      <TableCell align="right">
                         {formatAmount(original.closingBalance)}
                       </TableCell>
                       {isClosureResponse && (
-                        <TableCell align="right">
+                        <TableCell align="right" sx={showSimulatedAsBlue ? { color: 'primary.main' } : undefined}>
                           {simulated !== null ? formatAmount(simulated.closingBalance) : '—'}
                         </TableCell>
                       )}
@@ -382,9 +400,11 @@ interface BalanceAtLevelTabProps {
   tenantId: string
   systemInitialDate?: string | null
   simulateClosure?: boolean
+  nominalAccountIds?: string[]
+  plAccountId?: string
 }
 
-function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = false }: BalanceAtLevelTabProps) {
+function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: BalanceAtLevelTabProps) {
   const { t } = useTranslation()
   const [date, setDate] = useState('')
   const [levelStr, setLevelStr] = useState('')
@@ -489,7 +509,8 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = fals
                 {data.map((entry: any) => {
                   const original = isClosureResponse ? (entry as any).original : (entry as any)
                   const simulated = isClosureResponse ? (entry as any).simulated : null
-                  const showSimulatedAsGrayed = isClosureResponse && simulated !== null
+                  const isClosureRelated = isNominalOrPLAccount(original.accountId, nominalAccountIds, plAccountId)
+                  const showSimulatedAsBlue = isClosureResponse && simulated !== null && isClosureRelated
 
                   return (
                     <TableRow key={original.accountId} data-testid={`level-row-${original.accountId}`}>
@@ -497,11 +518,11 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = fals
                       <TableCell>{original.accountName}</TableCell>
                       <TableCell align="right">{formatAmount(original.initialBalance)}</TableCell>
                       <TableCell align="right">{formatAmount(original.runningBalance)}</TableCell>
-                      <TableCell align="right" sx={showSimulatedAsGrayed ? { color: 'text.disabled' } : undefined}>
+                      <TableCell align="right">
                         {formatAmount(original.totalBalance)}
                       </TableCell>
                       {isClosureResponse && (
-                        <TableCell align="right">
+                        <TableCell align="right" sx={showSimulatedAsBlue ? { color: 'primary.main' } : undefined}>
                           {simulated !== null ? formatAmount(simulated.totalBalance) : '—'}
                         </TableCell>
                       )}
@@ -526,6 +547,10 @@ export function ReportsPage() {
   const [simulateClosure, setSimulateClosure] = useState(false)
   const { data: tenantConfig } = useTenantConfig(tenantId)
 
+  // Extract nominal accounts and P&L account from config
+  const nominalAccountIds = tenantConfig?.nominalAccounts ?? undefined
+  const plAccountId = tenantConfig?.profitLossAccountId ?? undefined
+
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 2 }}>
@@ -546,9 +571,14 @@ export function ReportsPage() {
       </Box>
 
       {simulateClosure && (
-        <Alert severity="info" sx={{ mb: 2 }} data-testid="simulation-active-banner">
-          {t('reports.simulateModeActive')}
-        </Alert>
+        <Box sx={{ mb: 2 }}>
+          <Alert severity="info" data-testid="simulation-active-banner">
+            {t('reports.simulateModeActive')}
+          </Alert>
+          <Alert severity="info" sx={{ mt: 1 }} data-testid="simulation-info-banner">
+            {t('reports.closureSimulationInfo')}
+          </Alert>
+        </Box>
       )}
 
       <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} data-testid="reports-tabs">
@@ -558,13 +588,13 @@ export function ReportsPage() {
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
-        <PeriodReportTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} />
+        <PeriodReportTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
       </TabPanel>
       <TabPanel value={activeTab} index={1}>
-        <BalanceAtDateTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} />
+        <BalanceAtDateTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
       </TabPanel>
       <TabPanel value={activeTab} index={2}>
-        <BalanceAtLevelTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} />
+        <BalanceAtLevelTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
       </TabPanel>
     </Box>
   )

@@ -14,11 +14,15 @@ interface AccountTreeRowProps {
   onToggle: (accountId: string) => void
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
   highlightedAccountId?: string
-  simulateClosure?: boolean
 }
 
 function formatAmount(n: number): string {
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+/** Returns 'primary.main' if the value was changed by closure simulation. */
+function simColor(current: number, original: number | undefined): string | undefined {
+  return original !== undefined && current !== original ? 'primary.main' : undefined
 }
 
 function ThirdPartyRow({
@@ -26,13 +30,11 @@ function ThirdPartyRow({
   accountId,
   indent,
   onDrillDown,
-  simulateClosure,
 }: {
   tp: ThirdPartyPeriodNode
   accountId: string
   indent: number
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
-  simulateClosure?: boolean
 }) {
   function handleActivate() {
     onDrillDown(accountId, tp.thirdPartyId)
@@ -59,23 +61,29 @@ function ThirdPartyRow({
           {tp.thirdPartyName}
         </Box>
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simulateClosure ? 'primary.main' : 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.openingBalance, tp.originalOpeningBalance) ?? 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
         {formatAmount(tp.openingBalance)}
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.totalDebits, tp.originalTotalDebits) ?? 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
         {formatAmount(tp.totalDebits)}
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.totalCredits, tp.originalTotalCredits) ?? 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
         {formatAmount(tp.totalCredits)}
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simulateClosure ? 'primary.main' : 'text.secondary' }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.closingBalance, tp.originalClosingBalance) ?? 'text.secondary' }}>
         {formatAmount(tp.closingBalance)}
       </TableCell>
     </TableRow>
   )
 }
 
-export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, highlightedAccountId, simulateClosure }: AccountTreeRowProps) {
+export function AccountTreeRow({
+  node,
+  expandedNodes,
+  onToggle,
+  onDrillDown,
+  highlightedAccountId,
+}: AccountTreeRowProps) {
   const indent = (node.level - 1) * INDENT_PX
   const hasChildren = node.children.length > 0 || node.thirdPartyChildren.length > 0
   const isExpanded = expandedNodes.has(node.accountId)
@@ -130,16 +138,16 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, hig
         <TableCell sx={{ py: 0.75, fontWeight: node.level === 1 ? 600 : 400 }}>
           {node.accountName}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' }, color: simulateClosure ? 'primary.main' : undefined }}>
+        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' }, color: simColor(node.openingBalance, node.originalOpeningBalance) }}>
           {formatAmount(node.openingBalance)}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' } }}>
+        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' }, color: simColor(node.totalDebits, node.originalTotalDebits) }}>
           {formatAmount(node.totalDebits)}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' } }}>
+        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' }, color: simColor(node.totalCredits, node.originalTotalCredits) }}>
           {formatAmount(node.totalCredits)}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75, color: simulateClosure ? 'primary.main' : undefined }}>
+        <TableCell align="right" sx={{ py: 0.75, color: simColor(node.closingBalance, node.originalClosingBalance) }}>
           {formatAmount(node.closingBalance)}
         </TableCell>
       </TableRow>
@@ -153,7 +161,6 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, hig
               accountId={node.accountId}
               indent={indent + INDENT_PX}
               onDrillDown={onDrillDown}
-              simulateClosure={simulateClosure}
             />
           ))}
           {node.children.map((child) => (
@@ -164,7 +171,6 @@ export function AccountTreeRow({ node, expandedNodes, onToggle, onDrillDown, hig
               onToggle={onToggle}
               onDrillDown={onDrillDown}
               highlightedAccountId={highlightedAccountId}
-              simulateClosure={simulateClosure}
             />
           ))}
         </>

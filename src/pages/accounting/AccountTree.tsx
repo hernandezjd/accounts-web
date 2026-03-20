@@ -128,7 +128,7 @@ export function AccountTree({
             <TableRow sx={{ height: 80 }}>
               <TableCell sx={{ fontWeight: 700, width: 140 }}>{t('accounting.tree.code')}</TableCell>
               <TableCell sx={{ fontWeight: 700, width: 300 }}>{t('accounting.tree.name')}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' }, color: simulateClosure ? 'primary.main' : undefined }}>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
                 {getOpeningBalanceHeader(from, simulateClosure ?? false, t)}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
@@ -137,7 +137,7 @@ export function AccountTree({
               <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
                 {t('accounting.tree.credits')}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, width: 120, color: simulateClosure ? 'primary.main' : undefined }}>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120 }}>
                 {simulateClosure ? t('accounting.tree.closingBalanceSim') : t('accounting.tree.closingBalance')}
               </TableCell>
             </TableRow>
@@ -151,7 +151,6 @@ export function AccountTree({
                 onToggle={onToggle}
                 onDrillDown={onDrillDown}
                 highlightedAccountId={highlightedAccountId}
-                simulateClosure={simulateClosure}
               />
             ))}
           </TableBody>
