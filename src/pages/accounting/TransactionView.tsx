@@ -53,7 +53,8 @@ interface FormConfig {
   initialData?: TransactionFormInitialData
 }
 
-function formatAmount(n: number): string {
+function formatAmount(n: number | null | undefined): string {
+  if (n == null) return '—'
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
