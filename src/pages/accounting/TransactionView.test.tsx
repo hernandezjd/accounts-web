@@ -207,19 +207,6 @@ describe('TransactionView', () => {
     expect(screen.getByText(/ACME Corp/)).toBeInTheDocument()
   })
 
-  it('shows "New Transaction" and "New Initial Balance" buttons', () => {
-    mockUseQuery.mockReturnValue({
-      data: sampleData,
-      isLoading: false,
-      isError: false,
-      error: null,
-    } as ReturnType<typeof useAccountTransactionsInPeriod>)
-
-    renderWithProviders(<TransactionView {...defaultProps} />)
-
-    expect(screen.getByRole('button', { name: /new transaction/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /new initial balance/i })).toBeInTheDocument()
-  })
 
   it('opens create form when "New Transaction" button is clicked', async () => {
     mockUseQuery.mockReturnValue({
@@ -239,26 +226,6 @@ describe('TransactionView', () => {
     })
   })
 
-  it('opens initial balance form when "New Initial Balance" button is clicked', async () => {
-    mockUseQuery.mockReturnValue({
-      data: sampleData,
-      isLoading: false,
-      isError: false,
-      error: null,
-    } as ReturnType<typeof useAccountTransactionsInPeriod>)
-
-    renderWithProviders(<TransactionView {...defaultProps} />)
-
-    await userEvent.click(screen.getByRole('button', { name: /new initial balance/i }))
-
-    await waitFor(() => {
-      expect(screen.getByTestId('transaction-form')).toBeInTheDocument()
-      expect(screen.getByTestId('transaction-form')).toHaveAttribute(
-        'data-mode',
-        'createInitialBalance',
-      )
-    })
-  })
 
   it('closes form when cancel is clicked', async () => {
     mockUseQuery.mockReturnValue({

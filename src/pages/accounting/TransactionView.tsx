@@ -172,15 +172,6 @@ export function TransactionView({
         >
           {t('transactionForm.newTransaction')}
         </Button>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={() => setFormConfig({ mode: 'createInitialBalance' })}
-          aria-label={t('transactionForm.newInitialBalance')}
-        >
-          {t('transactionForm.newInitialBalance')}
-        </Button>
       </Box>
 
       <PeriodControls
