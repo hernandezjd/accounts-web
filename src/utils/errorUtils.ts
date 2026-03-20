@@ -33,19 +33,19 @@ export function translateApiError(error: unknown, t: TFunction): string {
     return t('errors.transactionDateBeforeInitialDate')
   }
 
-  // Initial date conflicts with existing transactions or closed period
+  // Initial date conflicts with existing transactions or locked period
   if (
     lower.includes('initial_date_conflict') ||
     lower.includes('predate this date') ||
     (lower.includes('initial date') && lower.includes('cannot be set')) ||
-    (lower.includes('initial date') && lower.includes('before the closed period'))
+    (lower.includes('initial date') && lower.includes('before the locked period'))
   ) {
     return t('errors.initialDateConflict')
   }
 
-  // Closed period
-  if (lower.includes('closed period') || lower.includes('closed_period')) {
-    return t('errors.closedPeriod')
+  // Locked period
+  if (lower.includes('locked period') || lower.includes('locked_period')) {
+    return t('errors.lockedPeriod')
   }
 
   // Duplicate transaction type name (must come before duplicateTransactionNumber)

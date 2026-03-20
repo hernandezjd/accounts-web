@@ -612,7 +612,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
   const { data: allAccounts } = useAccounts(tenantId)
   const mutations = useTenantConfigMutations(tenantId)
 
-  type EditMode = 'initialDate' | 'closedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | 'nominalAccounts' | null
+  type EditMode = 'initialDate' | 'lockedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | 'nominalAccounts' | null
   const [editMode, setEditMode] = useState<EditMode>(initialEditMode === 'initialDate' ? 'initialDate' : null)
   const [editError, setEditError] = useState<string | null>(null)
 
@@ -667,19 +667,19 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
       isPending: mutations.setInitialDate.isPending,
     },
     {
-      label: t('setup.config.closedPeriodDate'),
-      testId: 'config-closed-period',
-      valueTestId: 'config-closed-period-value',
-      value: config?.closedPeriodDate,
-      editBtn: 'edit-closed-period-btn',
-      editMode: 'closedPeriod',
+      label: t('setup.config.lockedPeriodDate'),
+      testId: 'config-locked-period',
+      valueTestId: 'config-locked-period-value',
+      value: config?.lockedPeriodDate,
+      editBtn: 'edit-locked-period-btn',
+      editMode: 'lockedPeriod',
       fieldType: 'date',
       mutationFn: (v) =>
-        mutations.setClosedPeriodDate.mutate(v, {
+        mutations.setLockedPeriodDate.mutate(v, {
           onSuccess: () => setEditMode(null),
           onError: (err) => setEditError(translateApiError(err, t)),
         }),
-      isPending: mutations.setClosedPeriodDate.isPending,
+      isPending: mutations.setLockedPeriodDate.isPending,
     },
     {
       label: t('setup.config.minimumAccountLevel'),

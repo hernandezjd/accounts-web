@@ -118,7 +118,7 @@ beforeEach(() => {
   } as ReturnType<typeof useAccounts>)
 
   mockUseTenantConfig.mockReturnValue({
-    data: { systemInitialDate: '2024-01-01', closedPeriodDate: null },
+    data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null },
     isLoading: false,
     isError: false,
     error: null,

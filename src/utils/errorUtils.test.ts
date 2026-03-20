@@ -20,9 +20,9 @@ describe('translateApiError', () => {
     expect(translateApiError(err, t)).toBe(t('errors.networkError'))
   })
 
-  it('returns closedPeriod for closed period error', () => {
-    const err = new Error('Date falls within closed period')
-    expect(translateApiError(err, t)).toBe(t('errors.closedPeriod'))
+  it('returns lockedPeriod for locked period error', () => {
+    const err = new Error('Date falls within locked period')
+    expect(translateApiError(err, t)).toBe(t('errors.lockedPeriod'))
   })
 
   it('returns duplicateTransactionNumber for duplicate transaction number error', () => {
