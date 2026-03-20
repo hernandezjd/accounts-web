@@ -48,7 +48,7 @@ const sampleTenants = [
 
 const sampleConfig = {
   systemInitialDate: '2025-01-01',
-  closedPeriodDate: '2025-06-30',
+  lockedPeriodDate: '2025-06-30',
   minimumAccountLevel: 3,
   snapshotFrequencyDays: 30,
   nominalAccounts: ['acc-2', 'acc-3'],
@@ -100,7 +100,7 @@ function setupMocks() {
 
   mockUseTenantConfigMutations.mockReturnValue({
     setInitialDate: { ...noOpMutation },
-    setClosedPeriodDate: { ...noOpMutation },
+    setLockedPeriodDate: { ...noOpMutation },
     setMinimumAccountLevel: { ...noOpMutation },
     setSnapshotFrequency: { ...noOpMutation },
     setNominalAccountsConfig: { ...noOpMutation },
@@ -309,7 +309,7 @@ describe('SetupPage — Accounting Config tab', () => {
   it('displays current config values', async () => {
     await switchToConfigTab()
     expect(screen.getByTestId('config-initial-date-value')).toHaveTextContent('2025-01-01')
-    expect(screen.getByTestId('config-closed-period-value')).toHaveTextContent('2025-06-30')
+    expect(screen.getByTestId('config-locked-period-value')).toHaveTextContent('2025-06-30')
     expect(screen.getByTestId('config-min-level-value')).toHaveTextContent('3')
     expect(screen.getByTestId('config-snapshot-freq-value')).toHaveTextContent('30')
   })
@@ -324,7 +324,7 @@ describe('SetupPage — Accounting Config tab', () => {
     const setDateFn = vi.fn()
     mockUseTenantConfigMutations.mockReturnValue({
       setInitialDate: { mutate: setDateFn, isPending: false },
-      setClosedPeriodDate: { ...noOpMutation },
+      setLockedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },
       setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { ...noOpMutation },
@@ -473,7 +473,7 @@ describe('SetupPage — nominal accounts configuration', () => {
     const saveFn = vi.fn()
     mockUseTenantConfigMutations.mockReturnValue({
       setInitialDate: { ...noOpMutation },
-      setClosedPeriodDate: { ...noOpMutation },
+      setLockedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },
       setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { mutate: saveFn, isPending: false },

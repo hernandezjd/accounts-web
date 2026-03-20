@@ -42,17 +42,17 @@ export function useTenantConfigMutations(tenantId: string) {
     onSuccess: (_data, initialDate) => patchCache({ systemInitialDate: initialDate }),
   })
 
-  const setClosedPeriodDate = useMutation({
-    mutationFn: async (closedPeriodDate: string): Promise<TenantConfigResponse> => {
+  const setLockedPeriodDate = useMutation({
+    mutationFn: async (lockedPeriodDate: string): Promise<TenantConfigResponse> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/config/closed-period-date', {
+      const { data, error } = await (commandClient as any).PUT('/config/locked-period-date', {
         params: { header: headers },
-        body: { closedPeriodDate },
+        body: { lockedPeriodDate },
       })
       if (error) throw error
       return data as TenantConfigResponse
     },
-    onSuccess: (_data, closedPeriodDate) => patchCache({ closedPeriodDate }),
+    onSuccess: (_data, lockedPeriodDate) => patchCache({ lockedPeriodDate }),
   })
 
   const setMinimumAccountLevel = useMutation({
@@ -103,7 +103,7 @@ export function useTenantConfigMutations(tenantId: string) {
 
   return {
     setInitialDate,
-    setClosedPeriodDate,
+    setLockedPeriodDate,
     setMinimumAccountLevel,
     setSnapshotFrequency,
     setNominalAccountsConfig,

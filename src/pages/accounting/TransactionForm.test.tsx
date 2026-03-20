@@ -62,7 +62,7 @@ function setupDefaultMocks() {
   } as ReturnType<typeof useTransactionTypes>)
 
   mockUseTenantConfig.mockReturnValue({
-    data: { systemInitialDate: '2025-01-01', closedPeriodDate: null },
+    data: { systemInitialDate: '2025-01-01', lockedPeriodDate: null },
     isLoading: false,
     isError: false,
     error: null,
@@ -323,7 +323,7 @@ describe('TransactionForm', () => {
   // REQ-INIT-09: warning when initial date not configured (warning shown at page level, not in form — see FR-073)
   it('disables save button in create mode when systemInitialDate is null', () => {
     mockUseTenantConfig.mockReturnValue({
-      data: { systemInitialDate: null, closedPeriodDate: null },
+      data: { systemInitialDate: null, lockedPeriodDate: null },
       isLoading: false,
       isError: false,
       error: null,
@@ -459,7 +459,7 @@ describe('TransactionForm', () => {
   it('prefills date with today when creating transaction and today >= systemInitialDate', () => {
     // Mock today as 2025-06-15, systemInitialDate as 2025-01-01 (before today)
     mockUseTenantConfig.mockReturnValue({
-      data: { systemInitialDate: '2025-01-01', closedPeriodDate: null },
+      data: { systemInitialDate: '2025-01-01', lockedPeriodDate: null },
       isLoading: false,
       isError: false,
       error: null,
@@ -481,7 +481,7 @@ describe('TransactionForm', () => {
   it('leaves date empty when creating transaction and today < systemInitialDate', () => {
     // Mock today as 2024-12-15, systemInitialDate as 2025-01-01 (after today)
     mockUseTenantConfig.mockReturnValue({
-      data: { systemInitialDate: '2025-01-01', closedPeriodDate: null },
+      data: { systemInitialDate: '2025-01-01', lockedPeriodDate: null },
       isLoading: false,
       isError: false,
       error: null,
