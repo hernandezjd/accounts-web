@@ -568,6 +568,7 @@ function NominalAccountsDialog({
             onChange={setNominalAccounts}
             required
             size="small"
+            filterLevel={1}
           />
         </Box>
         <Box>
@@ -583,6 +584,7 @@ function NominalAccountsDialog({
             onChange={setProfitLossAccount}
             required
             size="small"
+            leafOnly
           />
         </Box>
       </DialogContent>

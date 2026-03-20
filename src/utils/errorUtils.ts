@@ -120,6 +120,23 @@ export function translateApiError(error: unknown, t: TFunction): string {
     return t('errors.thirdPartyNotDeactivatable')
   }
 
+  // Configured nominal account cannot be inactivated
+  if (
+    lower.includes('nominal_account_cannot_be_inactivated') ||
+    (lower.includes('nominal account') && lower.includes('cannot be inactivated'))
+  ) {
+    return t('errors.nominalAccountCannotBeInactivated')
+  }
+
+  // Configured P&L account cannot be inactivated
+  if (
+    lower.includes('pl_account_cannot_be_inactivated') ||
+    (lower.includes('p&l account') && lower.includes('cannot be inactivated')) ||
+    (lower.includes('profit loss') && lower.includes('cannot be inactivated'))
+  ) {
+    return t('errors.profitLossAccountCannotBeInactivated')
+  }
+
   // Transaction type in use
   if (lower.includes('in use') || lower.includes('referenced by') || lower.includes('has_transactions')) {
     return t('errors.transactionTypeInUse')

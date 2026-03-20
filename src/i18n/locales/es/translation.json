@@ -53,7 +53,9 @@
     "transactionNotBalanced": "Las líneas de la transacción no están balanceadas. Los débitos deben ser iguales a los créditos.",
     "unknownError": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
     "retry": "Reintentar",
-    "loadFailed": "Error al cargar los datos."
+    "loadFailed": "Error al cargar los datos.",
+    "nominalAccountCannotBeInactivated": "Esta cuenta está configurada como una cuenta nominal y no puede ser desactivada. Primero, elimínela de la configuración de cuentas nominales.",
+    "profitLossAccountCannotBeInactivated": "Esta cuenta está configurada como la cuenta de PyG y no puede ser desactivada. Primero, actualice la configuración."
   },
   "accounting": {
     "title": "Contabilidad",

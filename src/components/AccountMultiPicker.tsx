@@ -16,6 +16,7 @@ interface AccountMultiPickerProps {
   label?: string
   required?: boolean
   size?: 'small' | 'medium'
+  filterLevel?: number // Optional filter for account level (e.g., 1 for root accounts)
 }
 
 const filterOptions = createFilterOptions<AccountPickerOption>({
@@ -30,14 +31,17 @@ export function AccountMultiPicker({
   label,
   required,
   size = 'small',
+  filterLevel,
 }: AccountMultiPickerProps) {
   const { data: accounts } = useAccounts(tenantId)
 
-  const options: AccountPickerOption[] = (accounts ?? []).map((a) => ({
-    id: a.id!,
-    code: a.code!,
-    name: a.name!,
-  }))
+  const options: AccountPickerOption[] = (accounts ?? [])
+    .filter((a) => filterLevel === undefined || a.level === filterLevel)
+    .map((a) => ({
+      id: a.id!,
+      code: a.code!,
+      name: a.name!,
+    }))
 
   return (
     <Autocomplete<AccountPickerOption, true, false, false>
