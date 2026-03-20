@@ -51,6 +51,8 @@
     "thirdPartyNotFound": "The specified third party was not found.",
     "transactionTypeInUse": "This transaction type is in use by existing transactions and cannot be deleted.",
     "transactionNotBalanced": "Transaction items are not balanced. Debits must equal credits.",
+    "nominalAccountCannotBeInactivated": "This account is configured as a nominal account and cannot be deactivated. Remove it from the nominal accounts configuration first.",
+    "profitLossAccountCannotBeInactivated": "This account is configured as the P&L account and cannot be deactivated. Update the configuration first.",
     "unknownError": "An unexpected error occurred. Please try again.",
     "retry": "Try again",
     "loadFailed": "Failed to load data."

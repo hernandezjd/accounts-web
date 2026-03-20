@@ -16,6 +16,7 @@ interface AccountPickerProps {
   required?: boolean
   size?: 'small' | 'medium'
   excludeAccountId?: string
+  leafOnly?: boolean // Optional filter for leaf accounts (no children, no third parties)
 }
 
 const filterOptions = createFilterOptions<AccountPickerOption>({
@@ -31,11 +32,13 @@ export function AccountPicker({
   required,
   size = 'small',
   excludeAccountId,
+  leafOnly,
 }: AccountPickerProps) {
   const { data: accounts } = useAccounts(tenantId)
 
   const options: AccountPickerOption[] = (accounts ?? [])
     .filter((a) => a.id !== excludeAccountId)
+    .filter((a) => !leafOnly || (!a.hasChildren && !a.hasThirdParties))
     .map((a) => ({ id: a.id!, code: a.code!, name: a.name! }))
 
   return (
