@@ -14,8 +14,8 @@ import { translateApiError } from '@/utils/errorUtils'
 export interface TenantFormData {
   id: string
   name: string
-  contactName: string
-  contactEmail: string
+  contactName?: string
+  contactEmail?: string
   contactPhone?: string
   address?: {
     street?: string
@@ -58,10 +58,16 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
     setErrorMsg(null)
     const body = {
       name,
-      contactName,
-      contactEmail,
+      contactName: contactName || undefined,
+      contactEmail: contactEmail || undefined,
       contactPhone: contactPhone || undefined,
-      address: { street, city, state, postalCode, country },
+      address: {
+        street: street || undefined,
+        city: city || undefined,
+        state: state || undefined,
+        postalCode: postalCode || undefined,
+        country: country || undefined,
+      },
     }
 
     if (isEdit) {
@@ -80,15 +86,7 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
     }
   }
 
-  const canSave =
-    name.trim() &&
-    contactName.trim() &&
-    contactEmail.trim() &&
-    street.trim() &&
-    city.trim() &&
-    state.trim() &&
-    postalCode.trim() &&
-    country.trim()
+  const canSave = name.trim()
 
   const isPending = createTenant.isPending || updateTenant.isPending
 
@@ -111,7 +109,6 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
           label={t('setup.tenants.contactName')}
           value={contactName}
           onChange={(e) => setContactName(e.target.value)}
-          required
           size="small"
           inputProps={{ 'data-testid': 'tenant-contact-name-input' }}
         />
@@ -119,7 +116,6 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
           label={t('setup.tenants.contactEmail')}
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
-          required
           type="email"
           size="small"
           inputProps={{ 'data-testid': 'tenant-contact-email-input' }}
@@ -135,7 +131,6 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
           label={t('setup.tenants.street')}
           value={street}
           onChange={(e) => setStreet(e.target.value)}
-          required
           size="small"
           inputProps={{ 'data-testid': 'tenant-street-input' }}
         />
@@ -144,7 +139,6 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
             label={t('setup.tenants.city')}
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            required
             size="small"
             sx={{ flex: 2 }}
             inputProps={{ 'data-testid': 'tenant-city-input' }}
@@ -153,7 +147,6 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
             label={t('setup.tenants.state')}
             value={state}
             onChange={(e) => setState(e.target.value)}
-            required
             size="small"
             sx={{ flex: 1 }}
             inputProps={{ 'data-testid': 'tenant-state-input' }}
@@ -164,7 +157,6 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
             label={t('setup.tenants.postalCode')}
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
-            required
             size="small"
             sx={{ flex: 1 }}
             inputProps={{ 'data-testid': 'tenant-postal-input' }}
@@ -173,7 +165,6 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
             label={t('setup.tenants.country')}
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            required
             size="small"
             sx={{ flex: 2 }}
             inputProps={{ 'data-testid': 'tenant-country-input' }}

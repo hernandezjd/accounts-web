@@ -54,7 +54,13 @@ export function ThirdPartyCreationDialog({
       {
         externalId,
         name,
-        address: { street, city, state, postalCode, country },
+        address: {
+          street: street || undefined,
+          city: city || undefined,
+          state: state || undefined,
+          postalCode: postalCode || undefined,
+          country: country || undefined,
+        },
       },
       {
         onSuccess: (data) => {
@@ -72,14 +78,7 @@ export function ThirdPartyCreationDialog({
     onClose()
   }
 
-  const isValid =
-    externalId.trim() &&
-    name.trim() &&
-    street.trim() &&
-    city.trim() &&
-    state.trim() &&
-    postalCode.trim() &&
-    country.trim()
+  const isValid = externalId.trim() && name.trim()
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -104,35 +103,30 @@ export function ThirdPartyCreationDialog({
           label={t('transactionForm.street')}
           value={street}
           onChange={(e) => setStreet(e.target.value)}
-          required
           size="small"
         />
         <TextField
           label={t('transactionForm.city')}
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          required
           size="small"
         />
         <TextField
           label={t('transactionForm.state')}
           value={state}
           onChange={(e) => setState(e.target.value)}
-          required
           size="small"
         />
         <TextField
           label={t('transactionForm.postalCode')}
           value={postalCode}
           onChange={(e) => setPostalCode(e.target.value)}
-          required
           size="small"
         />
         <TextField
           label={t('transactionForm.country')}
           value={country}
           onChange={(e) => setCountry(e.target.value)}
-          required
           size="small"
         />
       </DialogContent>

@@ -107,7 +107,13 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
     const body = {
       externalId,
       name,
-      address: { street, city, state, postalCode, country },
+      address: {
+        street: street || undefined,
+        city: city || undefined,
+        state: state || undefined,
+        postalCode: postalCode || undefined,
+        country: country || undefined,
+      },
       phoneNumbers: phones.filter((p) => p.number.trim()).map((p) => ({ number: p.number, type: p.type })),
     }
     if (isEdit) {
@@ -127,7 +133,7 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
   }
 
   const isPending = createThirdParty.isPending || updateThirdParty.isPending
-  const isValid = externalId.trim() && name.trim() && street.trim() && city.trim() && state.trim() && postalCode.trim() && country.trim()
+  const isValid = externalId.trim() && name.trim()
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -156,35 +162,30 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
           label={t('thirdParties.street')}
           value={street}
           onChange={(e) => setStreet(e.target.value)}
-          required
           size="small"
         />
         <TextField
           label={t('thirdParties.city')}
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          required
           size="small"
         />
         <TextField
           label={t('thirdParties.state')}
           value={state}
           onChange={(e) => setState(e.target.value)}
-          required
           size="small"
         />
         <TextField
           label={t('thirdParties.postalCode')}
           value={postalCode}
           onChange={(e) => setPostalCode(e.target.value)}
-          required
           size="small"
         />
         <TextField
           label={t('thirdParties.country')}
           value={country}
           onChange={(e) => setCountry(e.target.value)}
-          required
           size="small"
         />
 
