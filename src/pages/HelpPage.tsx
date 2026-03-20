@@ -16,7 +16,7 @@ export function HelpPage() {
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState<string | false>('gettingStarted')
 
-  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+  const handleChange = (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false)
   }
 

@@ -58,15 +58,15 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
     setErrorMsg(null)
     const body = {
       name,
-      contactName: contactName || undefined,
-      contactEmail: contactEmail || undefined,
+      contactName: contactName || '',
+      contactEmail: contactEmail || '',
       contactPhone: contactPhone || undefined,
       address: {
-        street: street || undefined,
-        city: city || undefined,
-        state: state || undefined,
-        postalCode: postalCode || undefined,
-        country: country || undefined,
+        street: street || '',
+        city: city || '',
+        state: state || '',
+        postalCode: postalCode || '',
+        country: country || '',
       },
     }
 
