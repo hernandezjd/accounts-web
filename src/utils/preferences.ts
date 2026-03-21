@@ -12,6 +12,8 @@ export const PREFERENCE_KEYS = {
   ACCOUNTING_PERIOD_TO: 'accounting.selectedPeriodTo',
   // Accounting page closure simulation toggle
   ACCOUNTING_SIMULATE_CLOSURE: 'accounting.simulateClosure',
+  // Custom period types (saved period type definitions)
+  ACCOUNTING_CUSTOM_PERIOD_TYPES: 'accounting.customPeriodTypes',
   // Transaction form last used date
   TRANSACTION_LAST_DATE: 'transaction.lastUsedDate',
 } as const
