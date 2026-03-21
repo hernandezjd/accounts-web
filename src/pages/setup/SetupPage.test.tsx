@@ -53,7 +53,6 @@ const sampleConfig = {
   snapshotFrequencyDays: 30,
   nominalAccounts: ['acc-2', 'acc-3'],
   profitLossAccountId: 'acc-4',
-  closingTransactionTypeId: 'tt-1',
 }
 
 const sampleAccounts = [
@@ -105,7 +104,6 @@ function setupMocks() {
     setMinimumAccountLevel: { ...noOpMutation },
     setSnapshotFrequency: { ...noOpMutation },
     setNominalAccountsConfig: { ...noOpMutation },
-    setClosingTransactionType: { ...noOpMutation },
   })
 
   mockUseCodeStructureConfig.mockReturnValue({
@@ -330,7 +328,6 @@ describe('SetupPage — Accounting Config tab', () => {
       setMinimumAccountLevel: { ...noOpMutation },
       setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { ...noOpMutation },
-      setClosingTransactionType: { ...noOpMutation },
     })
 
     const user = await switchToConfigTab()
@@ -480,7 +477,6 @@ describe('SetupPage — nominal accounts configuration', () => {
       setMinimumAccountLevel: { ...noOpMutation },
       setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { mutate: saveFn, isPending: false },
-      setClosingTransactionType: { ...noOpMutation },
     })
 
     const user = userEvent.setup()
