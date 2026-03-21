@@ -45,7 +45,12 @@ import type { TenantFormData } from '@/pages/TenantFormDialog'
 import { AccountPicker } from '@/components/AccountPicker'
 import { AccountMultiPicker } from '@/components/AccountMultiPicker'
 import { useAccounts } from '@/hooks/api/useAccounts'
+import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import type { AccountPickerOption } from '@/components/AccountPicker'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -610,6 +615,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
   const { data: config, isLoading: configLoading, isError: configError } = useTenantConfig(tenantId)
   const { data: codeStructure, isLoading: csLoading, isError: csError } = useCodeStructureConfig(tenantId)
   const { data: allAccounts } = useAccounts(tenantId)
+  const { data: transactionTypes } = useTransactionTypes()
   const mutations = useTenantConfigMutations(tenantId)
 
   type EditMode = 'initialDate' | 'lockedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | 'nominalAccounts' | null
@@ -899,6 +905,44 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
         }}
         tenantId={tenantId}
       />
+
+      <Divider sx={{ my: 3 }} />
+
+      {/* Closing transaction type config */}
+      <Box data-testid="closing-transaction-type-panel">
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          {t('setup.config.closingTransactionTypeTitle')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {t('setup.config.closingTransactionTypeHint')}
+        </Typography>
+        <FormControl size="small" sx={{ minWidth: 300 }}>
+          <InputLabel id="closing-tx-type-label">
+            {t('setup.config.closingTransactionType')}
+          </InputLabel>
+          <Select
+            labelId="closing-tx-type-label"
+            value={config?.closingTransactionTypeId ?? ''}
+            label={t('setup.config.closingTransactionType')}
+            onChange={(e) => {
+              const value = e.target.value || null
+              mutations.setClosingTransactionType.mutate(value, {
+                onError: (err) => setEditError(translateApiError(err, t)),
+              })
+            }}
+            data-testid="closing-transaction-type-select"
+          >
+            <MenuItem value="">
+              <em>{t('setup.config.notSet')}</em>
+            </MenuItem>
+            {(transactionTypes ?? []).map((tt) => (
+              <MenuItem key={tt.id} value={tt.id}>
+                {tt.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
     </Box>
   )
 }

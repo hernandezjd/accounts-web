@@ -75,6 +75,19 @@ export function translateApiError(error: unknown, t: TFunction): string {
     return t('errors.duplicateCode')
   }
 
+  // Closing transaction type not configured
+  if (
+    lower.includes('closing transaction type') &&
+    (lower.includes('not configured') || lower.includes('no closing'))
+  ) {
+    return t('errors.closingTransactionTypeNotConfigured')
+  }
+
+  // No transaction type available for closing
+  if (lower.includes('no transaction type available') && lower.includes('closing')) {
+    return t('errors.closingTransactionTypeNotConfigured')
+  }
+
   // Transaction not balanced
   if (
     lower.includes('not balanced') ||

@@ -104,6 +104,7 @@ function setupMocks() {
     setMinimumAccountLevel: { ...noOpMutation },
     setSnapshotFrequency: { ...noOpMutation },
     setNominalAccountsConfig: { ...noOpMutation },
+    setClosingTransactionType: { ...noOpMutation },
   })
 
   mockUseCodeStructureConfig.mockReturnValue({
@@ -328,6 +329,7 @@ describe('SetupPage — Accounting Config tab', () => {
       setMinimumAccountLevel: { ...noOpMutation },
       setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { ...noOpMutation },
+      setClosingTransactionType: { ...noOpMutation },
     })
 
     const user = await switchToConfigTab()
@@ -477,6 +479,7 @@ describe('SetupPage — nominal accounts configuration', () => {
       setMinimumAccountLevel: { ...noOpMutation },
       setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { mutate: saveFn, isPending: false },
+      setClosingTransactionType: { ...noOpMutation },
     })
 
     const user = userEvent.setup()
@@ -491,5 +494,47 @@ describe('SetupPage — nominal accounts configuration', () => {
     await waitFor(() => {
       expect(saveFn).toHaveBeenCalled()
     })
+  })
+})
+
+describe('SetupPage — closing transaction type configuration', () => {
+  async function switchToConfigTab() {
+    const user = userEvent.setup()
+    render()
+    await user.click(screen.getByTestId('tab-accounting-config'))
+    return user
+  }
+
+  it('displays closing transaction type panel', async () => {
+    await switchToConfigTab()
+    expect(screen.getByTestId('closing-transaction-type-panel')).toBeInTheDocument()
+  })
+
+  it('renders closing transaction type select', async () => {
+    await switchToConfigTab()
+    expect(screen.getByTestId('closing-transaction-type-select')).toBeInTheDocument()
+  })
+
+  it('calls setClosingTransactionType mutation when selection changes', async () => {
+    const setClosingFn = vi.fn()
+    mockUseTenantConfigMutations.mockReturnValue({
+      setInitialDate: { ...noOpMutation },
+      setLockedPeriodDate: { ...noOpMutation },
+      setMinimumAccountLevel: { ...noOpMutation },
+      setSnapshotFrequency: { ...noOpMutation },
+      setNominalAccountsConfig: { ...noOpMutation },
+      setClosingTransactionType: { mutate: setClosingFn, isPending: false },
+    })
+
+    const user = await switchToConfigTab()
+    // MUI Select: click the role=combobox element to open dropdown
+    const select = screen.getByTestId('closing-transaction-type-select')
+    const combobox = select.querySelector('[role="combobox"]') ?? select
+    await user.click(combobox)
+    // Click the "Journal Entry" option in the dropdown listbox
+    const option = await screen.findByRole('option', { name: 'Journal Entry' })
+    await user.click(option)
+
+    expect(setClosingFn).toHaveBeenCalledWith('tt-1', expect.anything())
   })
 })

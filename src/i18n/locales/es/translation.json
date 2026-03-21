@@ -20,6 +20,7 @@
     "transactions": "Transacciones",
     "transactionTypes": "Tipos de Transacción",
     "reports": "Informes",
+    "closing": "Cierre",
     "setup": "Configuración"
   },
   "tenant": {
@@ -55,7 +56,8 @@
     "retry": "Reintentar",
     "loadFailed": "Error al cargar los datos.",
     "nominalAccountCannotBeInactivated": "Esta cuenta está configurada como una cuenta nominal y no puede ser desactivada. Primero, elimínela de la configuración de cuentas nominales.",
-    "profitLossAccountCannotBeInactivated": "Esta cuenta está configurada como la cuenta de PyG y no puede ser desactivada. Primero, actualice la configuración."
+    "profitLossAccountCannotBeInactivated": "Esta cuenta está configurada como la cuenta de PyG y no puede ser desactivada. Primero, actualice la configuración.",
+    "closingTransactionTypeNotConfigured": "No se ha configurado un tipo de transacción de cierre. Configure un tipo de transacción de cierre en la página de Configuración antes de ejecutar un cierre."
   },
   "accounting": {
     "title": "Contabilidad",
@@ -343,7 +345,10 @@
       "nominalAccountsHint": "Selecciona cuentas cuyos saldos se cierren al final del período",
       "profitLossAccountHint": "Cuenta que recibe la transferencia neta de P&L al cierre del período",
       "atLeastOneNominalAccount": "Al menos una cuenta nominal es requerida",
-      "profitLossAccountRequired": "Una cuenta P&L es requerida"
+      "profitLossAccountRequired": "Una cuenta P&L es requerida",
+      "closingTransactionTypeTitle": "Tipo de Transacción de Cierre",
+      "closingTransactionType": "Tipo de Transacción de Cierre",
+      "closingTransactionTypeHint": "Seleccione el tipo de transacción utilizado al ejecutar cierres de período"
     },
     "theme": {
       "title": "Editor de Tema",
@@ -430,6 +435,31 @@
   },
   "accountForm": {
     "hasThirdParties": "Tiene Terceros"
+  },
+  "closing": {
+    "accountClosing": "Cierre de Cuentas",
+    "closingDescription": "Cierra cuentas nominales y registra los resultados del período en la cuenta de Resultados.",
+    "closingProcess": "Este proceso creará una transacción de cierre que transfiere los saldos de cuentas nominales a la cuenta de Resultados, preparando tus cuentas para el próximo período.",
+    "executeClosing": "Ejecutar Cierre",
+    "closingDate": "Fecha de Cierre",
+    "description": "Descripción",
+    "preview": "Vista Previa",
+    "previewClosing": "Vista Previa de Transacción de Cierre",
+    "closingDetails": "Detalles del Cierre",
+    "date": "Fecha",
+    "nominalAccounts": "Cuentas Nominales",
+    "profitLossAccount": "Cuenta de Resultados",
+    "accountCode": "Código",
+    "accountName": "Nombre",
+    "debits": "Débitos",
+    "credits": "Créditos",
+    "totals": "Totales",
+    "totalDebits": "Total Débitos",
+    "totalCredits": "Total Créditos",
+    "executeNow": "Ejecutar Ahora",
+    "closingExecutedSuccessfully": "Transacción de cierre ejecutada exitosamente.",
+    "dateRequired": "La fecha de cierre es requerida.",
+    "descriptionRequired": "La descripción es requerida."
   },
   "help": {
     "title": "Ayuda",
