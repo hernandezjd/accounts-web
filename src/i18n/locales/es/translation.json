@@ -9,6 +9,7 @@
     "back": "Volver",
     "search": "Buscar...",
     "goToSetup": "Ir a Configuración",
+    "close": "Cerrar",
     "debit": "Débito",
     "credit": "Crédito"
   },
@@ -292,7 +293,8 @@
       "tenants": "Empresas",
       "accountingConfig": "Config. Contable",
       "transactionTypes": "Tipos de Transacción",
-      "theme": "Tema"
+      "theme": "Tema",
+      "prefilledCharts": "Planes Predefinidos"
     },
     "tenants": {
       "newTenant": "Nueva Empresa",
@@ -498,6 +500,28 @@
       "title": "Transacciones",
       "description": "Una transacción es un evento comercial que afecta una o más cuentas. Cada transacción sigue el principio de la contabilidad de partida doble: el dinero fluye de una cuenta (débito) a otra cuenta (crédito). Cada transacción debe estar balanceada—los débitos totales deben ser iguales a los créditos totales. Las transacciones se registran con una fecha, tipo, descripción y una lista de elementos de línea especificando cuentas e importes. También puedes opcionalmente asignar un tercero a una transacción para rastrear interacciones con organizaciones externas."
     }
+  },
+  "prefilledCharts": {
+    "title": "Planes de Cuentas Predefinidos",
+    "description": "Selecciona una plantilla de plan de cuentas predefinido y combínala con el plan de cuentas de tu empresa. Las cuentas existentes se omiten automáticamente.",
+    "name": "Nombre",
+    "descriptionColumn": "Descripción",
+    "accountCount": "Cuentas",
+    "actions": "Acciones",
+    "view": "Ver",
+    "merge": "Combinar",
+    "mergeConfirmTitle": "Combinar Plan Predefinido",
+    "mergeConfirm": "Esto creará todas las cuentas de la plantilla seleccionada que aún no existan en tu plan. Las cuentas existentes se omitirán. Esta acción es segura y se puede ejecutar varias veces.",
+    "mergeReportTitle": "Informe de Combinación",
+    "totalAccounts": "Total",
+    "merged": "Combinadas",
+    "skipped": "Omitidas",
+    "mergedAccounts": "Cuentas Combinadas",
+    "skippedAccounts": "Cuentas Omitidas",
+    "code": "Código",
+    "accountName": "Nombre de Cuenta",
+    "reason": "Motivo",
+    "error": "Error al cargar los planes predefinidos."
   },
   "language": {
     "select": "Idioma",
