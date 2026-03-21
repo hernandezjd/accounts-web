@@ -242,6 +242,14 @@ export function AccountingPage() {
     setPeriod(newPeriod.from, newPeriod.to, g)
   }
 
+  function handleFromChange(nextFrom: string) {
+    setPeriod(nextFrom, to, granularity)
+  }
+
+  function handleToChange(nextTo: string) {
+    setPeriod(from, nextTo, granularity)
+  }
+
   function handleLevelFilterChange(level: number | null) {
     // Update URL (source of truth)
     setSearchParams((prev) => {
@@ -442,6 +450,8 @@ export function AccountingPage() {
               onPrevPeriod={handlePrevPeriod}
               onNextPeriod={handleNextPeriod}
               onGranularityChange={handleGranularityChange}
+              onFromChange={handleFromChange}
+              onToChange={handleToChange}
               systemInitialDate={systemInitialDate}
             />
             <FormControlLabel

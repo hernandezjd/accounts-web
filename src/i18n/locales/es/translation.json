@@ -71,7 +71,21 @@
       "yearly": "Anual",
       "custom": "Personalizado",
       "prevPeriod": "Período Anterior",
-      "nextPeriod": "Período Siguiente"
+      "nextPeriod": "Período Siguiente",
+      "selectGranularity": "Seleccionar tipo de período",
+      "customType": {
+        "saveTitle": "Guardar Tipo de Período Personalizado",
+        "saveButton": "Guardar como Personalizado",
+        "fromLabel": "Fecha de Inicio",
+        "toLabel": "Fecha de Fin",
+        "nameLabel": "Nombre del Tipo de Período",
+        "namePlaceholder": "p.ej., T1 2026",
+        "periodRange": "Período: {{from}} a {{to}}",
+        "nameRequired": "Por favor, ingresa un nombre para este tipo de período",
+        "nameDuplicate": "Ya existe un tipo de período con este nombre",
+        "selectSaved": "Selecciona un tipo de período guardado",
+        "deleteButton": "Eliminar"
+      }
     },
     "tree": {
       "levelFilter": "Nivel",

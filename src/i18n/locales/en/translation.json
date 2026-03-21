@@ -71,7 +71,21 @@
       "yearly": "Yearly",
       "custom": "Custom",
       "prevPeriod": "Previous Period",
-      "nextPeriod": "Next Period"
+      "nextPeriod": "Next Period",
+      "selectGranularity": "Select period type",
+      "customType": {
+        "saveTitle": "Save Custom Period Type",
+        "saveButton": "Save as Custom",
+        "fromLabel": "Start Date",
+        "toLabel": "End Date",
+        "nameLabel": "Period Type Name",
+        "namePlaceholder": "e.g., Q1 2026",
+        "periodRange": "Period: {{from}} to {{to}}",
+        "nameRequired": "Please enter a name for this period type",
+        "nameDuplicate": "A period type with this name already exists",
+        "selectSaved": "Select a saved period type",
+        "deleteButton": "Delete"
+      }
     },
     "tree": {
       "levelFilter": "Level",
