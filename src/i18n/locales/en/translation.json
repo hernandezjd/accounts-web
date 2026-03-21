@@ -20,7 +20,6 @@
     "transactions": "Transactions",
     "transactionTypes": "Transaction Types",
     "reports": "Reports",
-    "periodClosure": "Period Closure",
     "setup": "Setup"
   },
   "tenant": {
@@ -277,31 +276,6 @@
     "dateRangeRestriction": "Data is available from {{ initialDate }} onwards.",
     "dateBeforeInitial": "Date must be on or after the system initial date."
   },
-  "periodClosure": {
-    "title": "Period Closure",
-    "form": {
-      "closureDate": "Closure Date",
-      "description": "Description (optional)",
-      "descriptionPlaceholder": "Enter closure description...",
-      "preview": "Preview",
-      "execute": "Execute Closure"
-    },
-    "previewDialog": {
-      "title": "Period Closure Preview",
-      "code": "Code",
-      "name": "Account Name",
-      "currentBalance": "Current Balance",
-      "debit": "Debit",
-      "credit": "Credit",
-      "balanceAfterClosure": "Balance After Closure",
-      "execute": "Execute Closure"
-    },
-    "loading": "Loading period closure data...",
-    "error": "Failed to process period closure.",
-    "previewError": "Failed to load closure preview.",
-    "executeError": "Failed to execute period closure.",
-    "executeSuccess": "Period closure executed successfully."
-  },
   "setup": {
     "title": "Setup",
     "tabs": {
@@ -369,11 +343,7 @@
       "nominalAccountsHint": "Select accounts whose balances are zeroed out on period closure",
       "profitLossAccountHint": "Account that receives the net P&L transfer on period closure",
       "atLeastOneNominalAccount": "At least one nominal account is required",
-      "profitLossAccountRequired": "A P&L account is required",
-      "closingTransactionTypeTitle": "Closing Transaction Type",
-      "closingTransactionType": "Closing Transaction Type",
-      "editClosingTransactionType": "Edit Closing Transaction Type",
-      "closingTransactionTypeHint": "Transaction type to use for automated period closure entries"
+      "profitLossAccountRequired": "A P&L account is required"
     },
     "theme": {
       "title": "Theme Editor",

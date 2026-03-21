@@ -101,25 +101,11 @@ export function useTenantConfigMutations(tenantId: string) {
       patchCache({ nominalAccounts, profitLossAccountId }),
   })
 
-  const setClosingTransactionType = useMutation({
-    mutationFn: async (closingTransactionTypeId: string | null): Promise<TenantConfigResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/config/closing-transaction-type', {
-        params: { header: headers },
-        body: { closingTransactionTypeId },
-      })
-      if (error) throw error
-      return data as TenantConfigResponse
-    },
-    onSuccess: (_data, closingTransactionTypeId) => patchCache({ closingTransactionTypeId }),
-  })
-
   return {
     setInitialDate,
     setLockedPeriodDate,
     setMinimumAccountLevel,
     setSnapshotFrequency,
     setNominalAccountsConfig,
-    setClosingTransactionType,
   }
 }

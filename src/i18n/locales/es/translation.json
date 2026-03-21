@@ -20,7 +20,6 @@
     "transactions": "Transacciones",
     "transactionTypes": "Tipos de Transacción",
     "reports": "Informes",
-    "periodClosure": "Cierre de Período",
     "setup": "Configuración"
   },
   "tenant": {
@@ -277,31 +276,6 @@
     "dateRangeRestriction": "Los datos están disponibles a partir del {{ initialDate }}.",
     "dateBeforeInitial": "La fecha debe ser igual o posterior a la fecha inicial del sistema."
   },
-  "periodClosure": {
-    "title": "Cierre de Período",
-    "form": {
-      "closureDate": "Fecha de Cierre",
-      "description": "Descripción (opcional)",
-      "descriptionPlaceholder": "Ingrese descripción del cierre...",
-      "preview": "Vista Previa",
-      "execute": "Ejecutar Cierre"
-    },
-    "previewDialog": {
-      "title": "Vista Previa de Cierre de Período",
-      "code": "Código",
-      "name": "Nombre de Cuenta",
-      "currentBalance": "Saldo Actual",
-      "debit": "Débito",
-      "credit": "Crédito",
-      "balanceAfterClosure": "Saldo Después de Cierre",
-      "execute": "Ejecutar Cierre"
-    },
-    "loading": "Cargando datos de cierre de período...",
-    "error": "Error al procesar el cierre de período.",
-    "previewError": "Error al cargar la vista previa de cierre.",
-    "executeError": "Error al ejecutar el cierre de período.",
-    "executeSuccess": "Cierre de período ejecutado exitosamente."
-  },
   "setup": {
     "title": "Configuración",
     "tabs": {
@@ -369,11 +343,7 @@
       "nominalAccountsHint": "Selecciona cuentas cuyos saldos se cierren al final del período",
       "profitLossAccountHint": "Cuenta que recibe la transferencia neta de P&L al cierre del período",
       "atLeastOneNominalAccount": "Al menos una cuenta nominal es requerida",
-      "profitLossAccountRequired": "Una cuenta P&L es requerida",
-      "closingTransactionTypeTitle": "Tipo de Transacción de Cierre",
-      "closingTransactionType": "Tipo de Transacción de Cierre",
-      "editClosingTransactionType": "Editar Tipo de Transacción de Cierre",
-      "closingTransactionTypeHint": "Tipo de transacción a utilizar para entradas automatizadas de cierre de período"
+      "profitLossAccountRequired": "Una cuenta P&L es requerida"
     },
     "theme": {
       "title": "Editor de Tema",
