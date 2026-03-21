@@ -434,18 +434,18 @@ export function AccountingPage() {
         />
       ) : (
         <>
-          <PeriodControls
-            from={from}
-            to={to}
-            granularity={granularity}
-            onPrevPeriod={handlePrevPeriod}
-            onNextPeriod={handleNextPeriod}
-            onGranularityChange={handleGranularityChange}
-            systemInitialDate={systemInitialDate}
-          />
-
-          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <PeriodControls
+              from={from}
+              to={to}
+              granularity={granularity}
+              onPrevPeriod={handlePrevPeriod}
+              onNextPeriod={handleNextPeriod}
+              onGranularityChange={handleGranularityChange}
+              systemInitialDate={systemInitialDate}
+            />
             <FormControlLabel
+              sx={{ ml: 'auto' }}
               control={
                 <Switch
                   checked={simulateClosure}
