@@ -37,6 +37,7 @@ import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureConfigMutations'
 import { TransactionTypesContent } from '@/pages/transaction-types/TransactionTypesPage'
 import { ThemeEditorTab } from './ThemeEditorTab'
+import { PrefilledChartsTab } from './PrefilledChartsTab'
 import { translateApiError } from '@/utils/errorUtils'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { formatError } from '@/lib/error/useErrorHandler'
@@ -977,6 +978,7 @@ export function SetupPage() {
         <Tab label={t('setup.tabs.accountingConfig')} data-testid="tab-accounting-config" />
         <Tab label={t('setup.tabs.transactionTypes')} data-testid="tab-transaction-types" />
         <Tab label={t('setup.tabs.theme')} data-testid="tab-theme" />
+        <Tab label={t('setup.tabs.prefilledCharts')} data-testid="tab-prefilled-charts" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0} testId="tabpanel-tenants">
@@ -990,6 +992,9 @@ export function SetupPage() {
       </TabPanel>
       <TabPanel value={activeTab} index={3} testId="tabpanel-theme">
         <ThemeEditorTab />
+      </TabPanel>
+      <TabPanel value={activeTab} index={4} testId="tabpanel-prefilled-charts">
+        <PrefilledChartsTab />
       </TabPanel>
     </Box>
   )

@@ -7,6 +7,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "back": "Back",
+    "close": "Close",
     "search": "Search...",
     "goToSetup": "Go to Setup",
     "debit": "Debit",
@@ -292,7 +293,8 @@
       "tenants": "Tenants",
       "accountingConfig": "Accounting Config",
       "transactionTypes": "Transaction Types",
-      "theme": "Theme"
+      "theme": "Theme",
+      "prefilledCharts": "Pre-filled Charts"
     },
     "tenants": {
       "newTenant": "New Tenant",
@@ -498,6 +500,28 @@
       "title": "Transactions",
       "description": "A transaction is a business event that affects one or more accounts. Every transaction follows the principle of double-entry bookkeeping: money flows from one account (debit) to another account (credit). Each transaction must balance—total debits must equal total credits. Transactions are recorded with a date, type, description, and a list of line items specifying accounts and amounts. You can also optionally assign a third party to a transaction to track interactions with external organizations."
     }
+  },
+  "prefilledCharts": {
+    "title": "Pre-filled Charts",
+    "description": "Select a pre-filled chart of accounts template and merge it into your tenant's chart. Existing accounts are skipped automatically.",
+    "name": "Name",
+    "descriptionColumn": "Description",
+    "accountCount": "Accounts",
+    "actions": "Actions",
+    "view": "View",
+    "merge": "Merge",
+    "mergeConfirmTitle": "Merge Pre-filled Chart",
+    "mergeConfirm": "This will create all accounts from the selected template that don't already exist in your chart. Existing accounts will be skipped. This action is safe to run multiple times.",
+    "mergeReportTitle": "Merge Report",
+    "totalAccounts": "Total",
+    "merged": "Merged",
+    "skipped": "Skipped",
+    "mergedAccounts": "Merged Accounts",
+    "skippedAccounts": "Skipped Accounts",
+    "code": "Code",
+    "accountName": "Account Name",
+    "reason": "Reason",
+    "error": "Failed to load pre-filled charts."
   },
   "language": {
     "select": "Language",

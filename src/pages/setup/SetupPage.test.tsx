@@ -18,6 +18,9 @@ vi.mock('@/hooks/api/useAccounts', () => ({ useAccounts: vi.fn() }))
 vi.mock('./ThemeEditorTab', () => ({
   ThemeEditorTab: () => <div data-testid="theme-editor-tab">Theme Editor</div>,
 }))
+vi.mock('./PrefilledChartsTab', () => ({
+  PrefilledChartsTab: () => <div data-testid="prefilled-charts-tab">Pre-filled Charts</div>,
+}))
 
 import { useTenants } from '@/hooks/api/useTenants'
 import { useTenantMutations } from '@/hooks/api/useTenantMutations'

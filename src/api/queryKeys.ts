@@ -108,6 +108,17 @@ export const queryKeys = {
   },
 
   // =====================================================================
+  // PREFILLED CHARTS (Global)
+  // =====================================================================
+  prefilledCharts: {
+    all: () => ['prefilled-charts'] as const,
+    lists: () => [...queryKeys.prefilledCharts.all(), 'list'] as const,
+    list: () => [...queryKeys.prefilledCharts.lists()] as const,
+    details: () => [...queryKeys.prefilledCharts.all(), 'detail'] as const,
+    detail: (id: string) => [...queryKeys.prefilledCharts.details(), { id }] as const,
+  },
+
+  // =====================================================================
   // TENANTS (Global)
   // =====================================================================
   tenants: {
@@ -352,6 +363,15 @@ export const cacheInvalidationMap = {
       queryKeys.accounts.all(),
     ],
     description: 'Code structure change affects account validation',
+  },
+
+  // Pre-filled chart mutations
+  mergePrefilledChart: {
+    invalidates: [
+      queryKeys.accounts.all(),
+      queryKeys.reports.all(),
+    ],
+    description: 'Merged chart creates new accounts, affects account lists and reports',
   },
 
   // Tenant mutations
