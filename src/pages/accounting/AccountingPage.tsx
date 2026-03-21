@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { formatError } from '@/lib/error/useErrorHandler'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
@@ -113,6 +113,7 @@ export function AccountingPage() {
 
   // ── Closure simulation toggle with localStorage persistence ───────────────
   const [simulateClosure, setSimulateClosureState] = useState(() => storedSimulateClosure)
+  const [showMissingConfigWarning, setShowMissingConfigWarning] = useState(false)
 
   const setSimulateClosure = (value: boolean | ((prev: boolean) => boolean)) => {
     setSimulateClosureState((prev) => {
@@ -448,7 +449,19 @@ export function AccountingPage() {
               control={
                 <Switch
                   checked={simulateClosure}
-                  onChange={(e) => setSimulateClosure(e.target.checked)}
+                  onChange={(e) => {
+                    const wantOn = e.target.checked
+                    if (wantOn) {
+                      const hasNominal = tenantConfig?.nominalAccounts && tenantConfig.nominalAccounts.length > 0
+                      const hasPnl = !!tenantConfig?.profitLossAccountId
+                      if (!hasNominal || !hasPnl) {
+                        setShowMissingConfigWarning(true)
+                        return
+                      }
+                    }
+                    setShowMissingConfigWarning(false)
+                    setSimulateClosure(wantOn)
+                  }}
                   data-testid="simulate-closure-toggle"
                 />
               }
@@ -458,11 +471,27 @@ export function AccountingPage() {
 
           {simulateClosure && (
             <Alert severity="info" sx={{ mb: 2 }} data-testid="simulation-active-banner">
-              {tenantConfig?.nominalAccounts && tenantConfig?.nominalAccounts.length > 0 && tenantConfig?.profitLossAccountId
-                ? t('accounting.closureSimulationInfo')
-                : t('accounting.simulateModeActive')}
+              {t('accounting.closureSimulationInfo')}
             </Alert>
           )}
+
+          {showMissingConfigWarning && !simulateClosure && (() => {
+            const hasNominal = tenantConfig?.nominalAccounts && tenantConfig.nominalAccounts.length > 0
+            const hasPnl = !!tenantConfig?.profitLossAccountId
+            const messageKey = !hasNominal && !hasPnl
+              ? 'accounting.closureMissingBoth'
+              : !hasNominal
+                ? 'accounting.closureMissingNominal'
+                : 'accounting.closureMissingPnl'
+            return (
+              <Alert severity="warning" sx={{ mb: 2 }} data-testid="simulation-missing-config-banner">
+                {t(messageKey)}{' '}
+                <Link to="../setup" state={{ initialTab: 1, initialEditMode: 'nominalAccounts' }} data-testid="missing-config-link">
+                  {t('accounting.closureMissingConfigLink')}
+                </Link>
+              </Alert>
+            )
+          })()}
 
           <SearchBar
             ref={searchBarRef}

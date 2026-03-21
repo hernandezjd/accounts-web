@@ -122,7 +122,11 @@
     },
     "simulateClosureToggle": "Simular Cierre",
     "simulateModeActive": "La simulación de cierre está activa",
-    "closureSimulationInfo": "Los valores mostrados en azul representan entradas de cierre simuladas: cierres de cuentas nominales (establecidos a cero) y la transferencia resultante de ganancias/pérdidas a la cuenta de P&L."
+    "closureSimulationInfo": "Los valores mostrados en azul representan entradas de cierre simuladas: cierres de cuentas nominales (establecidos a cero) y la transferencia resultante de ganancias/pérdidas a la cuenta de P&L.",
+    "closureMissingBoth": "La simulación de cierre requiere que se configuren las cuentas nominales y una cuenta de P&L.",
+    "closureMissingNominal": "La simulación de cierre requiere que se configuren las cuentas nominales.",
+    "closureMissingPnl": "La simulación de cierre requiere que se configure una cuenta de P&L.",
+    "closureMissingConfigLink": "Ir a Configuración"
   },
   "accounts": {
     "title": "Cuentas",
@@ -241,6 +245,10 @@
     "simulateClosureToggle": "Simular Cierre",
     "simulateModeActive": "La simulación de cierre está activa",
     "closureSimulationInfo": "Los valores mostrados en azul representan asientos de cierre simulados: cierres de cuentas nominales (establecidas en cero) y la transferencia resultante de P&L a la cuenta de P&L.",
+    "closureMissingBoth": "La simulación de cierre requiere que se configuren las cuentas nominales y una cuenta de P&L.",
+    "closureMissingNominal": "La simulación de cierre requiere que se configuren las cuentas nominales.",
+    "closureMissingPnl": "La simulación de cierre requiere que se configure una cuenta de P&L.",
+    "closureMissingConfigLink": "Ir a Configuración",
     "periodReport": {
       "code": "Código",
       "name": "Nombre de Cuenta",

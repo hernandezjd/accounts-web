@@ -122,7 +122,11 @@
     },
     "simulateClosureToggle": "Simulate Closure",
     "simulateModeActive": "Closure simulation is active",
-    "closureSimulationInfo": "Values shown in blue represent simulated closure entries: nominal account closures (set to zero) and the resulting profit/loss transfer to the P&L account."
+    "closureSimulationInfo": "Values shown in blue represent simulated closure entries: nominal account closures (set to zero) and the resulting profit/loss transfer to the P&L account.",
+    "closureMissingBoth": "Closure simulation requires nominal accounts and a P&L account to be configured.",
+    "closureMissingNominal": "Closure simulation requires nominal accounts to be configured.",
+    "closureMissingPnl": "Closure simulation requires a P&L account to be configured.",
+    "closureMissingConfigLink": "Go to Settings"
   },
   "accounts": {
     "title": "Accounts",
@@ -241,6 +245,10 @@
     "simulateClosureToggle": "Simulate Closure",
     "simulateModeActive": "Closure simulation is active",
     "closureSimulationInfo": "Values shown in blue represent simulated closure entries: nominal account closures (set to zero) and the resulting profit/loss transfer to the P&L account.",
+    "closureMissingBoth": "Closure simulation requires nominal accounts and a P&L account to be configured.",
+    "closureMissingNominal": "Closure simulation requires nominal accounts to be configured.",
+    "closureMissingPnl": "Closure simulation requires a P&L account to be configured.",
+    "closureMissingConfigLink": "Go to Settings",
     "periodReport": {
       "code": "Code",
       "name": "Account Name",
