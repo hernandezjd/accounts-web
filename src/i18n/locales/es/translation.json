@@ -459,7 +459,10 @@
     "executeNow": "Ejecutar Ahora",
     "closingExecutedSuccessfully": "Transacción de cierre ejecutada exitosamente.",
     "dateRequired": "La fecha de cierre es requerida.",
-    "descriptionRequired": "La descripción es requerida."
+    "descriptionRequired": "La descripción es requerida.",
+    "prerequisiteNominalAccounts": "Las cuentas nominales no están configuradas.",
+    "prerequisiteProfitLossAccount": "La cuenta de PyG no está configurada.",
+    "prerequisiteClosingTransactionType": "El tipo de transacción de cierre no está configurado."
   },
   "help": {
     "title": "Ayuda",

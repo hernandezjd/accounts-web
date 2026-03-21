@@ -459,7 +459,10 @@
     "executeNow": "Execute Now",
     "closingExecutedSuccessfully": "Closing transaction executed successfully.",
     "dateRequired": "Closing date is required.",
-    "descriptionRequired": "Description is required."
+    "descriptionRequired": "Description is required.",
+    "prerequisiteNominalAccounts": "Nominal accounts are not configured.",
+    "prerequisiteProfitLossAccount": "P&L account is not configured.",
+    "prerequisiteClosingTransactionType": "Closing transaction type is not configured."
   },
   "help": {
     "title": "Help",
