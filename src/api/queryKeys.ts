@@ -131,6 +131,8 @@ export const queryKeys = {
       [...queryKeys.reports.all(), { tenantId, level }, 'balance-at-level', date, filters] as const,
     periodReport: (tenantId: string, filters?: Record<string, unknown>) =>
       [...queryKeys.reports.all(), { tenantId }, 'period-report', filters] as const,
+    closingPreview: (tenantId: string, filters?: Record<string, unknown>) =>
+      [...queryKeys.reports.all(), { tenantId }, 'closing-preview', filters] as const,
     thirdPartyBalanceAtDate: (
       tenantId: string,
       accountId: string,

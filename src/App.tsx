@@ -8,6 +8,7 @@ import { AccountsPage } from '@/pages/accounts/AccountsPage'
 import { ThirdPartiesPage } from '@/pages/third-parties/ThirdPartiesPage'
 import { TransactionsPage } from '@/pages/transactions/TransactionsPage'
 import { ReportsPage } from '@/pages/reports/ReportsPage'
+import { ClosingPage } from '@/pages/closing/ClosingPage'
 import { InitialBalancesPage } from '@/pages/initial-balances/InitialBalancesPage'
 import { SetupPage } from '@/pages/setup/SetupPage'
 
@@ -25,6 +26,7 @@ function App() {
         <Route path="initial-balances" element={<InitialBalancesPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="closing" element={<ClosingPage />} />
         <Route path="setup" element={<SetupPage />} />
         <Route path="help" element={<HelpPage />} />
       </Route>

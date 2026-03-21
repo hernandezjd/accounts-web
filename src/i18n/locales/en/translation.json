@@ -20,6 +20,7 @@
     "transactions": "Transactions",
     "transactionTypes": "Transaction Types",
     "reports": "Reports",
+    "closing": "Closing",
     "setup": "Setup"
   },
   "tenant": {
@@ -53,6 +54,7 @@
     "transactionNotBalanced": "Transaction items are not balanced. Debits must equal credits.",
     "nominalAccountCannotBeInactivated": "This account is configured as a nominal account and cannot be deactivated. Remove it from the nominal accounts configuration first.",
     "profitLossAccountCannotBeInactivated": "This account is configured as the P&L account and cannot be deactivated. Update the configuration first.",
+    "closingTransactionTypeNotConfigured": "No closing transaction type is configured. Please set a closing transaction type in the Setup page before executing a closing.",
     "unknownError": "An unexpected error occurred. Please try again.",
     "retry": "Try again",
     "loadFailed": "Failed to load data."
@@ -343,7 +345,10 @@
       "nominalAccountsHint": "Select accounts whose balances are zeroed out on period closure",
       "profitLossAccountHint": "Account that receives the net P&L transfer on period closure",
       "atLeastOneNominalAccount": "At least one nominal account is required",
-      "profitLossAccountRequired": "A P&L account is required"
+      "profitLossAccountRequired": "A P&L account is required",
+      "closingTransactionTypeTitle": "Closing Transaction Type",
+      "closingTransactionType": "Closing Transaction Type",
+      "closingTransactionTypeHint": "Select the transaction type used when executing period closures"
     },
     "theme": {
       "title": "Theme Editor",
@@ -430,6 +435,31 @@
   },
   "accountForm": {
     "hasThirdParties": "Has Third Parties"
+  },
+  "closing": {
+    "accountClosing": "Account Closing",
+    "closingDescription": "Close out nominal accounts and post period results to the P&L account.",
+    "closingProcess": "This process will create a closing transaction that transfers nominal account balances to the P&L account, preparing your accounts for the next period.",
+    "executeClosing": "Execute Closing",
+    "closingDate": "Closing Date",
+    "description": "Description",
+    "preview": "Preview",
+    "previewClosing": "Preview Closing Transaction",
+    "closingDetails": "Closing Details",
+    "date": "Date",
+    "nominalAccounts": "Nominal Accounts",
+    "profitLossAccount": "Profit & Loss Account",
+    "accountCode": "Code",
+    "accountName": "Name",
+    "debits": "Debits",
+    "credits": "Credits",
+    "totals": "Totals",
+    "totalDebits": "Total Debits",
+    "totalCredits": "Total Credits",
+    "executeNow": "Execute Now",
+    "closingExecutedSuccessfully": "Closing transaction executed successfully.",
+    "dateRequired": "Closing date is required.",
+    "descriptionRequired": "Description is required."
   },
   "help": {
     "title": "Help",
