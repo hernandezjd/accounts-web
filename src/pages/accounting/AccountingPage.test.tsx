@@ -19,12 +19,18 @@ vi.mock('@/hooks/api/useUnifiedSearch', () => ({
   useUnifiedSearch: vi.fn().mockReturnValue({ data: undefined, isLoading: false, isError: false }),
 }))
 
+vi.mock('@/hooks/api/useTenantConfig', () => ({
+  useTenantConfig: vi.fn(),
+}))
+
 import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
 import { useAccountTransactionsInPeriod } from '@/hooks/api/useAccountTransactionsInPeriod'
 import { useUnifiedSearch } from '@/hooks/api/useUnifiedSearch'
+import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 const mockUseSummary = vi.mocked(usePeriodAccountSummary)
 const mockUseTxns = vi.mocked(useAccountTransactionsInPeriod)
 const mockUseSearch = vi.mocked(useUnifiedSearch)
+const mockUseTenantConfig = vi.mocked(useTenantConfig)
 
 // ─── Sample data ──────────────────────────────────────────────────────────────
 
@@ -91,6 +97,7 @@ const sampleTransactions: AccountTransactionDetail = {
 describe('AccountingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
     mockUseTxns.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -102,6 +109,12 @@ describe('AccountingPage', () => {
       isLoading: false,
       isError: false,
     } as ReturnType<typeof useUnifiedSearch>)
+    mockUseTenantConfig.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as unknown as ReturnType<typeof useTenantConfig>)
   })
 
   it('shows loading state while fetching', () => {
@@ -585,7 +598,7 @@ describe('AccountingPage', () => {
     })
   })
 
-  it('shows simulate closure toggle and info banner when enabled', async () => {
+  it('shows warning banner and keeps toggle OFF when closure config is missing', async () => {
     mockUseSummary.mockReturnValue({
       data: sampleSummary,
       isLoading: false,
@@ -597,29 +610,97 @@ describe('AccountingPage', () => {
       routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
     })
 
-    // Toggle should exist and be unchecked initially
     const toggle = screen.getByRole('checkbox', { name: /simulate closure/i })
-    expect(toggle).toBeInTheDocument()
     expect(toggle).not.toBeChecked()
+    expect(screen.queryByTestId('simulation-missing-config-banner')).not.toBeInTheDocument()
 
-    // Banner should not be visible when toggle is off
-    expect(screen.queryByTestId('simulation-active-banner')).not.toBeInTheDocument()
-
-    // Click the toggle
     await userEvent.click(toggle)
 
-    // Banner should now be visible
     await waitFor(() => {
-      expect(screen.getByTestId('simulation-active-banner')).toBeInTheDocument()
-      expect(screen.getByText(/closure simulation is active/i)).toBeInTheDocument()
+      expect(toggle).not.toBeChecked()
+      expect(screen.getByTestId('simulation-missing-config-banner')).toBeInTheDocument()
+      expect(screen.getByText(/requires nominal accounts and a P&L account/i)).toBeInTheDocument()
+      expect(screen.getByTestId('missing-config-link')).toBeInTheDocument()
+    })
+  })
+
+  it('shows warning when only nominal accounts are missing', async () => {
+    mockUseSummary.mockReturnValue({
+      data: sampleSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+    mockUseTenantConfig.mockReturnValue({
+      data: { nominalAccounts: [], profitLossAccountId: 'pnl-1' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as unknown as ReturnType<typeof useTenantConfig>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
     })
 
-    // Click the toggle again to turn it off
+    const toggle = screen.getByRole('checkbox', { name: /simulate closure/i })
     await userEvent.click(toggle)
 
-    // Banner should disappear
     await waitFor(() => {
-      expect(screen.queryByTestId('simulation-active-banner')).not.toBeInTheDocument()
+      expect(toggle).not.toBeChecked()
+      expect(screen.getByText(/requires nominal accounts to be configured/i)).toBeInTheDocument()
+    })
+  })
+
+  it('shows warning when only P&L account is missing', async () => {
+    mockUseSummary.mockReturnValue({
+      data: sampleSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+    mockUseTenantConfig.mockReturnValue({
+      data: { nominalAccounts: ['acc-1'], profitLossAccountId: null },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as unknown as ReturnType<typeof useTenantConfig>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+    })
+
+    const toggle = screen.getByRole('checkbox', { name: /simulate closure/i })
+    await userEvent.click(toggle)
+
+    await waitFor(() => {
+      expect(toggle).not.toBeChecked()
+      expect(screen.getByText(/requires a P&L account to be configured/i)).toBeInTheDocument()
+    })
+  })
+
+  it('shows info banner when closure config is complete', async () => {
+    mockUseSummary.mockReturnValue({
+      data: sampleSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+    mockUseTenantConfig.mockReturnValue({
+      data: { nominalAccounts: ['acc-1'], profitLossAccountId: 'pnl-1' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as unknown as ReturnType<typeof useTenantConfig>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+    })
+
+    await userEvent.click(screen.getByRole('checkbox', { name: /simulate closure/i }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('simulation-active-banner')).toBeInTheDocument()
+      expect(screen.getByText(/values shown in blue/i)).toBeInTheDocument()
     })
   })
 })

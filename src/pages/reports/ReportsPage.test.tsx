@@ -19,11 +19,17 @@ vi.mock('@/hooks/api/useBalanceAtLevel', () => ({
   useBalanceAtLevel: vi.fn(),
 }))
 
+vi.mock('@/hooks/api/useTenantConfig', () => ({
+  useTenantConfig: vi.fn(),
+}))
+
 import { usePeriodReport } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
+import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 
 const mockUsePeriodReport = vi.mocked(usePeriodReport)
 const mockUseBalanceAtLevel = vi.mocked(useBalanceAtLevel)
+const mockUseTenantConfig = vi.mocked(useTenantConfig)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -95,6 +101,12 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockUsePeriodReport.mockReturnValue(idlePeriodReport)
   mockUseBalanceAtLevel.mockReturnValue(idleBalanceAtLevel)
+  mockUseTenantConfig.mockReturnValue({
+    data: undefined,
+    isLoading: false,
+    isError: false,
+    error: null,
+  } as unknown as ReturnType<typeof useTenantConfig>)
 })
 
 // ─── Helper to render and switch to a tab ────────────────────────────────────
@@ -489,9 +501,66 @@ describe('ReportsPage', () => {
       renderWithProviders(<ReportsPage />)
 
       expect(screen.queryByTestId('simulation-active-banner')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('simulation-missing-config-banner')).not.toBeInTheDocument()
     })
 
-    it('shows simulation banner when toggle is on', async () => {
+    it('shows warning banner and keeps toggle OFF when config is missing', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReportsPage />)
+
+      const toggle = screen.getByTestId('simulate-closure-toggle').querySelector('input[type="checkbox"]')!
+      await user.click(toggle)
+
+      expect(toggle).not.toBeChecked()
+      expect(screen.getByTestId('simulation-missing-config-banner')).toBeInTheDocument()
+      expect(screen.getByText(/requires nominal accounts and a P&L account/i)).toBeInTheDocument()
+      expect(screen.getByTestId('missing-config-link')).toBeInTheDocument()
+    })
+
+    it('shows warning when only nominal accounts are missing', async () => {
+      mockUseTenantConfig.mockReturnValue({
+        data: { nominalAccounts: [], profitLossAccountId: 'pnl-1' },
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as unknown as ReturnType<typeof useTenantConfig>)
+
+      const user = userEvent.setup()
+      renderWithProviders(<ReportsPage />)
+
+      const toggle = screen.getByTestId('simulate-closure-toggle').querySelector('input[type="checkbox"]')!
+      await user.click(toggle)
+
+      expect(toggle).not.toBeChecked()
+      expect(screen.getByText(/requires nominal accounts to be configured/i)).toBeInTheDocument()
+    })
+
+    it('shows warning when only P&L account is missing', async () => {
+      mockUseTenantConfig.mockReturnValue({
+        data: { nominalAccounts: ['acc-1'], profitLossAccountId: null },
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as unknown as ReturnType<typeof useTenantConfig>)
+
+      const user = userEvent.setup()
+      renderWithProviders(<ReportsPage />)
+
+      const toggle = screen.getByTestId('simulate-closure-toggle').querySelector('input[type="checkbox"]')!
+      await user.click(toggle)
+
+      expect(toggle).not.toBeChecked()
+      expect(screen.getByText(/requires a P&L account to be configured/i)).toBeInTheDocument()
+    })
+
+    it('shows info banners when config is complete', async () => {
+      mockUseTenantConfig.mockReturnValue({
+        data: { nominalAccounts: ['acc-1'], profitLossAccountId: 'pnl-1' },
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as unknown as ReturnType<typeof useTenantConfig>)
+
       const user = userEvent.setup()
       renderWithProviders(<ReportsPage />)
 
@@ -499,10 +568,16 @@ describe('ReportsPage', () => {
       await user.click(toggle)
 
       expect(screen.getByTestId('simulation-active-banner')).toBeInTheDocument()
-      expect(screen.getByText(/closure simulation is active/i)).toBeInTheDocument()
+      expect(screen.getByTestId('simulation-info-banner')).toBeInTheDocument()
     })
 
     it('calls usePeriodReport with simulateClosure=true when toggle is enabled', async () => {
+      mockUseTenantConfig.mockReturnValue({
+        data: { nominalAccounts: ['acc-1'], profitLossAccountId: 'pnl-1' },
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as unknown as ReturnType<typeof useTenantConfig>)
       const user = userEvent.setup()
       mockUsePeriodReport.mockReturnValue({
         data: samplePeriodReport,
@@ -530,6 +605,12 @@ describe('ReportsPage', () => {
     })
 
     it('calls useBalanceAtLevel with simulateClosure=true on balance at level tab', async () => {
+      mockUseTenantConfig.mockReturnValue({
+        data: { nominalAccounts: ['acc-1'], profitLossAccountId: 'pnl-1' },
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as unknown as ReturnType<typeof useTenantConfig>)
       const user = userEvent.setup()
       mockUseBalanceAtLevel.mockReturnValue({
         data: sampleBalanceAtLevel,

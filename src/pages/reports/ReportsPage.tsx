@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
 import Tabs from '@mui/material/Tabs'
@@ -545,6 +545,7 @@ export function ReportsPage() {
   const { tenantId = '' } = useParams<{ tenantId: string }>()
   const [activeTab, setActiveTab] = useState(0)
   const [simulateClosure, setSimulateClosure] = useState(false)
+  const [showMissingConfigWarning, setShowMissingConfigWarning] = useState(false)
   const { data: tenantConfig } = useTenantConfig(tenantId)
 
   // Extract nominal accounts and P&L account from config
@@ -562,7 +563,19 @@ export function ReportsPage() {
           control={
             <Switch
               checked={simulateClosure}
-              onChange={(e) => setSimulateClosure(e.target.checked)}
+              onChange={(e) => {
+                const wantOn = e.target.checked
+                if (wantOn) {
+                  const hasNominal = nominalAccountIds && nominalAccountIds.length > 0
+                  const hasPnl = !!plAccountId
+                  if (!hasNominal || !hasPnl) {
+                    setShowMissingConfigWarning(true)
+                    return
+                  }
+                }
+                setShowMissingConfigWarning(false)
+                setSimulateClosure(wantOn)
+              }}
               data-testid="simulate-closure-toggle"
             />
           }
@@ -580,6 +593,24 @@ export function ReportsPage() {
           </Alert>
         </Box>
       )}
+
+      {showMissingConfigWarning && !simulateClosure && (() => {
+        const hasNominal = nominalAccountIds && nominalAccountIds.length > 0
+        const hasPnl = !!plAccountId
+        const messageKey = !hasNominal && !hasPnl
+          ? 'reports.closureMissingBoth'
+          : !hasNominal
+            ? 'reports.closureMissingNominal'
+            : 'reports.closureMissingPnl'
+        return (
+          <Alert severity="warning" sx={{ mb: 2 }} data-testid="simulation-missing-config-banner">
+            {t(messageKey)}{' '}
+            <Link to="../setup" state={{ initialTab: 1, initialEditMode: 'nominalAccounts' }} data-testid="missing-config-link">
+              {t('reports.closureMissingConfigLink')}
+            </Link>
+          </Alert>
+        )
+      })()}
 
       <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} data-testid="reports-tabs">
         <Tab label={t('reports.tabs.periodReport')} data-testid="tab-period-report" />
