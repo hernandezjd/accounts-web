@@ -558,31 +558,6 @@ export function ReportsPage() {
         {t('reports.title')}
       </Typography>
 
-      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={simulateClosure}
-              onChange={(e) => {
-                const wantOn = e.target.checked
-                if (wantOn) {
-                  const hasNominal = nominalAccountIds && nominalAccountIds.length > 0
-                  const hasPnl = !!plAccountId
-                  if (!hasNominal || !hasPnl) {
-                    setShowMissingConfigWarning(true)
-                    return
-                  }
-                }
-                setShowMissingConfigWarning(false)
-                setSimulateClosure(wantOn)
-              }}
-              data-testid="simulate-closure-toggle"
-            />
-          }
-          label={t('reports.simulateClosureToggle')}
-        />
-      </Box>
-
       {simulateClosure && (
         <Box sx={{ mb: 2 }}>
           <Alert severity="info" data-testid="simulation-active-banner">
@@ -612,11 +587,36 @@ export function ReportsPage() {
         )
       })()}
 
-      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} data-testid="reports-tabs">
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} data-testid="reports-tabs">
         <Tab label={t('reports.tabs.periodReport')} data-testid="tab-period-report" />
         <Tab label={t('reports.tabs.balanceAtDate')} data-testid="tab-balance-at-date" />
         <Tab label={t('reports.tabs.balanceAtLevel')} data-testid="tab-balance-at-level" />
-      </Tabs>
+        </Tabs>
+        <FormControlLabel
+          sx={{ ml: 'auto' }}
+          control={
+            <Switch
+              checked={simulateClosure}
+              onChange={(e) => {
+                const wantOn = e.target.checked
+                if (wantOn) {
+                  const hasNominal = nominalAccountIds && nominalAccountIds.length > 0
+                  const hasPnl = !!plAccountId
+                  if (!hasNominal || !hasPnl) {
+                    setShowMissingConfigWarning(true)
+                    return
+                  }
+                }
+                setShowMissingConfigWarning(false)
+                setSimulateClosure(wantOn)
+              }}
+              data-testid="simulate-closure-toggle"
+            />
+          }
+          label={t('reports.simulateClosureToggle')}
+        />
+      </Box>
 
       <TabPanel value={activeTab} index={0}>
         <PeriodReportTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
