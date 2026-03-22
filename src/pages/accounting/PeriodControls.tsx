@@ -11,6 +11,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import Menu from '@mui/material/Menu'
+import Tooltip from '@mui/material/Tooltip'
 import { useTranslation } from 'react-i18next'
 import type { SelectChangeEvent } from '@mui/material/Select'
 import type { Granularity } from '@/types/accounting'
@@ -68,7 +69,7 @@ export function PeriodControls({
   const label = formatPeriodLabel(from, to, granularity, i18n.language)
   const isPrevDisabled = !!(systemInitialDate && from <= systemInitialDate)
   const isCustomGranularity = granularity === 'custom'
-  const isInvalidDateRange = isCustomGranularity && !!from && !!to && from >= to
+  const isInvalidDateRange = isCustomGranularity && !!from && !!to && from > to
 
   function handleGranularityChange(e: SelectChangeEvent) {
     onGranularityChange(e.target.value as Granularity)
@@ -173,19 +174,22 @@ export function PeriodControls({
               onChange={(e) => onToChange?.(e.target.value)}
               size="small"
               error={isInvalidDateRange}
-              helperText={isInvalidDateRange ? t('accounting.period.customType.invalidDateRange') : undefined}
               inputProps={{ 'data-testid': 'custom-period-to' }}
               InputLabelProps={{ shrink: true }}
             />
-            <Button
-              onClick={() => setShowSaveDialog(true)}
-              variant="outlined"
-              size="small"
-              disabled={isInvalidDateRange}
-              data-testid="save-custom-period-type-button"
-            >
-              {t('accounting.period.customType.saveButton')}
-            </Button>
+            <Tooltip title={isInvalidDateRange ? t('accounting.period.customType.invalidDateRange') : ''}>
+              <span>
+                <Button
+                  onClick={() => setShowSaveDialog(true)}
+                  variant="outlined"
+                  size="small"
+                  disabled={isInvalidDateRange}
+                  data-testid="save-custom-period-type-button"
+                >
+                  {t('accounting.period.customType.saveButton')}
+                </Button>
+              </span>
+            </Tooltip>
           </>
         )}
 
