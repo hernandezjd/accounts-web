@@ -571,7 +571,7 @@ export function TransactionForm({
       {/* Line items */}
       <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, flexGrow: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, flex: '1 1 240px' }}>
             {t('transactionForm.items')}
           </Typography>
           <Typography variant="body2" sx={{ width: 110, textAlign: 'center', color: 'text.secondary' }}>
@@ -580,7 +580,7 @@ export function TransactionForm({
           <Typography variant="body2" sx={{ width: 110, textAlign: 'center', color: 'text.secondary' }}>
             {t('transactionForm.credit')}
           </Typography>
-          <Box sx={{ width: 84 }} />
+          <Box sx={{ width: 106 }} />
         </Box>
 
         {items.map((item) => (
@@ -682,17 +682,8 @@ export function TransactionForm({
       </Box>
 
       {/* Totals + balance indicator */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Box sx={{ flexGrow: 1 }}>
-          {(totalDebits > 0 || totalCredits > 0) && (
-            <Chip
-              label={isBalanced ? t('transactionForm.balanced') : t('transactionForm.unbalanced')}
-              color={isBalanced ? 'success' : 'error'}
-              size="small"
-              data-testid="balance-chip"
-            />
-          )}
-        </Box>
+      <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Box sx={{ flex: '1 1 240px' }} />
         <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
           <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
             {parseFloat(totalDebits.toFixed(2))}
@@ -703,7 +694,16 @@ export function TransactionForm({
             {parseFloat(totalCredits.toFixed(2))}
           </Typography>
         </Box>
-        <Box sx={{ width: 84 }} />
+        <Box sx={{ width: 106 }} />
+        {(totalDebits > 0 || totalCredits > 0) && (
+          <Chip
+            label={isBalanced ? t('transactionForm.balanced') : t('transactionForm.unbalanced')}
+            color={isBalanced ? 'success' : 'error'}
+            size="small"
+            data-testid="balance-chip"
+            sx={{ position: 'absolute', right: 0 }}
+          />
+        )}
       </Box>
 
       {/* Actions */}
