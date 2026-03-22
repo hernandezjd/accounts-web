@@ -51,7 +51,6 @@ export function PeriodControls({
   const [customPeriodTypes, setCustomPeriodTypes] = useState<CustomPeriodType[]>([])
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
-  const [selectedPeriodIdForDelete, setSelectedPeriodIdForDelete] = useState<string | null>(null)
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>('')
 
   // Load custom period types from localStorage
@@ -107,24 +106,15 @@ export function PeriodControls({
       console.warn('Error deleting custom period type:', error)
     }
     setMenuAnchorEl(null)
-    setSelectedPeriodIdForDelete(null)
   }
 
-  function handleOpenDeleteMenu(event: React.MouseEvent<HTMLElement>, periodId: string) {
+  function handleOpenDeleteMenu(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation()
     setMenuAnchorEl(event.currentTarget)
-    setSelectedPeriodIdForDelete(periodId)
   }
 
   function handleCloseDeleteMenu() {
     setMenuAnchorEl(null)
-    setSelectedPeriodIdForDelete(null)
-  }
-
-  function handleConfirmDelete() {
-    if (selectedPeriodIdForDelete) {
-      handleDeleteCustomPeriodType(selectedPeriodIdForDelete)
-    }
   }
 
   return (
@@ -235,7 +225,7 @@ export function PeriodControls({
             </Select>
             <IconButton
               size="small"
-              onClick={(e) => handleOpenDeleteMenu(e, '')}
+              onClick={(e) => handleOpenDeleteMenu(e)}
               title={t('accounting.period.customType.deleteButton')}
               data-testid="custom-period-delete-menu-trigger"
               aria-label="manage custom periods"
@@ -251,9 +241,6 @@ export function PeriodControls({
               {customPeriodTypes.map((pt) => (
                 <MenuItem
                   key={`menu-item-${pt.id}`}
-                  onClick={() => {
-                    setSelectedPeriodIdForDelete(pt.id)
-                  }}
                   data-testid={`custom-period-menu-item-${pt.id}`}
                   sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 200 }}
                 >
