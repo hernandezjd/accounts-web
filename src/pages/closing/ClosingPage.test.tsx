@@ -158,21 +158,27 @@ describe('ClosingPage', () => {
       mockConfig({ nominalAccounts: null })
       renderComponent()
       fireEvent.click(screen.getByTestId('warning-nominal-accounts-button'))
-      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', { state: { initialTab: 1 } })
+      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', {
+        state: { initialTab: 1, initialEditMode: 'nominalAccounts' },
+      })
     })
 
     it('navigates to Accounting Config tab for P&L account', () => {
       mockConfig({ profitLossAccountId: null })
       renderComponent()
       fireEvent.click(screen.getByTestId('warning-profit-loss-account-button'))
-      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', { state: { initialTab: 1 } })
+      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', {
+        state: { initialTab: 1, initialEditMode: 'nominalAccounts' },
+      })
     })
 
-    it('navigates to Transaction Types tab for closing transaction type', () => {
+    it('navigates to Accounting Config tab for closing transaction type', () => {
       mockConfig({ closingTransactionTypeId: null })
       renderComponent()
       fireEvent.click(screen.getByTestId('warning-closing-transaction-type-button'))
-      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', { state: { initialTab: 2 } })
+      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', {
+        state: { initialTab: 1, initialEditMode: 'closingTransactionType' },
+      })
     })
   })
 

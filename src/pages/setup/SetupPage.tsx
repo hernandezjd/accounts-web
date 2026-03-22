@@ -561,6 +561,19 @@ function NominalAccountsDialog({
       <DialogTitle>{t('setup.config.editNominalAccountsConfig')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+
+        <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+            {t('setup.config.nominalAccountsTitle')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.6 }}>
+            {t('setup.config.nominalAccountsIntroduction')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+            {t('setup.config.nominalAccountsExample')}
+          </Typography>
+        </Box>
+
         <Box sx={{ pt: 1 }}>
           <Typography variant="subtitle2" gutterBottom>
             {t('setup.config.nominalAccounts')}
@@ -581,8 +594,11 @@ function NominalAccountsDialog({
           <Typography variant="subtitle2" gutterBottom>
             {t('setup.config.profitLossAccount')}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {t('setup.config.profitLossAccountHint')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontStyle: 'italic' }}>
+            {t('setup.config.profitLossAccountExplanation')}
           </Typography>
           <AccountPicker
             tenantId={tenantId}
@@ -609,6 +625,113 @@ function NominalAccountsDialog({
   )
 }
 
+// ─── ClosingTransactionTypeDialog ─────────────────────────────────────────────
+
+interface ClosingTransactionTypeDialogProps {
+  open: boolean
+  onClose: () => void
+  current: {
+    closingTransactionTypeId: string | null | undefined
+  }
+  tenantId: string
+}
+
+function ClosingTransactionTypeDialog({
+  open,
+  onClose,
+  current,
+  tenantId,
+}: ClosingTransactionTypeDialogProps) {
+  const { t } = useTranslation()
+  const { data: transactionTypes } = useTransactionTypes()
+  const { setClosingTransactionType } = useTenantConfigMutations(tenantId)
+
+  const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  const handleOpen = () => {
+    setErrorMsg(null)
+    setSelectedTypeId(current.closingTransactionTypeId ?? null)
+  }
+
+  const handleSave = () => {
+    setErrorMsg(null)
+    setClosingTransactionType.mutate(selectedTypeId, {
+      onSuccess: onClose,
+      onError: (err) => setErrorMsg(translateApiError(err, t)),
+    })
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      data-testid="closing-transaction-type-dialog"
+      TransitionProps={{ onEntering: handleOpen }}
+    >
+      <DialogTitle>{t('setup.config.closingTransactionTypeTitle')}</DialogTitle>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+
+        <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
+            {t('setup.config.closingTransactionTypeTitle')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.6 }}>
+            {t('setup.config.closingTransactionTypeIntroduction')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+            {t('setup.config.closingTransactionTypeExample')}
+          </Typography>
+        </Box>
+
+        <Box sx={{ pt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            {t('setup.config.closingTransactionType')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t('setup.config.closingTransactionTypeHint')}
+          </Typography>
+          <FormControl size="small" fullWidth>
+            <InputLabel id="closing-tx-type-dialog-label">
+              {t('setup.config.closingTransactionType')}
+            </InputLabel>
+            <Select
+              labelId="closing-tx-type-dialog-label"
+              value={selectedTypeId ?? ''}
+              label={t('setup.config.closingTransactionType')}
+              onChange={(e) => setSelectedTypeId(e.target.value || null)}
+              data-testid="closing-transaction-type-dialog-select"
+            >
+              <MenuItem value="">
+                <em>{t('setup.config.notSet')}</em>
+              </MenuItem>
+              {(transactionTypes ?? []).map((tt) => (
+                <MenuItem key={tt.id} value={tt.id}>
+                  {tt.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          disabled={setClosingTransactionType.isPending}
+          data-testid="closing-transaction-type-save-btn"
+        >
+          {t('common.save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
 // ─── AccountingConfigTab ──────────────────────────────────────────────────────
 
 function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; initialEditMode?: string | null }) {
@@ -619,8 +742,10 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
   const { data: transactionTypes } = useTransactionTypes()
   const mutations = useTenantConfigMutations(tenantId)
 
-  type EditMode = 'initialDate' | 'lockedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | 'nominalAccounts' | null
-  const [editMode, setEditMode] = useState<EditMode>(initialEditMode === 'initialDate' ? 'initialDate' : null)
+  type EditMode = 'initialDate' | 'lockedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | 'nominalAccounts' | 'closingTransactionType' | null
+  const [editMode, setEditMode] = useState<EditMode>(
+    initialEditMode === 'initialDate' ? 'initialDate' : initialEditMode === 'nominalAccounts' ? 'nominalAccounts' : initialEditMode === 'closingTransactionType' ? 'closingTransactionType' : null
+  )
   const [editError, setEditError] = useState<string | null>(null)
 
   const isLoading = configLoading || csLoading
@@ -907,42 +1032,59 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
         tenantId={tenantId}
       />
 
+      {/* Closing transaction type dialog */}
+      <ClosingTransactionTypeDialog
+        open={editMode === 'closingTransactionType'}
+        onClose={() => setEditMode(null)}
+        current={{
+          closingTransactionTypeId: config?.closingTransactionTypeId,
+        }}
+        tenantId={tenantId}
+      />
+
       <Divider sx={{ my: 3 }} />
 
       {/* Closing transaction type config */}
       <Box data-testid="closing-transaction-type-panel">
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          {t('setup.config.closingTransactionTypeTitle')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {t('setup.config.closingTransactionTypeHint')}
-        </Typography>
-        <FormControl size="small" sx={{ minWidth: 300 }}>
-          <InputLabel id="closing-tx-type-label">
-            {t('setup.config.closingTransactionType')}
-          </InputLabel>
-          <Select
-            labelId="closing-tx-type-label"
-            value={config?.closingTransactionTypeId ?? ''}
-            label={t('setup.config.closingTransactionType')}
-            onChange={(e) => {
-              const value = e.target.value || null
-              mutations.setClosingTransactionType.mutate(value, {
-                onError: (err) => setEditError(translateApiError(err, t)),
-              })
-            }}
-            data-testid="closing-transaction-type-select"
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+          <Typography variant="h6">{t('setup.config.closingTransactionTypeTitle')}</Typography>
+          <Button
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={() => setEditMode('closingTransactionType')}
+            data-testid="edit-closing-transaction-type-btn"
           >
-            <MenuItem value="">
-              <em>{t('setup.config.notSet')}</em>
-            </MenuItem>
-            {(transactionTypes ?? []).map((tt) => (
-              <MenuItem key={tt.id} value={tt.id}>
-                {tt.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            {t('common.edit')}
+          </Button>
+        </Box>
+
+        <Table size="small">
+          <TableBody>
+            <TableRow data-testid="config-closing-transaction-type-row">
+              <TableCell sx={{ fontWeight: 500, width: 260 }}>
+                {t('setup.config.closingTransactionType')}
+              </TableCell>
+              <TableCell data-testid="config-closing-transaction-type-value">
+                {config?.closingTransactionTypeId ? (
+                  (() => {
+                    const selectedType = (transactionTypes ?? []).find(
+                      (tt) => tt.id === config.closingTransactionTypeId
+                    )
+                    return (
+                      <Typography component="span" variant="body2">
+                        {selectedType?.name || config.closingTransactionTypeId}
+                      </Typography>
+                    )
+                  })()
+                ) : (
+                  <Typography component="span" color="text.secondary" variant="body2">
+                    {t('setup.config.notSet')}
+                  </Typography>
+                )}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </Box>
     </Box>
   )
@@ -955,7 +1097,7 @@ export function SetupPage() {
   const { tenantId = '' } = useParams<{ tenantId: string }>()
   const location = useLocation()
   const [activeTab, setActiveTab] = useState(0)
-  const [initialEditMode, setInitialEditMode] = useState<'initialDate' | null>(null)
+  const [initialEditMode, setInitialEditMode] = useState<'initialDate' | 'nominalAccounts' | 'closingTransactionType' | null>(null)
 
   useEffect(() => {
     const state = location.state as { initialTab?: number; initialEditMode?: string } | null
@@ -964,6 +1106,10 @@ export function SetupPage() {
     }
     if (state?.initialEditMode === 'initialDate') {
       setInitialEditMode('initialDate')
+    } else if (state?.initialEditMode === 'nominalAccounts') {
+      setInitialEditMode('nominalAccounts')
+    } else if (state?.initialEditMode === 'closingTransactionType') {
+      setInitialEditMode('closingTransactionType')
     }
   }, [location.state])
 

@@ -367,12 +367,16 @@
       "editNominalAccountsConfig": "Edit Nominal Accounts & P&L",
       "nominalAccountsNotConfigured": "Not configured",
       "nominalAccountsHint": "Select accounts whose balances are zeroed out on period closure",
-      "profitLossAccountHint": "Account that receives the net P&L transfer on period closure",
+      "nominalAccountsIntroduction": "Nominal accounts (revenue and expense accounts) are temporary accounts whose balances are transferred to the profit & loss account during period closure. You must select which accounts in your chart of accounts should be treated as nominal accounts, and specify a real account (asset, liability, or equity) that will receive the periodic profit or loss transfer.",
+      "nominalAccountsExample": "Example: If your nominal accounts include Sales Revenue and Operating Expenses, their combined net balance will be transferred to a Retained Earnings or Net Income account during closure.",
+      "profitLossAccountExplanation": "This is a real account (typically a balance sheet account) that accumulates the periodic net income or loss from the nominal accounts.",
       "atLeastOneNominalAccount": "At least one nominal account is required",
       "profitLossAccountRequired": "A P&L account is required",
       "closingTransactionTypeTitle": "Closing Transaction Type",
       "closingTransactionType": "Closing Transaction Type",
-      "closingTransactionTypeHint": "Select the transaction type used when executing period closures"
+      "closingTransactionTypeHint": "Select the transaction type used when executing period closures",
+      "closingTransactionTypeIntroduction": "When you execute a period closure, the system automatically creates closing journal entries to transfer nominal account balances to the P&L account. You must specify which transaction type should be used to classify these automatic closing transactions.",
+      "closingTransactionTypeExample": "Example: You might create a dedicated 'Closing Entry' or 'Period Closure' transaction type to clearly identify and group all closing transactions for audit and reporting purposes."
     },
     "theme": {
       "title": "Theme Editor",

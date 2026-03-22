@@ -367,12 +367,17 @@
       "editNominalAccountsConfig": "Modifier les comptes nominatifs et de résultat",
       "nominalAccountsNotConfigured": "Non configuré",
       "nominalAccountsHint": "Sélectionnez les comptes dont les soldes sont annulés à la clôture de la période",
+      "nominalAccountsIntroduction": "Les comptes nominatifs (comptes de chiffre d'affaires et de charges) sont des comptes temporaires dont les soldes sont transférés au compte de résultat lors de la clôture de la période. Vous devez sélectionner les comptes de votre plan comptable qui doivent être traités comme des comptes nominatifs, et désigner un compte réel (actif, passif ou capitaux propres) qui recevra le transfert du résultat périodique.",
+      "nominalAccountsExample": "Exemple : Si vos comptes nominatifs incluent le Chiffre d'affaires et les Frais de fonctionnement, leur solde net combiné sera transféré à un compte de Résultats non distribués ou de Résultat net lors de la clôture.",
       "profitLossAccountHint": "Compte qui reçoit le transfert net de profit/perte à la clôture de la période",
+      "profitLossAccountExplanation": "Il s'agit d'un compte réel (généralement un compte du bilan) qui accumule le résultat périodique net des comptes nominatifs.",
       "atLeastOneNominalAccount": "Au moins un compte nominatif est requis",
       "profitLossAccountRequired": "Un compte de résultat est requis",
       "closingTransactionTypeTitle": "Type de transaction de clôture",
       "closingTransactionType": "Type de transaction de clôture",
-      "closingTransactionTypeHint": "Sélectionnez le type de transaction utilisé lors de l'exécution des clôtures de période"
+      "closingTransactionTypeHint": "Sélectionnez le type de transaction utilisé lors de l'exécution des clôtures de période",
+      "closingTransactionTypeIntroduction": "Lorsque vous exécutez une clôture de période, le système crée automatiquement des écritures de clôture pour transférer les soldes des comptes nominatifs au compte de résultat. Vous devez spécifier le type de transaction à utiliser pour classifier ces transactions de clôture automatiques.",
+      "closingTransactionTypeExample": "Exemple : Vous pouvez créer un type de transaction dédié comme « Écriture de clôture » ou « Clôture de période » pour identifier clairement et regrouper toutes les transactions de clôture à des fins de vérification et de rapport."
     },
     "theme": {
       "title": "Éditeur de thème",

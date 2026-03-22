@@ -39,8 +39,16 @@ export function ClosingPage() {
     setDialogOpen(false)
   }
 
-  const navigateToSetup = (tab: number) => {
-    navigate(`/tenants/${tenantId}/setup`, { state: { initialTab: tab } })
+  const navigateToAccountsConfig = () => {
+    navigate(`/tenants/${tenantId}/setup`, {
+      state: { initialTab: 1, initialEditMode: 'nominalAccounts' },
+    })
+  }
+
+  const navigateToTransactionTypeConfig = () => {
+    navigate(`/tenants/${tenantId}/setup`, {
+      state: { initialTab: 1, initialEditMode: 'closingTransactionType' },
+    })
   }
 
   return (
@@ -62,7 +70,7 @@ export function ClosingPage() {
             <Button
               variant="outlined"
               size="small"
-              onClick={() => navigateToSetup(1)}
+              onClick={navigateToAccountsConfig}
               sx={{ whiteSpace: 'nowrap' }}
               data-testid="warning-nominal-accounts-button"
             >
@@ -79,7 +87,7 @@ export function ClosingPage() {
             <Button
               variant="outlined"
               size="small"
-              onClick={() => navigateToSetup(1)}
+              onClick={navigateToAccountsConfig}
               sx={{ whiteSpace: 'nowrap' }}
               data-testid="warning-profit-loss-account-button"
             >
@@ -96,7 +104,7 @@ export function ClosingPage() {
             <Button
               variant="outlined"
               size="small"
-              onClick={() => navigateToSetup(2)}
+              onClick={navigateToTransactionTypeConfig}
               sx={{ whiteSpace: 'nowrap' }}
               data-testid="warning-closing-transaction-type-button"
             >
