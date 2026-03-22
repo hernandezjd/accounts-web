@@ -84,6 +84,8 @@ export function PeriodControls({
   }
 
   function handleSelectCustomPeriodType(periodType: CustomPeriodType) {
+    console.log('[PeriodControls] Selecting period:', periodType.name, 'from:', periodType.from, 'to:', periodType.to)
+    console.log('[PeriodControls] onFromChange exists:', !!onFromChange, 'onToChange exists:', !!onToChange)
     onFromChange?.(periodType.from)
     onToChange?.(periodType.to)
   }
