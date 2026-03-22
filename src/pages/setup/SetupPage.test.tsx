@@ -513,9 +513,11 @@ describe('SetupPage — closing transaction type configuration', () => {
     expect(screen.getByTestId('closing-transaction-type-panel')).toBeInTheDocument()
   })
 
-  it('renders closing transaction type select', async () => {
-    await switchToConfigTab()
-    expect(screen.getByTestId('closing-transaction-type-select')).toBeInTheDocument()
+  it('renders closing transaction type dialog select', async () => {
+    const user = await switchToConfigTab()
+    // Open the dialog by clicking the edit button
+    await user.click(screen.getByTestId('edit-closing-transaction-type-btn'))
+    expect(screen.getByTestId('closing-transaction-type-dialog-select')).toBeInTheDocument()
   })
 
   it('calls setClosingTransactionType mutation when selection changes', async () => {
@@ -530,13 +532,17 @@ describe('SetupPage — closing transaction type configuration', () => {
     })
 
     const user = await switchToConfigTab()
+    // Open the dialog
+    await user.click(screen.getByTestId('edit-closing-transaction-type-btn'))
     // MUI Select: click the role=combobox element to open dropdown
-    const select = screen.getByTestId('closing-transaction-type-select')
+    const select = screen.getByTestId('closing-transaction-type-dialog-select')
     const combobox = select.querySelector('[role="combobox"]') ?? select
     await user.click(combobox)
     // Click the "Journal Entry" option in the dropdown listbox
     const option = await screen.findByRole('option', { name: 'Journal Entry' })
     await user.click(option)
+    // Click save button
+    await user.click(screen.getByTestId('closing-transaction-type-save-btn'))
 
     expect(setClosingFn).toHaveBeenCalledWith('tt-1', expect.anything())
   })

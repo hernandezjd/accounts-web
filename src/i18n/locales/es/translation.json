@@ -367,12 +367,16 @@
       "editNominalAccountsConfig": "Editar Cuentas Nominales y P&L",
       "nominalAccountsNotConfigured": "No configurado",
       "nominalAccountsHint": "Selecciona cuentas cuyos saldos se cierren al final del período",
-      "profitLossAccountHint": "Cuenta que recibe la transferencia neta de P&L al cierre del período",
+      "nominalAccountsIntroduction": "Las cuentas nominales (cuentas de ingresos y gastos) son cuentas temporales cuyos saldos se transfieren a la cuenta de ganancias y pérdidas durante el cierre del período. Debe seleccionar qué cuentas en su catálogo deben tratarse como cuentas nominales e indicar una cuenta real (activo, pasivo o patrimonio) que recibirá la transferencia de ganancias o pérdidas periódicas.",
+      "nominalAccountsExample": "Ejemplo: Si sus cuentas nominales incluyen Ingresos por Ventas y Gastos Operacionales, su saldo neto combinado se transferirá a una cuenta de Ganancias Retenidas o Resultado Neto durante el cierre.",
+      "profitLossAccountExplanation": "Esta es una cuenta real (típicamente una cuenta de balance) que acumula el resultado periódico neto de las cuentas nominales.",
       "atLeastOneNominalAccount": "Al menos una cuenta nominal es requerida",
       "profitLossAccountRequired": "Una cuenta P&L es requerida",
       "closingTransactionTypeTitle": "Tipo de Transacción de Cierre",
       "closingTransactionType": "Tipo de Transacción de Cierre",
-      "closingTransactionTypeHint": "Seleccione el tipo de transacción utilizado al ejecutar cierres de período"
+      "closingTransactionTypeHint": "Seleccione el tipo de transacción utilizado al ejecutar cierres de período",
+      "closingTransactionTypeIntroduction": "Cuando ejecuta un cierre de período, el sistema crea automáticamente asientos de cierre para transferir los saldos de cuentas nominales a la cuenta de P&L. Debe especificar qué tipo de transacción se debe usar para clasificar estas transacciones de cierre automáticas.",
+      "closingTransactionTypeExample": "Ejemplo: Puede crear un tipo de transacción dedicado como 'Asiento de Cierre' o 'Cierre de Período' para identificar claramente y agrupar todas las transacciones de cierre para propósitos de auditoría y reporte."
     },
     "theme": {
       "title": "Editor de Tema",
