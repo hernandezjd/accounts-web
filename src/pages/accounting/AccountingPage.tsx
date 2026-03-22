@@ -111,6 +111,12 @@ export function AccountingPage() {
   // ── Highlight state for search account selection ───────────────────────────
   const [highlightedAccountId, setHighlightedAccountId] = useState<string | null>(null)
 
+  // ── Ref to track current period values (avoid stale closures in callbacks) ──
+  const periodRef = useRef({ from, to, granularity })
+  useEffect(() => {
+    periodRef.current = { from, to, granularity }
+  }, [from, to, granularity])
+
   // ── Closure simulation toggle with localStorage persistence ───────────────
   const [simulateClosure, setSimulateClosureState] = useState(() => storedSimulateClosure)
   const [showMissingConfigWarning, setShowMissingConfigWarning] = useState(false)
@@ -243,11 +249,15 @@ export function AccountingPage() {
   }
 
   function handleFromChange(nextFrom: string) {
-    setPeriod(nextFrom, to, granularity)
+    // Read current values from ref to avoid stale closures when both callbacks fire in quick succession
+    const { to: currentTo, granularity: currentGranularity } = periodRef.current
+    setPeriod(nextFrom, currentTo, currentGranularity)
   }
 
   function handleToChange(nextTo: string) {
-    setPeriod(from, nextTo, granularity)
+    // Read current values from ref to avoid stale closures when both callbacks fire in quick succession
+    const { from: currentFrom, granularity: currentGranularity } = periodRef.current
+    setPeriod(currentFrom, nextTo, currentGranularity)
   }
 
   function handleLevelFilterChange(level: number | null) {

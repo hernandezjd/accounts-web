@@ -49,6 +49,7 @@ export function PeriodControls({
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
   const [selectedPeriodIdForDelete, setSelectedPeriodIdForDelete] = useState<string | null>(null)
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string>('')
 
   // Load custom period types from localStorage
   useEffect(() => {
@@ -73,6 +74,9 @@ export function PeriodControls({
   function handleCustomPeriodTypeSave(periodType: CustomPeriodType) {
     const updated = [...customPeriodTypes, periodType]
     setCustomPeriodTypes(updated)
+    setSelectedPeriodId(periodType.id)
+    onFromChange?.(periodType.from)
+    onToChange?.(periodType.to)
     try {
       window.localStorage.setItem(
         PREFERENCE_KEYS.ACCOUNTING_CUSTOM_PERIOD_TYPES,
@@ -84,8 +88,7 @@ export function PeriodControls({
   }
 
   function handleSelectCustomPeriodType(periodType: CustomPeriodType) {
-    console.log('[PeriodControls] Selecting period:', periodType.name, 'from:', periodType.from, 'to:', periodType.to)
-    console.log('[PeriodControls] onFromChange exists:', !!onFromChange, 'onToChange exists:', !!onToChange)
+    setSelectedPeriodId(periodType.id)
     onFromChange?.(periodType.from)
     onToChange?.(periodType.to)
   }
@@ -202,7 +205,7 @@ export function PeriodControls({
         {isCustomGranularity && customPeriodTypes.length > 0 && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Select
-              value=""
+              value={selectedPeriodId}
               onChange={(e) => {
                 const selectedId = e.target.value as string
                 const periodType = customPeriodTypes.find((pt) => pt.id === selectedId)
