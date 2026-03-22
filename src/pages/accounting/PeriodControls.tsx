@@ -9,6 +9,8 @@ import Typography from '@mui/material/Typography'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import DeleteIcon from '@mui/icons-material/Delete'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
+import Menu from '@mui/material/Menu'
 import { useTranslation } from 'react-i18next'
 import type { SelectChangeEvent } from '@mui/material/Select'
 import type { Granularity } from '@/types/accounting'
@@ -45,6 +47,8 @@ export function PeriodControls({
   const { t, i18n } = useTranslation()
   const [customPeriodTypes, setCustomPeriodTypes] = useState<CustomPeriodType[]>([])
   const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const [selectedPeriodIdForDelete, setSelectedPeriodIdForDelete] = useState<string | null>(null)
 
   // Load custom period types from localStorage
   useEffect(() => {
@@ -94,6 +98,25 @@ export function PeriodControls({
       )
     } catch (error) {
       console.warn('Error deleting custom period type:', error)
+    }
+    setMenuAnchorEl(null)
+    setSelectedPeriodIdForDelete(null)
+  }
+
+  function handleOpenDeleteMenu(event: React.MouseEvent<HTMLElement>, periodId: string) {
+    event.stopPropagation()
+    setMenuAnchorEl(event.currentTarget)
+    setSelectedPeriodIdForDelete(periodId)
+  }
+
+  function handleCloseDeleteMenu() {
+    setMenuAnchorEl(null)
+    setSelectedPeriodIdForDelete(null)
+  }
+
+  function handleConfirmDelete() {
+    if (selectedPeriodIdForDelete) {
+      handleDeleteCustomPeriodType(selectedPeriodIdForDelete)
     }
   }
 
@@ -185,7 +208,7 @@ export function PeriodControls({
                 }
               }}
               size="small"
-              sx={{ minWidth: 150 }}
+              sx={{ minWidth: 200, maxWidth: '100%' }}
               displayEmpty
               data-testid="custom-period-type-selector"
             >
@@ -193,22 +216,50 @@ export function PeriodControls({
                 {t('accounting.period.customType.selectSaved')}
               </MenuItem>
               {customPeriodTypes.map((pt) => (
-                <MenuItem key={pt.id} value={pt.id}>
-                  {pt.name}
+                <MenuItem key={pt.id} value={pt.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{pt.name}</span>
                 </MenuItem>
               ))}
             </Select>
-            {customPeriodTypes.map((pt) => (
-              <IconButton
-                key={`delete-${pt.id}`}
-                onClick={() => handleDeleteCustomPeriodType(pt.id)}
-                size="small"
-                title={t('accounting.period.customType.deleteButton')}
-                data-testid={`delete-custom-period-${pt.id}`}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            ))}
+            <IconButton
+              size="small"
+              onClick={(e) => handleOpenDeleteMenu(e, '')}
+              title={t('accounting.period.customType.deleteButton')}
+              data-testid="custom-period-delete-menu-trigger"
+              aria-label="manage custom periods"
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+            <Menu
+              anchorEl={menuAnchorEl}
+              open={Boolean(menuAnchorEl)}
+              onClose={handleCloseDeleteMenu}
+              data-testid="custom-period-delete-menu"
+            >
+              {customPeriodTypes.map((pt) => (
+                <MenuItem
+                  key={`menu-item-${pt.id}`}
+                  onClick={() => {
+                    setSelectedPeriodIdForDelete(pt.id)
+                  }}
+                  data-testid={`custom-period-menu-item-${pt.id}`}
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 200 }}
+                >
+                  <span>{pt.name}</span>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteCustomPeriodType(pt.id)
+                    }}
+                    data-testid={`delete-custom-period-${pt.id}`}
+                    sx={{ ml: 2 }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </MenuItem>
+              ))}
+            </Menu>
           </Box>
         )}
       </Box>
