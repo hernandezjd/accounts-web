@@ -202,7 +202,8 @@ export function PeriodControls({
             <Select
               value=""
               onChange={(e) => {
-                const periodType = customPeriodTypes.find((pt) => pt.id === e.target.value)
+                const selectedId = e.target.value as string
+                const periodType = customPeriodTypes.find((pt) => pt.id === selectedId)
                 if (periodType) {
                   handleSelectCustomPeriodType(periodType)
                 }
