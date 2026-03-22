@@ -133,7 +133,7 @@ export function PeriodControls({
               value={from}
               onChange={(e) => onFromChange?.(e.target.value)}
               size="small"
-              slotProps={{ htmlInput: { 'data-testid': 'custom-period-from' } }}
+              inputProps={{ 'data-testid': 'custom-period-from' }}
               InputLabelProps={{ shrink: true }}
             />
             <TextField
@@ -142,7 +142,7 @@ export function PeriodControls({
               value={to}
               onChange={(e) => onToChange?.(e.target.value)}
               size="small"
-              slotProps={{ htmlInput: { 'data-testid': 'custom-period-to' } }}
+              inputProps={{ 'data-testid': 'custom-period-to' }}
               InputLabelProps={{ shrink: true }}
             />
             <Button
