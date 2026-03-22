@@ -260,6 +260,12 @@ export function AccountingPage() {
     setPeriod(currentFrom, nextTo, currentGranularity)
   }
 
+  function handlePeriodChange(nextFrom: string, nextTo: string) {
+    // Single atomic update for both dates (used when selecting saved custom periods)
+    const { granularity: currentGranularity } = periodRef.current
+    setPeriod(nextFrom, nextTo, currentGranularity)
+  }
+
   function handleLevelFilterChange(level: number | null) {
     // Update URL (source of truth)
     setSearchParams((prev) => {
@@ -462,6 +468,7 @@ export function AccountingPage() {
               onGranularityChange={handleGranularityChange}
               onFromChange={handleFromChange}
               onToChange={handleToChange}
+              onPeriodChange={handlePeriodChange}
               systemInitialDate={systemInitialDate}
             />
             <FormControlLabel

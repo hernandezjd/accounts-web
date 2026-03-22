@@ -84,7 +84,8 @@
         "nameRequired": "Please enter a name for this period type",
         "nameDuplicate": "A period type with this name already exists",
         "selectSaved": "Select a saved period type",
-        "deleteButton": "Delete"
+        "deleteButton": "Delete",
+        "invalidDateRange": "Start date must be before end date"
       }
     },
     "tree": {

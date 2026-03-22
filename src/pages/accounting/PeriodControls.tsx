@@ -30,6 +30,7 @@ interface PeriodControlsProps {
   onGranularityChange: (g: Granularity) => void
   onFromChange?: (from: string) => void
   onToChange?: (to: string) => void
+  onPeriodChange?: (from: string, to: string) => void
   systemInitialDate?: string | null
 }
 
@@ -42,6 +43,7 @@ export function PeriodControls({
   onGranularityChange,
   onFromChange,
   onToChange,
+  onPeriodChange,
   systemInitialDate,
 }: PeriodControlsProps) {
   const { t, i18n } = useTranslation()
@@ -66,6 +68,7 @@ export function PeriodControls({
   const label = formatPeriodLabel(from, to, granularity, i18n.language)
   const isPrevDisabled = !!(systemInitialDate && from <= systemInitialDate)
   const isCustomGranularity = granularity === 'custom'
+  const isInvalidDateRange = isCustomGranularity && !!from && !!to && from >= to
 
   function handleGranularityChange(e: SelectChangeEvent) {
     onGranularityChange(e.target.value as Granularity)
@@ -75,8 +78,7 @@ export function PeriodControls({
     const updated = [...customPeriodTypes, periodType]
     setCustomPeriodTypes(updated)
     setSelectedPeriodId(periodType.id)
-    onFromChange?.(periodType.from)
-    onToChange?.(periodType.to)
+    onPeriodChange?.(periodType.from, periodType.to)
     try {
       window.localStorage.setItem(
         PREFERENCE_KEYS.ACCOUNTING_CUSTOM_PERIOD_TYPES,
@@ -89,8 +91,7 @@ export function PeriodControls({
 
   function handleSelectCustomPeriodType(periodType: CustomPeriodType) {
     setSelectedPeriodId(periodType.id)
-    onFromChange?.(periodType.from)
-    onToChange?.(periodType.to)
+    onPeriodChange?.(periodType.from, periodType.to)
   }
 
   function handleDeleteCustomPeriodType(id: string) {
@@ -161,6 +162,7 @@ export function PeriodControls({
               value={from}
               onChange={(e) => onFromChange?.(e.target.value)}
               size="small"
+              error={isInvalidDateRange}
               inputProps={{ 'data-testid': 'custom-period-from' }}
               InputLabelProps={{ shrink: true }}
             />
@@ -170,6 +172,8 @@ export function PeriodControls({
               value={to}
               onChange={(e) => onToChange?.(e.target.value)}
               size="small"
+              error={isInvalidDateRange}
+              helperText={isInvalidDateRange ? t('accounting.period.customType.invalidDateRange') : undefined}
               inputProps={{ 'data-testid': 'custom-period-to' }}
               InputLabelProps={{ shrink: true }}
             />
@@ -177,6 +181,7 @@ export function PeriodControls({
               onClick={() => setShowSaveDialog(true)}
               variant="outlined"
               size="small"
+              disabled={isInvalidDateRange}
               data-testid="save-custom-period-type-button"
             >
               {t('accounting.period.customType.saveButton')}
@@ -185,16 +190,13 @@ export function PeriodControls({
         )}
 
         <Select
-          native={customPeriodTypes.length === 0}
+          native
           value={granularity}
           onChange={handleGranularityChange}
           size="small"
           sx={{ minWidth: 120 }}
           data-testid="granularity-selector"
         >
-          <option value="" disabled>
-            {t('accounting.period.selectGranularity')}
-          </option>
           {GRANULARITIES.map((g) => (
             <option key={g} value={g}>
               {t(`accounting.period.${g}`)}
