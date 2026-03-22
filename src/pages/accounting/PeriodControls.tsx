@@ -9,6 +9,9 @@ import Typography from '@mui/material/Typography'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import DeleteIcon from '@mui/icons-material/Delete'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
+import Menu from '@mui/material/Menu'
+import Tooltip from '@mui/material/Tooltip'
 import { useTranslation } from 'react-i18next'
 import type { SelectChangeEvent } from '@mui/material/Select'
 import type { Granularity } from '@/types/accounting'
@@ -28,6 +31,7 @@ interface PeriodControlsProps {
   onGranularityChange: (g: Granularity) => void
   onFromChange?: (from: string) => void
   onToChange?: (to: string) => void
+  onPeriodChange?: (from: string, to: string) => void
   systemInitialDate?: string | null
 }
 
@@ -40,11 +44,15 @@ export function PeriodControls({
   onGranularityChange,
   onFromChange,
   onToChange,
+  onPeriodChange,
   systemInitialDate,
 }: PeriodControlsProps) {
   const { t, i18n } = useTranslation()
   const [customPeriodTypes, setCustomPeriodTypes] = useState<CustomPeriodType[]>([])
   const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const [selectedPeriodIdForDelete, setSelectedPeriodIdForDelete] = useState<string | null>(null)
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string>('')
 
   // Load custom period types from localStorage
   useEffect(() => {
@@ -61,6 +69,7 @@ export function PeriodControls({
   const label = formatPeriodLabel(from, to, granularity, i18n.language)
   const isPrevDisabled = !!(systemInitialDate && from <= systemInitialDate)
   const isCustomGranularity = granularity === 'custom'
+  const isInvalidDateRange = isCustomGranularity && !!from && !!to && from > to
 
   function handleGranularityChange(e: SelectChangeEvent) {
     onGranularityChange(e.target.value as Granularity)
@@ -69,6 +78,8 @@ export function PeriodControls({
   function handleCustomPeriodTypeSave(periodType: CustomPeriodType) {
     const updated = [...customPeriodTypes, periodType]
     setCustomPeriodTypes(updated)
+    setSelectedPeriodId(periodType.id)
+    onPeriodChange?.(periodType.from, periodType.to)
     try {
       window.localStorage.setItem(
         PREFERENCE_KEYS.ACCOUNTING_CUSTOM_PERIOD_TYPES,
@@ -80,8 +91,8 @@ export function PeriodControls({
   }
 
   function handleSelectCustomPeriodType(periodType: CustomPeriodType) {
-    onFromChange?.(periodType.from)
-    onToChange?.(periodType.to)
+    setSelectedPeriodId(periodType.id)
+    onPeriodChange?.(periodType.from, periodType.to)
   }
 
   function handleDeleteCustomPeriodType(id: string) {
@@ -94,6 +105,25 @@ export function PeriodControls({
       )
     } catch (error) {
       console.warn('Error deleting custom period type:', error)
+    }
+    setMenuAnchorEl(null)
+    setSelectedPeriodIdForDelete(null)
+  }
+
+  function handleOpenDeleteMenu(event: React.MouseEvent<HTMLElement>, periodId: string) {
+    event.stopPropagation()
+    setMenuAnchorEl(event.currentTarget)
+    setSelectedPeriodIdForDelete(periodId)
+  }
+
+  function handleCloseDeleteMenu() {
+    setMenuAnchorEl(null)
+    setSelectedPeriodIdForDelete(null)
+  }
+
+  function handleConfirmDelete() {
+    if (selectedPeriodIdForDelete) {
+      handleDeleteCustomPeriodType(selectedPeriodIdForDelete)
     }
   }
 
@@ -133,6 +163,7 @@ export function PeriodControls({
               value={from}
               onChange={(e) => onFromChange?.(e.target.value)}
               size="small"
+              error={isInvalidDateRange}
               inputProps={{ 'data-testid': 'custom-period-from' }}
               InputLabelProps={{ shrink: true }}
             />
@@ -142,31 +173,34 @@ export function PeriodControls({
               value={to}
               onChange={(e) => onToChange?.(e.target.value)}
               size="small"
+              error={isInvalidDateRange}
               inputProps={{ 'data-testid': 'custom-period-to' }}
               InputLabelProps={{ shrink: true }}
             />
-            <Button
-              onClick={() => setShowSaveDialog(true)}
-              variant="outlined"
-              size="small"
-              data-testid="save-custom-period-type-button"
-            >
-              {t('accounting.period.customType.saveButton')}
-            </Button>
+            <Tooltip title={isInvalidDateRange ? t('accounting.period.customType.invalidDateRange') : ''}>
+              <span>
+                <Button
+                  onClick={() => setShowSaveDialog(true)}
+                  variant="outlined"
+                  size="small"
+                  disabled={isInvalidDateRange}
+                  data-testid="save-custom-period-type-button"
+                >
+                  {t('accounting.period.customType.saveButton')}
+                </Button>
+              </span>
+            </Tooltip>
           </>
         )}
 
         <Select
-          native={customPeriodTypes.length === 0}
+          native
           value={granularity}
           onChange={handleGranularityChange}
           size="small"
           sx={{ minWidth: 120 }}
           data-testid="granularity-selector"
         >
-          <option value="" disabled>
-            {t('accounting.period.selectGranularity')}
-          </option>
           {GRANULARITIES.map((g) => (
             <option key={g} value={g}>
               {t(`accounting.period.${g}`)}
@@ -177,15 +211,16 @@ export function PeriodControls({
         {isCustomGranularity && customPeriodTypes.length > 0 && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Select
-              value=""
+              value={selectedPeriodId}
               onChange={(e) => {
-                const periodType = customPeriodTypes.find((pt) => pt.id === e.target.value)
+                const selectedId = e.target.value as string
+                const periodType = customPeriodTypes.find((pt) => pt.id === selectedId)
                 if (periodType) {
                   handleSelectCustomPeriodType(periodType)
                 }
               }}
               size="small"
-              sx={{ minWidth: 150 }}
+              sx={{ minWidth: 200, maxWidth: '100%' }}
               displayEmpty
               data-testid="custom-period-type-selector"
             >
@@ -193,22 +228,50 @@ export function PeriodControls({
                 {t('accounting.period.customType.selectSaved')}
               </MenuItem>
               {customPeriodTypes.map((pt) => (
-                <MenuItem key={pt.id} value={pt.id}>
-                  {pt.name}
+                <MenuItem key={pt.id} value={pt.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{pt.name}</span>
                 </MenuItem>
               ))}
             </Select>
-            {customPeriodTypes.map((pt) => (
-              <IconButton
-                key={`delete-${pt.id}`}
-                onClick={() => handleDeleteCustomPeriodType(pt.id)}
-                size="small"
-                title={t('accounting.period.customType.deleteButton')}
-                data-testid={`delete-custom-period-${pt.id}`}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            ))}
+            <IconButton
+              size="small"
+              onClick={(e) => handleOpenDeleteMenu(e, '')}
+              title={t('accounting.period.customType.deleteButton')}
+              data-testid="custom-period-delete-menu-trigger"
+              aria-label="manage custom periods"
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+            <Menu
+              anchorEl={menuAnchorEl}
+              open={Boolean(menuAnchorEl)}
+              onClose={handleCloseDeleteMenu}
+              data-testid="custom-period-delete-menu"
+            >
+              {customPeriodTypes.map((pt) => (
+                <MenuItem
+                  key={`menu-item-${pt.id}`}
+                  onClick={() => {
+                    setSelectedPeriodIdForDelete(pt.id)
+                  }}
+                  data-testid={`custom-period-menu-item-${pt.id}`}
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 200 }}
+                >
+                  <span>{pt.name}</span>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteCustomPeriodType(pt.id)
+                    }}
+                    data-testid={`delete-custom-period-${pt.id}`}
+                    sx={{ ml: 2 }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </MenuItem>
+              ))}
+            </Menu>
           </Box>
         )}
       </Box>

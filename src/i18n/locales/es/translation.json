@@ -84,7 +84,8 @@
         "nameRequired": "Por favor, ingresa un nombre para este tipo de período",
         "nameDuplicate": "Ya existe un tipo de período con este nombre",
         "selectSaved": "Selecciona un tipo de período guardado",
-        "deleteButton": "Eliminar"
+        "deleteButton": "Eliminar",
+        "invalidDateRange": "La fecha de inicio debe ser anterior a la fecha de fin"
       }
     },
     "tree": {
