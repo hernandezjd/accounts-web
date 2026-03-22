@@ -9,6 +9,8 @@ import ListItemText from '@mui/material/ListItemText'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Paper from '@mui/material/Paper'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import { useTranslation } from 'react-i18next'
 import { useTenants } from '@/hooks/api/useTenants'
@@ -26,8 +28,8 @@ export function TenantPickerPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const { language, setLanguage } = useAppStore()
 
-  function handleToggleLanguage() {
-    setLanguage(language === 'en' ? 'es' : 'en')
+  function handleLanguageChange(newLanguage: string) {
+    setLanguage(newLanguage)
   }
 
   function handleHelpClick() {
@@ -72,17 +74,32 @@ export function TenantPickerPage() {
           <Typography variant="h5" sx={{ flex: 1 }}>
             {t('tenant.tenantPicker')}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              color="inherit"
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Select
+              value={language}
+              onChange={(e) => handleLanguageChange(e.target.value)}
               size="small"
-              onClick={handleToggleLanguage}
-              sx={{ minWidth: 40 }}
-              aria-label="toggle language"
-              data-testid="language-toggle-button"
+              sx={{
+                color: 'inherit',
+                minWidth: 80,
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(0, 0, 0, 0.23)',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(0, 0, 0, 0.4)',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(0, 0, 0, 0.87)',
+                },
+              }}
+              aria-label={t('language.select')}
+              data-testid="language-selector"
             >
-              {language === 'en' ? 'ES' : 'EN'}
-            </Button>
+              <MenuItem value="en">{t('language.english')}</MenuItem>
+              <MenuItem value="es">{t('language.spanish')}</MenuItem>
+              <MenuItem value="uk">{t('language.ukrainian')}</MenuItem>
+              <MenuItem value="fr">{t('language.french')}</MenuItem>
+            </Select>
             <Button
               color="inherit"
               size="small"

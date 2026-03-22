@@ -4,6 +4,8 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import Box from '@mui/material/Box'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import MenuIcon from '@mui/icons-material/Menu'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
@@ -33,8 +35,8 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
     navigate('/')
   }
 
-  function handleToggleLanguage() {
-    setLanguage(language === 'en' ? 'es' : 'en')
+  function handleLanguageChange(newLanguage: string) {
+    setLanguage(newLanguage)
   }
 
   return (
@@ -75,15 +77,32 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
           {t('help.title')}
         </Button>
 
-        <Button
-          color="inherit"
+        <Select
+          value={language}
+          onChange={(e) => handleLanguageChange(e.target.value)}
           size="small"
-          onClick={handleToggleLanguage}
-          sx={{ mr: 1, minWidth: 40 }}
-          aria-label="toggle language"
+          sx={{
+            color: 'inherit',
+            mr: 1,
+            minWidth: 80,
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(255, 255, 255, 0.23)',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(255, 255, 255, 0.4)',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(255, 255, 255, 0.87)',
+            },
+          }}
+          aria-label={t('language.select')}
+          data-testid="language-selector"
         >
-          {language === 'en' ? 'ES' : 'EN'}
-        </Button>
+          <MenuItem value="en">{t('language.english')}</MenuItem>
+          <MenuItem value="es">{t('language.spanish')}</MenuItem>
+          <MenuItem value="uk">{t('language.ukrainian')}</MenuItem>
+          <MenuItem value="fr">{t('language.french')}</MenuItem>
+        </Select>
 
         {tenants && tenants.length > 1 && (
           <Button
