@@ -20,7 +20,6 @@ import { useClosingPreview } from '@/hooks/api/useClosingPreview'
 import { translateApiError } from '@/utils/errorUtils'
 import type { components as Reporting } from '@/api/generated/reporting-api'
 
-type ClosingPreviewResponse = Reporting['schemas']['ClosingPreviewResponse']
 type ClosingAccountLine = Reporting['schemas']['ClosingAccountLine']
 
 interface ClosingDialogProps {
