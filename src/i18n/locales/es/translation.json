@@ -540,6 +540,8 @@
   "language": {
     "select": "Idioma",
     "english": "English",
-    "spanish": "Español"
+    "spanish": "Español",
+    "ukrainian": "Українська",
+    "french": "Français"
   }
 }

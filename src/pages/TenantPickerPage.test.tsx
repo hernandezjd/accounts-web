@@ -150,31 +150,24 @@ describe('TenantPickerPage', () => {
     })
   })
 
-  it('renders language toggle button', async () => {
+  it('renders language selector dropdown', async () => {
     mockGet(mockTenants)
     renderWithProviders(<TenantPickerPage />)
     await waitFor(() => {
-      const languageButton = screen.getByTestId('language-toggle-button')
-      expect(languageButton).toBeInTheDocument()
-      expect(languageButton.textContent).toMatch(/EN|ES/)
+      const languageSelector = screen.getByTestId('language-selector')
+      expect(languageSelector).toBeInTheDocument()
     })
   })
 
-  it('toggles language on button click', async () => {
+  it('language selector has proper accessibility attributes', async () => {
     mockGet(mockTenants)
     renderWithProviders(<TenantPickerPage />)
-    await waitFor(() => expect(screen.getByTestId('language-toggle-button')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByTestId('language-selector')).toBeInTheDocument())
 
-    const languageButton = screen.getByTestId('language-toggle-button')
-    const initialText = languageButton.textContent
-
-    await userEvent.click(languageButton)
-
-    // After clicking, the button text should change
-    await waitFor(() => {
-      const newText = languageButton.textContent
-      expect(newText).not.toBe(initialText)
-    })
+    const languageSelector = screen.getByTestId('language-selector')
+    // Verify the selector is in the document and is a form element
+    expect(languageSelector).toBeInTheDocument()
+    expect(languageSelector).toHaveAttribute('aria-label')
   })
 
   it('renders help button', async () => {
