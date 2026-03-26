@@ -4,16 +4,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
 import { useTransactions } from './useTransactions'
 
-// ─── Mock the API client ───────────────────────────────────────────────────────
+// ─── Mock the apiClient ───────────────────────────────────────────────────────
 
-vi.mock('@/api/clients', () => ({
-  queryClient: {
-    GET: vi.fn(),
+vi.mock('@/api/apiClient', () => ({
+  apiClient: {
+    query: {
+      GET: vi.fn(),
+    },
   },
 }))
 
-import { queryClient as apiClient } from '@/api/clients'
-const mockGet = vi.mocked((apiClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET)
+import { apiClient } from '@/api/apiClient'
+const mockGet = vi.mocked(apiClient.query.GET)
 
 // ─── Wrapper ───────────────────────────────────────────────────────────────────
 
@@ -25,13 +27,10 @@ function makeWrapper() {
 
 // ─── Sample data ───────────────────────────────────────────────────────────────
 
-const sampleTransactions = {
-  data: [
-    { id: 'txn-1', description: 'Office supplies', date: '2026-03-01', amount: 500 },
-    { id: 'txn-2', description: 'Equipment', date: '2026-03-02', amount: 1000 },
-  ],
-  total: 2,
-}
+const sampleTransactions = [
+  { id: 'txn-1', description: 'Office supplies', date: '2026-03-01', amount: 500 },
+  { id: 'txn-2', description: 'Equipment', date: '2026-03-02', amount: 1000 },
+]
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -41,7 +40,7 @@ describe('useTransactions', () => {
   })
 
   it('fetches transactions with filters', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransactions, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
 
     const { result } = renderHook(
       () => useTransactions('tenant-1', { dateFrom: '2026-03-01', dateTo: '2026-03-31' }),
@@ -65,7 +64,7 @@ describe('useTransactions', () => {
   })
 
   it('handles empty filters', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransactions, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
 
     const { result } = renderHook(
       () => useTransactions('tenant-1', {}),
@@ -78,7 +77,7 @@ describe('useTransactions', () => {
   })
 
   it('applies date filters', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransactions, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
 
     const { result } = renderHook(
       () => useTransactions('tenant-1', { dateFrom: '2026-03-01', dateTo: '2026-03-31' }),
@@ -91,7 +90,7 @@ describe('useTransactions', () => {
   })
 
   it('applies account filter', async () => {
-    mockGet.mockResolvedValueOnce({ data: [sampleTransactions[0]], error: null })
+    mockGet.mockResolvedValueOnce({ data: [sampleTransactions[0]], response: new Response() })
 
     const { result } = renderHook(
       () => useTransactions('tenant-1', { accountId: 'acc-1' }),
@@ -106,7 +105,7 @@ describe('useTransactions', () => {
   it('returns empty array when no transactions exist', async () => {
     mockGet.mockResolvedValueOnce({
       data: [],
-      error: null,
+      response: new Response(),
     })
 
     const { result } = renderHook(
@@ -120,10 +119,16 @@ describe('useTransactions', () => {
   })
 
   it('handles fetch errors', async () => {
+    const mockError = {
+      errorCode: 'SERVER_ERROR',
+      userMessage: 'Server error',
+      requestId: 'req-123',
+      isRetryable: true,
+    }
     mockGet.mockResolvedValueOnce({
-      data: null,
-      error: { status: 500, message: 'Server error' },
-    })
+      error: mockError,
+      response: new Response(null, { status: 500 }),
+    } as any)
 
     const { result } = renderHook(
       () => useTransactions('tenant-1'),

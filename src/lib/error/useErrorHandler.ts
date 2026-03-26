@@ -73,7 +73,7 @@ export function formatError(error: unknown, statusCode?: number): FormattedError
     errorCode: 'UNKNOWN_ERROR',
     userMessage: getErrorMessage('UNKNOWN_ERROR'),
     suggestion: getErrorSuggestion('UNKNOWN_ERROR'),
-    requestId: generateFallbackRequestId(),
+    requestId: 'MISSING_REQUEST_ID',
     timestamp: new Date().toISOString(),
     showSupportContact: true,
     classification,
@@ -104,7 +104,7 @@ export async function parseErrorResponse(response: Response): Promise<FormattedE
     return {
       errorCode: httpErrorCode,
       userMessage,
-      requestId: response.headers.get('x-request-id') || generateFallbackRequestId(),
+      requestId: response.headers.get('x-request-id') || response.headers.get('X-Request-Id') || 'MISSING_REQUEST_ID',
       timestamp: new Date().toISOString(),
       showSupportContact: true,
       classification,
@@ -137,12 +137,4 @@ export function useErrorHandler() {
     clearError,
     hasError: error !== null,
   };
-}
-
-/**
- * Generate a fallback request ID when none is available.
- * Used for errors that don't have a proper request ID from the backend.
- */
-function generateFallbackRequestId(): string {
-  return `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }

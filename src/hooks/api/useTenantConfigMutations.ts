@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { commandClient } from '@/api/clients'
+import { useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
+import { useApiMutation } from './useApiMutation'
 import type { components } from '@/api/generated/config-command-api'
 import type { TenantConfig } from '@/hooks/api/useTenantConfig'
 
@@ -29,90 +30,78 @@ export function useTenantConfigMutations(tenantId: string) {
 
   const headers = { 'X-Tenant-Id': tenantId }
 
-  const setInitialDate = useMutation({
-    mutationFn: async (initialDate: string): Promise<TenantConfigResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/config/initial-date', {
+  const setInitialDate = useApiMutation(
+    (initialDate: string) =>
+      apiClient.command.PUT<TenantConfigResponse>('/config/initial-date', {
         params: { header: headers },
         body: { initialDate },
-      })
-      if (error) throw error
-      return data as TenantConfigResponse
-    },
-    onSuccess: (_data, initialDate) => patchCache({ systemInitialDate: initialDate }),
-  })
+      }),
+    {
+      onSuccess: (_data, initialDate) => patchCache({ systemInitialDate: initialDate }),
+    }
+  )
 
-  const setLockedPeriodDate = useMutation({
-    mutationFn: async (lockedPeriodDate: string): Promise<TenantConfigResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/config/locked-period-date', {
+  const setLockedPeriodDate = useApiMutation(
+    (lockedPeriodDate: string) =>
+      apiClient.command.PUT<TenantConfigResponse>('/config/locked-period-date', {
         params: { header: headers },
         body: { lockedPeriodDate },
-      })
-      if (error) throw error
-      return data as TenantConfigResponse
-    },
-    onSuccess: (_data, lockedPeriodDate) => patchCache({ lockedPeriodDate }),
-  })
+      }),
+    {
+      onSuccess: (_data, lockedPeriodDate) => patchCache({ lockedPeriodDate }),
+    }
+  )
 
-  const setMinimumAccountLevel = useMutation({
-    mutationFn: async (minimumAccountLevel: number | null): Promise<TenantConfigResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/config/minimum-account-level', {
+  const setMinimumAccountLevel = useApiMutation(
+    (minimumAccountLevel: number | null) =>
+      apiClient.command.PUT<TenantConfigResponse>('/config/minimum-account-level', {
         params: { header: headers },
         body: { minimumAccountLevel },
-      })
-      if (error) throw error
-      return data as TenantConfigResponse
-    },
-    onSuccess: (_data, minimumAccountLevel) => patchCache({ minimumAccountLevel }),
-  })
+      }),
+    {
+      onSuccess: (_data, minimumAccountLevel) => patchCache({ minimumAccountLevel }),
+    }
+  )
 
-  const setSnapshotFrequency = useMutation({
-    mutationFn: async (snapshotFrequencyDays: number | null): Promise<TenantConfigResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/config/snapshot-frequency', {
+  const setSnapshotFrequency = useApiMutation(
+    (snapshotFrequencyDays: number | null) =>
+      apiClient.command.PUT<TenantConfigResponse>('/config/snapshot-frequency', {
         params: { header: headers },
         body: { snapshotFrequencyDays },
-      })
-      if (error) throw error
-      return data as TenantConfigResponse
-    },
-    onSuccess: (_data, snapshotFrequencyDays) => patchCache({ snapshotFrequencyDays }),
-  })
+      }),
+    {
+      onSuccess: (_data, snapshotFrequencyDays) => patchCache({ snapshotFrequencyDays }),
+    }
+  )
 
-  const setNominalAccountsConfig = useMutation({
-    mutationFn: async ({
+  const setNominalAccountsConfig = useApiMutation(
+    ({
       nominalAccounts,
       profitLossAccountId,
     }: {
       nominalAccounts: string[]
       profitLossAccountId: string
-    }): Promise<TenantConfigResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/config/nominal-accounts-config', {
+    }) =>
+      apiClient.command.PUT<TenantConfigResponse>('/config/nominal-accounts-config', {
         params: { header: headers },
         body: { nominalAccounts, profitLossAccountId },
-      })
-      if (error) throw error
-      return data as TenantConfigResponse
-    },
-    onSuccess: (_data, { nominalAccounts, profitLossAccountId }) =>
-      patchCache({ nominalAccounts, profitLossAccountId }),
-  })
+      }),
+    {
+      onSuccess: (_data, { nominalAccounts, profitLossAccountId }) =>
+        patchCache({ nominalAccounts, profitLossAccountId }),
+    }
+  )
 
-  const setClosingTransactionType = useMutation({
-    mutationFn: async (closingTransactionTypeId: string | null): Promise<TenantConfigResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/config/closing-transaction-type', {
+  const setClosingTransactionType = useApiMutation(
+    (closingTransactionTypeId: string | null) =>
+      apiClient.command.PUT<TenantConfigResponse>('/config/closing-transaction-type', {
         params: { header: headers },
         body: { closingTransactionTypeId },
-      })
-      if (error) throw error
-      return data as TenantConfigResponse
-    },
-    onSuccess: (_data, closingTransactionTypeId) => patchCache({ closingTransactionTypeId }),
-  })
+      }),
+    {
+      onSuccess: (_data, closingTransactionTypeId) => patchCache({ closingTransactionTypeId }),
+    }
+  )
 
   return {
     setInitialDate,

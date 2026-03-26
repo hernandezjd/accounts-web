@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { commandClient } from '@/api/clients'
+import { useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
+import { useApiMutation } from './useApiMutation'
 import type { components } from '@/api/generated/account-command-api'
 import type { Account } from '@/hooks/api/useAccounts'
 
@@ -25,137 +26,115 @@ export function useAccountMutations(tenantId: string) {
     })
   }
 
-  const createAccount = useMutation({
-    mutationFn: async (body: CreateAccountRequest): Promise<AccountCommandResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).POST('/accounts', {
+  const createAccount = useApiMutation(
+    (body: CreateAccountRequest) =>
+      apiClient.command.POST<AccountCommandResponse>('/accounts', {
         params: { header: { 'X-Tenant-Id': tenantId } },
         body,
-      })
-      if (error) throw error
-      return data as AccountCommandResponse
-    },
-    onSuccess: (data, variables) => {
-      // Optimistically add the new account to the cache so it appears immediately,
-      // before the event processor has had time to project it to the read side.
-      const cachedAccounts =
-        qc.getQueryData<Account[]>(queryKeys.accounts.list(tenantId, true)) ??
-        qc.getQueryData<Account[]>(queryKeys.accounts.list(tenantId, false)) ??
-        []
-      const parent = variables.parentId
-        ? cachedAccounts.find((a) => a.id === variables.parentId)
-        : undefined
-      const newAccount: Account = {
-        id: data.accountId,
-        code: data.code ?? variables.code,
-        name: data.name ?? variables.name,
-        hasThirdParties: variables.hasThirdParties ?? false,
-        parentId: variables.parentId ?? undefined,
-        level: parent?.level != null ? parent.level + 1 : 1,
-        active: true,
-      }
-      // Update both includeInactive variants if they exist
-      for (const includeInactive of [true, false]) {
-        const key = queryKeys.accounts.list(tenantId, includeInactive)
-        const existing = qc.getQueryData<Account[]>(key)
-        if (existing !== undefined) {
-          qc.setQueryData(key, [...existing, newAccount])
+      }),
+    {
+      onSuccess: (data, variables) => {
+        // Optimistically add the new account to the cache so it appears immediately,
+        // before the event processor has had time to project it to the read side.
+        const cachedAccounts =
+          qc.getQueryData<Account[]>(queryKeys.accounts.list(tenantId, true)) ??
+          qc.getQueryData<Account[]>(queryKeys.accounts.list(tenantId, false)) ??
+          []
+        const parent = variables.parentId
+          ? cachedAccounts.find((a) => a.id === variables.parentId)
+          : undefined
+        const newAccount: Account = {
+          id: data.accountId,
+          code: data.code ?? variables.code,
+          name: data.name ?? variables.name,
+          hasThirdParties: variables.hasThirdParties ?? false,
+          parentId: variables.parentId ?? undefined,
+          level: parent?.level != null ? parent.level + 1 : 1,
+          active: true,
         }
-      }
-      // Delay the authoritative refetch to avoid a race where the query service
-      // hasn't yet projected the event, which would overwrite the optimistic data.
-      setTimeout(async () => {
+        // Update both includeInactive variants if they exist
+        for (const includeInactive of [true, false]) {
+          const key = queryKeys.accounts.list(tenantId, includeInactive)
+          const existing = qc.getQueryData<Account[]>(key)
+          if (existing !== undefined) {
+            qc.setQueryData(key, [...existing, newAccount])
+          }
+        }
+        // Delay the authoritative refetch to avoid a race where the query service
+        // hasn't yet projected the event, which would overwrite the optimistic data.
+        setTimeout(async () => {
+          await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+          await refetchAccountQueries()
+        }, 500)
+      },
+    }
+  )
+
+  const updateAccount = useApiMutation(
+    ({ id, body }: { id: string; body: UpdateAccountRequest }) =>
+      apiClient.command.PUT<AccountCommandResponse>('/accounts/{id}', {
+        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+        body,
+      }),
+    {
+      onSuccess: async () => {
         await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
         await refetchAccountQueries()
-      }, 500)
-    },
-  })
+      },
+    }
+  )
 
-  const updateAccount = useMutation({
-    mutationFn: async ({
-      id,
-      body,
-    }: {
-      id: string
-      body: UpdateAccountRequest
-    }): Promise<AccountCommandResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/accounts/{id}', {
+  const deactivateAccount = useApiMutation(
+    (id: string) =>
+      apiClient.command.POST('/accounts/{id}/deactivate', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
-        body,
-      })
-      if (error) throw error
-      return data as AccountCommandResponse
-    },
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
-      await refetchAccountQueries()
-    },
-  })
+      }),
+    {
+      onSuccess: async () => {
+        // Deactivation affects accounts, third-parties, and reports
+        await Promise.all([
+          qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
+          qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
+        ])
+        await refetchAccountQueries()
+      },
+    }
+  )
 
-  const deactivateAccount = useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).POST('/accounts/{id}/deactivate', {
+  const activateAccount = useApiMutation(
+    (id: string) =>
+      apiClient.command.POST('/accounts/{id}/activate', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
-      })
-      if (error) throw error
-    },
-    onSuccess: async () => {
-      // Deactivation affects accounts, third-parties, and reports
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
-        qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
-      ])
-      await refetchAccountQueries()
-    },
-  })
+      }),
+    {
+      onSuccess: async () => {
+        // Activation affects accounts, third-parties, and reports
+        await Promise.all([
+          qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
+          qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
+        ])
+        await refetchAccountQueries()
+      },
+    }
+  )
 
-  const activateAccount = useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).POST('/accounts/{id}/activate', {
-        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
-      })
-      if (error) throw error
-    },
-    onSuccess: async () => {
-      // Activation affects accounts, third-parties, and reports
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
-        qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
-      ])
-      await refetchAccountQueries()
-    },
-  })
-
-  const toggleHasThirdParties = useMutation({
-    mutationFn: async ({
-      accountId,
-      body,
-    }: {
-      accountId: string
-      body: ToggleHasThirdPartiesRequest
-    }): Promise<void> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).PUT('/accounts/{accountId}/has-third-parties', {
+  const toggleHasThirdParties = useApiMutation(
+    ({ accountId, body }: { accountId: string; body: ToggleHasThirdPartiesRequest }) =>
+      apiClient.command.PUT('/accounts/{accountId}/has-third-parties', {
         params: { path: { accountId }, header: { 'X-Tenant-Id': tenantId } },
         body,
-      })
-      if (error)
-        throw new Error(
-          (error as { error?: string }).error ?? 'Failed to toggle has-third-parties',
-        )
-    },
-    onSuccess: async () => {
-      // Toggle affects accounts and third-parties
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
-        qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
-      ])
-      await refetchAccountQueries()
-    },
-  })
+      }),
+    {
+      onSuccess: async () => {
+        // Toggle affects accounts and third-parties
+        await Promise.all([
+          qc.invalidateQueries({ queryKey: queryKeys.accounts.all() }),
+          qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
+        ])
+        await refetchAccountQueries()
+      },
+    }
+  )
 
   return { createAccount, updateAccount, deactivateAccount, activateAccount, toggleHasThirdParties }
 }
