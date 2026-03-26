@@ -4,16 +4,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
 import { useAccounts } from './useAccounts'
 
-// ─── Mock the API client ───────────────────────────────────────────────────────
+// ─── Mock the apiClient ───────────────────────────────────────────────────────
 
-vi.mock('@/api/clients', () => ({
-  queryClient: {
-    GET: vi.fn(),
+vi.mock('@/api/apiClient', () => ({
+  apiClient: {
+    query: {
+      GET: vi.fn(),
+    },
   },
 }))
 
-import { queryClient as apiClient } from '@/api/clients'
-const mockGet = vi.mocked((apiClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET)
+import { apiClient } from '@/api/apiClient'
+const mockGet = vi.mocked(apiClient.query.GET)
 
 // ─── Wrapper ───────────────────────────────────────────────────────────────────
 
@@ -38,7 +40,7 @@ describe('useAccounts', () => {
   })
 
   it('fetches accounts when tenantId is provided', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleAccounts, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
 
     const { result } = renderHook(
       () => useAccounts('tenant-1'),
@@ -74,7 +76,7 @@ describe('useAccounts', () => {
   })
 
   it('includes includeInactive parameter when true', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleAccounts, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
 
     const { result } = renderHook(
       () => useAccounts('tenant-1', true),
@@ -87,7 +89,7 @@ describe('useAccounts', () => {
   })
 
   it('excludes includeInactive parameter when false', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleAccounts, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
 
     const { result } = renderHook(
       () => useAccounts('tenant-1', false),
@@ -100,10 +102,16 @@ describe('useAccounts', () => {
   })
 
   it('handles fetch errors gracefully', async () => {
-    mockGet.mockResolvedValueOnce({
-      data: null,
-      error: { status: 500, message: 'Server error' },
-    })
+    const mockError = {
+      errorCode: 'SERVER_ERROR',
+      userMessage: 'Server error',
+      requestId: 'req-123',
+      isRetryable: true,
+      classification: 'transient' as const,
+      showSupportContact: true,
+      timestamp: new Date().toISOString(),
+    }
+    mockGet.mockRejectedValueOnce(mockError)
 
     const { result } = renderHook(
       () => useAccounts('tenant-1'),
@@ -115,7 +123,7 @@ describe('useAccounts', () => {
   })
 
   it('caches results by tenantId and includeInactive', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleAccounts, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
 
     const wrapper = makeWrapper()
     const { rerender } = renderHook(
@@ -130,7 +138,7 @@ describe('useAccounts', () => {
     expect(mockGet).toHaveBeenCalledTimes(1)
 
     // Different tenantId — should fetch again
-    mockGet.mockResolvedValueOnce({ data: sampleAccounts, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
     rerender()
     // Note: This test uses the same hook, cache key is different for different tenantId
   })

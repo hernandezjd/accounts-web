@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { commandClient } from '@/api/clients'
+import { useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
+import { useApiMutation } from './useApiMutation'
 import type { components as TxnCmd } from '@/api/generated/transaction-command-api'
 import type { components as IbCmd } from '@/api/generated/initial-balance-command-api'
 import type { InitialBalance } from '@/hooks/api/useInitialBalances'
@@ -81,86 +82,83 @@ export function useTransactionMutations(tenantId: string) {
     setTimeout(() => qc.invalidateQueries({ queryKey: queryKeys.initialBalances.all() }), 1000)
   }
 
-  const createTransaction = useMutation({
-    mutationFn: async (body: CreateTransactionRequest) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).POST('/transactions', {
+  const createTransaction = useApiMutation(
+    (body: CreateTransactionRequest) =>
+      apiClient.command.POST('/transactions', {
         params: { header: { 'X-Tenant-Id': tenantId } },
         body,
-      })
-      if (error) throw error
-      return data
-    },
-    onSuccess: async () => {
-      await invalidateTransactionQueries()
-    },
-  })
+      }),
+    {
+      onSuccess: async () => {
+        await invalidateTransactionQueries()
+      },
+    }
+  )
 
-  const editTransaction = useMutation({
-    mutationFn: async ({ id, body }: { id: string; body: EditTransactionRequest }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/transactions/{id}', {
+  const editTransaction = useApiMutation(
+    ({ id, body }: { id: string; body: EditTransactionRequest }) =>
+      apiClient.command.PUT('/transactions/{id}', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
         body,
-      })
-      if (error) throw error
-      return data
-    },
-    onSuccess: async () => {
-      await invalidateTransactionQueries()
-    },
-  })
+      }),
+    {
+      onSuccess: async () => {
+        await invalidateTransactionQueries()
+      },
+    }
+  )
 
-  const deleteTransaction = useMutation({
-    mutationFn: async (id: string) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).DELETE('/transactions/{id}', {
+  const deleteTransaction = useApiMutation(
+    (id: string) =>
+      apiClient.command.DELETE('/transactions/{id}', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
-      })
-      if (error) throw error
-    },
-    onSuccess: async () => {
-      await invalidateTransactionQueries()
-    },
-  })
+      }),
+    {
+      onSuccess: async () => {
+        await invalidateTransactionQueries()
+      },
+    }
+  )
 
-  const createInitialBalance = useMutation({
-    mutationFn: async (body: CreateInitialBalanceRequest) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).POST('/transactions/initial-balances', {
+  const createInitialBalance = useApiMutation(
+    (body: CreateInitialBalanceRequest) =>
+      apiClient.command.POST<InitialBalance>('/transactions/initial-balances', {
         params: { header: { 'X-Tenant-Id': tenantId } },
         body,
-      })
-      if (error) throw error
-      return data
-    },
-    onSuccess: (data) => patchInitialBalanceCache(data as InitialBalance),
-  })
+      }),
+    {
+      onSuccess: (data) => {
+        if (data) {
+          patchInitialBalanceCache(data)
+        }
+      },
+    }
+  )
 
-  const editInitialBalance = useMutation({
-    mutationFn: async ({ id, body }: { id: string; body: EditInitialBalanceRequest }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/transactions/initial-balances/{id}', {
+  const editInitialBalance = useApiMutation(
+    ({ id, body }: { id: string; body: EditInitialBalanceRequest }) =>
+      apiClient.command.PUT<InitialBalance>('/transactions/initial-balances/{id}', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
         body,
-      })
-      if (error) throw error
-      return data
-    },
-    onSuccess: (data) => updateInitialBalanceInCache(data.id as string, data as InitialBalance),
-  })
+      }),
+    {
+      onSuccess: (data) => {
+        if (data?.id) {
+          updateInitialBalanceInCache(data.id, data)
+        }
+      },
+    }
+  )
 
-  const deleteInitialBalance = useMutation({
-    mutationFn: async (id: string) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).DELETE('/transactions/initial-balances/{id}', {
+  const deleteInitialBalance = useApiMutation(
+    (id: string) =>
+      apiClient.command.DELETE('/transactions/initial-balances/{id}', {
         params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
-      })
-      if (error) throw error
-      return id
-    },
-    onSuccess: (id) => removeInitialBalanceFromCache(id),
-  })
+      }),
+    {
+      onSuccess: (_data, id) => removeInitialBalanceFromCache(id),
+    }
+  )
 
   return { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance }
 }

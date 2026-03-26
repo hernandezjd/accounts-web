@@ -61,11 +61,11 @@ describe('useErrorHandler', () => {
       expect(result.requestId).toBe('req-abc-123');
     });
 
-    it('generates fallback requestId for unknown errors', () => {
+    it('uses MISSING_REQUEST_ID for unknown errors without a request ID', () => {
       const error = new Error('Unknown');
       const result = formatError(error);
 
-      expect(result.requestId).toMatch(/^local-\d+-.+$/);
+      expect(result.requestId).toBe('MISSING_REQUEST_ID');
     });
 
     it('preserves x-request-id header in parseErrorResponse fallback', async () => {

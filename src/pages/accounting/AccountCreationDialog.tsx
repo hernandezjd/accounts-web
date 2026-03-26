@@ -54,7 +54,7 @@ export function AccountCreationDialog({
           setHasThirdParties(false)
           onClose()
         },
-        onError: (err) => setErrorMsg(err.message),
+        onError: (err) => setErrorMsg(err.userMessage),
       },
     )
   }
