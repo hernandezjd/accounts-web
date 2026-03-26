@@ -166,7 +166,16 @@ describe('ThirdPartiesPage', () => {
 
   it('shows friendly message on 409 deactivate error', async () => {
     const deactivateMutate = vi.fn((_id, opts) => {
-      opts.onError(new Error('Cannot deactivate third-party: referenced by active transactions'))
+      const formattedError = {
+        errorCode: 'CONFLICT',
+        userMessage: 'This third party has active transactions and cannot be deactivated.',
+        requestId: 'test-request-id',
+        timestamp: new Date().toISOString(),
+        showSupportContact: false,
+        classification: 'client_error' as const,
+        isRetryable: false,
+      }
+      opts.onError(formattedError)
     })
     mockUseThirdPartyMutations.mockReturnValue({
       createThirdParty: { ...noOpMutation },
