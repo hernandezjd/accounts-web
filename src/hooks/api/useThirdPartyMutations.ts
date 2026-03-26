@@ -1,5 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { commandClient } from '@/api/clients'
+import { useQueryClient } from '@tanstack/react-query'
+import { useApiMutation } from '@/hooks/api/useApiMutation'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/third-party-command-api'
 
@@ -30,66 +31,54 @@ export function useThirdPartyMutations() {
     })
   }
 
-  const createThirdParty = useMutation({
-    mutationFn: async (body: CreateThirdPartyRequest): Promise<ThirdPartyCommandResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).POST('/third-parties', {
+  const createThirdParty = useApiMutation<ThirdPartyCommandResponse, CreateThirdPartyRequest>(
+    (body: CreateThirdPartyRequest) =>
+      apiClient.command.POST('/third-parties', {
         body,
-      })
-      if (error) throw error
-      return data as ThirdPartyCommandResponse
+      }),
+    {
+      onSuccess: async () => {
+        await invalidateThirdPartyQueries()
+      },
     },
-    onSuccess: async () => {
-      await invalidateThirdPartyQueries()
-    },
-  })
+  )
 
-  const updateThirdParty = useMutation({
-    mutationFn: async ({
-      id,
-      body,
-    }: {
-      id: string
-      body: UpdateThirdPartyRequest
-    }): Promise<ThirdPartyCommandResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/third-parties/{id}', {
+  const updateThirdParty = useApiMutation(
+    ({ id, body }: { id: string; body: UpdateThirdPartyRequest }) =>
+      apiClient.command.PUT('/third-parties/{id}', {
         params: { path: { id } },
         body,
-      })
-      if (error) throw error
-      return data as ThirdPartyCommandResponse
+      }),
+    {
+      onSuccess: async () => {
+        await invalidateThirdPartyQueries()
+      },
     },
-    onSuccess: async () => {
-      await invalidateThirdPartyQueries()
-    },
-  })
+  )
 
-  const deactivateThirdParty = useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).POST('/third-parties/{id}/deactivate', {
+  const deactivateThirdParty = useApiMutation(
+    (id: string) =>
+      apiClient.command.POST('/third-parties/{id}/deactivate', {
         params: { path: { id } },
-      })
-      if (error) throw error
+      }),
+    {
+      onSuccess: async () => {
+        await invalidateThirdPartyQueries()
+      },
     },
-    onSuccess: async () => {
-      await invalidateThirdPartyQueries()
-    },
-  })
+  )
 
-  const activateThirdParty = useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).POST('/third-parties/{id}/activate', {
+  const activateThirdParty = useApiMutation(
+    (id: string) =>
+      apiClient.command.POST('/third-parties/{id}/activate', {
         params: { path: { id } },
-      })
-      if (error) throw error
+      }),
+    {
+      onSuccess: async () => {
+        await invalidateThirdPartyQueries()
+      },
     },
-    onSuccess: async () => {
-      await invalidateThirdPartyQueries()
-    },
-  })
+  )
 
   return { createThirdParty, updateThirdParty, deactivateThirdParty, activateThirdParty }
 }

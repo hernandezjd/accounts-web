@@ -1,25 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
-import { queryClient } from '@/api/clients'
+import { useApiQuery } from '@/hooks/api/useApiQuery'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/transaction-type-query-api'
 
 export type TransactionType = components['schemas']['TransactionType']
 
-async function fetchTransactionTypes(name?: string): Promise<TransactionType[]> {
+export function useTransactionTypes(name?: string) {
   const query: Record<string, string> = {}
   if (name) query.name = name
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (queryClient as any).GET('/transaction-types', {
-    params: { query },
-  })
-  if (error) throw error
-  return data as TransactionType[]
-}
-
-export function useTransactionTypes(name?: string) {
-  return useQuery({
-    queryKey: [...queryKeys.transactionTypes.all(), name ?? null],
-    queryFn: () => fetchTransactionTypes(name),
-  })
+  return useApiQuery<TransactionType[]>(
+    [...queryKeys.transactionTypes.all(), name ?? null],
+    () => apiClient.query.GET('/transaction-types', { params: { query } })
+  )
 }

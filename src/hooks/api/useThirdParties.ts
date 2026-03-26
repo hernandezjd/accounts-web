@@ -1,26 +1,20 @@
-import { useQuery } from '@tanstack/react-query'
-import { queryClient } from '@/api/clients'
+import { useApiQuery } from '@/hooks/api/useApiQuery'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/third-party-query-api'
 
 export type ThirdParty = components['schemas']['ThirdParty']
 
-async function fetchThirdParties(tenantId: string, name: string): Promise<ThirdParty[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (queryClient as any).GET('/third-parties', {
-    params: {
-      query: { name },
-      header: { 'X-Tenant-Id': tenantId },
-    },
-  })
-  if (error) throw error
-  return data as ThirdParty[]
-}
-
 export function useThirdParties(tenantId: string | null | undefined, name: string) {
-  return useQuery({
-    queryKey: queryKeys.thirdParties.list(tenantId!, name),
-    queryFn: () => fetchThirdParties(tenantId!, name),
-    enabled: Boolean(tenantId) && name.trim().length >= 1,
-  })
+  return useApiQuery<ThirdParty[]>(
+    queryKeys.thirdParties.list(tenantId!, name),
+    () =>
+      apiClient.query.GET('/third-parties', {
+        params: {
+          query: { name },
+          header: { 'X-Tenant-Id': tenantId! },
+        },
+      }),
+    { enabled: Boolean(tenantId) && name.trim().length >= 1 },
+  )
 }

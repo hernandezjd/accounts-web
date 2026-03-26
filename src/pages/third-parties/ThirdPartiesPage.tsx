@@ -425,7 +425,13 @@ export function ThirdPartiesPage() {
         onConfirm={(onSuccess, onError) => {
           if (!actionTarget?.id) return
           const mutation = isDeactivating ? deactivateThirdParty : activateThirdParty
-          mutation.mutate(actionTarget.id, { onSuccess, onError })
+          mutation.mutate(actionTarget.id, {
+            onSuccess,
+            onError: (err) => {
+              const error = new Error(err.userMessage)
+              onError(error)
+            },
+          })
         }}
       />
     </Box>

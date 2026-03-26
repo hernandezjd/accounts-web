@@ -6,14 +6,16 @@ import { useTransactionById } from './useTransactionById'
 
 // ─── Mock the API client ───────────────────────────────────────────────────────
 
-vi.mock('@/api/clients', () => ({
-  queryClient: {
-    GET: vi.fn(),
+vi.mock('@/api/apiClient', () => ({
+  apiClient: {
+    query: {
+      GET: vi.fn(),
+    },
   },
 }))
 
-import { queryClient as apiClient } from '@/api/clients'
-const mockGet = vi.mocked((apiClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET)
+import { apiClient } from '@/api/apiClient'
+const mockGet = vi.mocked((apiClient.query as unknown as { GET: ReturnType<typeof vi.fn> }).GET)
 
 // ─── Wrapper ───────────────────────────────────────────────────────────────────
 
@@ -44,7 +46,7 @@ describe('useTransactionById', () => {
   })
 
   it('fetches transaction when id and tenantId are provided', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransaction, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleTransaction, response: new Response() })
 
     const { result } = renderHook(
       () => useTransactionById('tenant-1', 'txn-1'),
@@ -80,7 +82,7 @@ describe('useTransactionById', () => {
   })
 
   it('refetches when transactionId changes', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransaction, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleTransaction, response: new Response() })
 
     const wrapper = makeWrapper()
     const { rerender } = renderHook(
@@ -91,9 +93,12 @@ describe('useTransactionById', () => {
     await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(1))
 
     mockGet.mockResolvedValueOnce({
-      ...sampleTransaction,
-      id: 'txn-2',
-    } as typeof sampleTransaction & { id: string }, null as any)
+      data: {
+        ...sampleTransaction,
+        id: 'txn-2',
+      },
+      response: new Response(),
+    })
 
     rerender({ id: 'txn-2' })
 
@@ -101,10 +106,7 @@ describe('useTransactionById', () => {
   })
 
   it('handles transaction not found errors', async () => {
-    mockGet.mockResolvedValueOnce({
-      data: null,
-      error: { status: 404, message: 'Transaction not found' },
-    })
+    mockGet.mockRejectedValueOnce(new Error('Transaction not found'))
 
     const { result } = renderHook(
       () => useTransactionById('tenant-1', 'invalid-txn'),
@@ -116,7 +118,7 @@ describe('useTransactionById', () => {
   })
 
   it('caches results by tenantId and transactionId', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransaction, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleTransaction, response: new Response() })
 
     const wrapper = makeWrapper()
     const { rerender } = renderHook(

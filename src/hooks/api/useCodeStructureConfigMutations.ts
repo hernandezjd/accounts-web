@@ -1,34 +1,28 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { commandClient } from '@/api/clients'
+import { useQueryClient } from '@tanstack/react-query'
+import { useApiMutation } from '@/hooks/api/useApiMutation'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/account-command-api'
 
 type CodeStructureConfigRequest = components['schemas']['CodeStructureConfigRequest']
-type CodeStructureConfigResponse = components['schemas']['CodeStructureConfigResponse']
 
 export function useCodeStructureConfigMutations(tenantId: string) {
   const qc = useQueryClient()
 
-  const configureCodeStructure = useMutation({
-    mutationFn: async (body: CodeStructureConfigRequest): Promise<CodeStructureConfigResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT(
-        '/tenants/{tenantId}/code-structure-config',
-        {
-          params: { path: { tenantId } },
-          body,
-        },
-      )
-      if (error)
-        throw new Error((error as { error?: string }).error ?? 'Failed to configure code structure')
-      return data as CodeStructureConfigResponse
+  const configureCodeStructure = useApiMutation(
+    (body: CodeStructureConfigRequest) =>
+      apiClient.command.PUT('/tenants/{tenantId}/code-structure-config', {
+        params: { path: { tenantId } },
+        body,
+      }),
+    {
+      onSuccess: () => {
+        // Code structure config change affects account validation
+        qc.invalidateQueries({ queryKey: queryKeys.codeStructureConfig.all() })
+        qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+      },
     },
-    onSuccess: () => {
-      // Code structure config change affects account validation
-      qc.invalidateQueries({ queryKey: queryKeys.codeStructureConfig.all() })
-      qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
-    },
-  })
+  )
 
   return { configureCodeStructure }
 }
