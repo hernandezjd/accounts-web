@@ -10,6 +10,7 @@ export interface ErrorCodeMapping {
   message: string;
   suggestion?: string;
   supportContact?: boolean;
+  isRetryable?: boolean; // Mark if this error can be retried (default: false)
 }
 
 export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
@@ -24,6 +25,42 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     message: 'You are not authorized. Your session has expired. Please log in again.',
     suggestion: 'Click the login button or refresh the page to re-authenticate.',
     supportContact: false,
+  },
+
+  // Authorization Errors (Permission Denied - 403)
+  ACTION_NOT_ALLOWED: {
+    message: 'You don\'t have permission to perform this action.',
+    suggestion: 'Contact your administrator if you believe you should have access to this feature.',
+    supportContact: false,
+    isRetryable: false,
+  },
+
+  INSUFFICIENT_PERMISSIONS: {
+    message: 'Your role doesn\'t grant access to this feature.',
+    suggestion: 'Contact your administrator to request the required permissions.',
+    supportContact: false,
+    isRetryable: false,
+  },
+
+  ROLE_REQUIRED: {
+    message: 'This action requires specific permissions that your account doesn\'t have.',
+    suggestion: 'Contact your administrator to request the required role or permissions.',
+    supportContact: false,
+    isRetryable: false,
+  },
+
+  TENANT_ACCESS_REQUIRED: {
+    message: 'You don\'t have access to the requested organization.',
+    suggestion: 'Make sure you\'re accessing the correct organization, or contact support if you believe this is an error.',
+    supportContact: false,
+    isRetryable: false,
+  },
+
+  HTTP_403: {
+    message: 'You don\'t have permission to perform this action.',
+    suggestion: 'Contact your administrator if you believe you should have access.',
+    supportContact: false,
+    isRetryable: false,
   },
 
   // Transaction Query Errors
@@ -65,10 +102,41 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
   },
 
   // System Errors
+  // Note: 500, 502 are permanent errors (server bugs) - not retryable
+  // Only 503 (Service Unavailable) and 504 (Gateway Timeout) are transient
   INTERNAL_SERVER_ERROR: {
     message: "An unexpected error occurred. Our team has been notified and is looking into it.",
-    suggestion: "Please try again later or contact support with the request ID provided.",
+    suggestion: "Please contact support with the request ID provided.",
     supportContact: true,
+    isRetryable: false,
+  },
+
+  HTTP_500: {
+    message: "An unexpected error occurred. Our team has been notified and is looking into it.",
+    suggestion: "Please contact support with the request ID provided.",
+    supportContact: true,
+    isRetryable: false,
+  },
+
+  HTTP_502: {
+    message: "The server is experiencing an error.",
+    suggestion: "Please contact support with the request ID provided.",
+    supportContact: true,
+    isRetryable: false,
+  },
+
+  HTTP_503: {
+    message: "The service is temporarily unavailable. Please try again.",
+    suggestion: "Wait a moment and try again. If the problem persists, contact support.",
+    supportContact: true,
+    isRetryable: true,
+  },
+
+  HTTP_504: {
+    message: "The request timed out. Please try again.",
+    suggestion: "The server took too long to respond. Please try again.",
+    supportContact: true,
+    isRetryable: true,
   },
 
   // Fallback for unknown error codes
