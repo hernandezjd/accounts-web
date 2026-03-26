@@ -7,7 +7,13 @@ const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:808
 /**
  * Custom fetch implementation that:
  * 1. Adds Bearer token to all requests
- * 2. Handles 401 responses by redirecting to login
+ * 2. Handles 401 (session expired) by redirecting to login
+ * 3. Handles 403 (permission denied) by letting error bubble up for display
+ *
+ * Retry strategy:
+ * - 401: Redirect to login (authentication failure, not retryable)
+ * - 403: Do NOT redirect; let error bubble up to component (authorization failure, not retryable)
+ * - 5xx/network: Return response for component retry logic
  */
 function createAuthenticatedFetch() {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -27,8 +33,7 @@ function createAuthenticatedFetch() {
       headers,
     })
 
-    // If we get a 401, the token has expired or is invalid
-    // Redirect to login
+    // Handle 401 (session expired) - redirect to login
     if (response.status === 401) {
       // Clear the invalid token
       localStorage.removeItem('access_token')
@@ -38,6 +43,14 @@ function createAuthenticatedFetch() {
       // Redirect to login
       // Using window.location to force a page reload and auth flow restart
       window.location.href = '/'
+    }
+
+    // Handle 403 (permission denied) - do NOT redirect
+    // Let error bubble up to component for display without redirect
+    if (response.status === 403) {
+      // Error will be handled by calling code (component error handler)
+      // Return the response so error details can be extracted
+      return response
     }
 
     return response

@@ -191,8 +191,8 @@ describe('Error Classification Integration Tests', () => {
     it('displays error without retry button and shows request ID prominently', () => {
       const formattedError: FormattedError = {
         errorCode: 'INTERNAL_SERVER_ERROR',
-        userMessage: 'An unexpected error occurred',
-        suggestion: 'Please try again later or contact support',
+        userMessage: 'An unexpected error occurred. Our team has been notified.',
+        suggestion: 'Please contact support with the request ID provided.',
         requestId: 'req-500-internal-abc123def456',
         timestamp: '2024-01-01T12:34:56Z',
         showSupportContact: true,
@@ -306,6 +306,7 @@ describe('Error Classification Integration Tests', () => {
       const formatted = formatError(error, 500);
 
       expect(formatted.classification).toBe('permanent');
+      // 500 is a permanent server error - not retryable
       expect(formatted.isRetryable).toBe(false);
       expect(formatted.requestId).toBe('req-format-test');
     });

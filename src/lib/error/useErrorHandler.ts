@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { getErrorMessage, getErrorSuggestion, shouldShowSupportContact } from './errorCodeMap';
+import { getErrorMessage, getErrorSuggestion, shouldShowSupportContact, ERROR_CODE_MAP } from './errorCodeMap';
 import { isTransientError, classifyError, type ErrorClassification } from './isTransientError';
 
 export interface StructuredError {
@@ -45,7 +45,12 @@ export function formatError(error: unknown, statusCode?: number): FormattedError
   ) {
     const structuredError = error as StructuredError;
     const classification = classifyError(error, statusCode);
-    const isRetryable = isTransientError(error, statusCode);
+
+    // Determine if error is retryable:
+    // 1. Check if errorCodeMap explicitly marks it as retryable (or non-retryable)
+    // 2. Fall back to status code classification if not explicitly marked
+    const errorCodeMapping = ERROR_CODE_MAP[structuredError.errorCode];
+    const isRetryable = errorCodeMapping?.isRetryable ?? isTransientError(error, statusCode);
 
     return {
       errorCode: structuredError.errorCode,
@@ -87,11 +92,18 @@ export async function parseErrorResponse(response: Response): Promise<FormattedE
   } catch {
     // Fallback if response body is not JSON
     const classification = classifyError(null, response.status);
-    const isRetryable = isTransientError(null, response.status);
+    const httpErrorCode = `HTTP_${response.status}`;
+
+    // Check if errorCodeMap has explicit retryable setting for this HTTP status
+    const errorCodeMapping = ERROR_CODE_MAP[httpErrorCode];
+    const isRetryable = errorCodeMapping?.isRetryable ?? isTransientError(null, response.status);
+
+    // Try to use mapped message for HTTP error codes, fall back to generic message
+    const userMessage = getErrorMessage(httpErrorCode);
 
     return {
-      errorCode: `HTTP_${response.status}`,
-      userMessage: `An error occurred (${response.status}). ${getErrorMessage('UNKNOWN_ERROR')}`,
+      errorCode: httpErrorCode,
+      userMessage,
       requestId: response.headers.get('x-request-id') || generateFallbackRequestId(),
       timestamp: new Date().toISOString(),
       showSupportContact: true,

@@ -4,7 +4,7 @@ import { formatError, parseErrorResponse, type StructuredError, type FormattedEr
 describe('useErrorHandler', () => {
   describe('formatError - classification integration', () => {
     it('classifies transient error (503) as retryable', () => {
-      const error = { errorCode: 'INTERNAL_SERVER_ERROR', message: 'Service down', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const error = { errorCode: 'HTTP_503', message: 'Service down', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
       const result = formatError(error, 503);
 
       expect(result.classification).toBe('transient');
@@ -27,11 +27,12 @@ describe('useErrorHandler', () => {
       expect(result.isRetryable).toBe(false);
     });
 
-    it('classifies permanent error (500) as non-retryable', () => {
+    it('classifies 500 error as permanent and non-retryable', () => {
       const error = { errorCode: 'INTERNAL_SERVER_ERROR', message: 'Server error', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
       const result = formatError(error, 500);
 
       expect(result.classification).toBe('permanent');
+      // 500 is a permanent server error - not retryable
       expect(result.isRetryable).toBe(false);
     });
 
@@ -98,16 +99,17 @@ describe('useErrorHandler', () => {
       expect(result.showSupportContact).toBe(true);
     });
 
-    it('marks 502 as non-retryable', () => {
+    it('marks 502 as permanent and non-retryable', () => {
       const error = { errorCode: 'INTERNAL_SERVER_ERROR', message: 'Bad gateway', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
       const result = formatError(error, 502);
 
+      // 502 is a permanent server error (bad gateway) - not retryable
       expect(result.isRetryable).toBe(false);
       expect(result.classification).toBe('permanent');
     });
 
     it('marks 503 as retryable', () => {
-      const error = { errorCode: 'INTERNAL_SERVER_ERROR', message: 'Service unavailable', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const error = { errorCode: 'HTTP_503', message: 'Service unavailable', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
       const result = formatError(error, 503);
 
       expect(result.isRetryable).toBe(true);
@@ -115,7 +117,7 @@ describe('useErrorHandler', () => {
     });
 
     it('marks 504 as retryable', () => {
-      const error = { errorCode: 'INTERNAL_SERVER_ERROR', message: 'Gateway timeout', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const error = { errorCode: 'HTTP_504', message: 'Gateway timeout', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
       const result = formatError(error, 504);
 
       expect(result.isRetryable).toBe(true);
@@ -125,7 +127,7 @@ describe('useErrorHandler', () => {
 
   describe('parseErrorResponse - status code extraction', () => {
     it('passes status code to formatError for classification', async () => {
-      const mockError = { errorCode: 'INTERNAL_SERVER_ERROR', message: 'Service unavailable', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' };
+      const mockError = { errorCode: 'HTTP_503', message: 'Service unavailable', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' };
       const mockResponse = {
         status: 503,
         json: () => Promise.resolve(mockError),
@@ -183,6 +185,102 @@ describe('useErrorHandler', () => {
       const resultTime = new Date(result.timestamp);
       expect(resultTime.getTime()).toBeGreaterThanOrEqual(beforeTime.getTime());
       expect(resultTime.getTime()).toBeLessThanOrEqual(afterTime.getTime());
+    });
+  });
+
+  describe('formatError - authorization error handling', () => {
+    it('marks ACTION_NOT_ALLOWED as non-retryable', () => {
+      const error = { errorCode: 'ACTION_NOT_ALLOWED', message: 'Permission denied', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.isRetryable).toBe(false);
+      expect(result.showSupportContact).toBe(false);
+    });
+
+    it('marks INSUFFICIENT_PERMISSIONS as non-retryable', () => {
+      const error = { errorCode: 'INSUFFICIENT_PERMISSIONS', message: 'Insufficient permissions', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.isRetryable).toBe(false);
+      expect(result.showSupportContact).toBe(false);
+    });
+
+    it('marks ROLE_REQUIRED as non-retryable', () => {
+      const error = { errorCode: 'ROLE_REQUIRED', message: 'Role required', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.isRetryable).toBe(false);
+    });
+
+    it('marks TENANT_ACCESS_REQUIRED as non-retryable', () => {
+      const error = { errorCode: 'TENANT_ACCESS_REQUIRED', message: 'Tenant access required', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.isRetryable).toBe(false);
+    });
+
+    it('provides user-friendly message for authorization errors', () => {
+      const error = { errorCode: 'ACTION_NOT_ALLOWED', message: 'Permission denied', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.userMessage).toContain("permission");
+      expect(result.userMessage).not.toContain('403');
+    });
+
+    it('includes request ID for authorization errors', () => {
+      const error = { errorCode: 'ACTION_NOT_ALLOWED', message: 'Permission denied', requestId: 'req-auth-12345', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.requestId).toBe('req-auth-12345');
+    });
+  });
+
+  describe('formatError - errorCodeMap override behavior', () => {
+    it('respects errorCodeMap isRetryable flag over status code classification', () => {
+      // errorCodeMap explicitly marks INTERNAL_SERVER_ERROR as non-retryable
+      const error = { errorCode: 'INTERNAL_SERVER_ERROR', message: 'Server error', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 500);
+
+      // INTERNAL_SERVER_ERROR is marked as non-retryable in errorCodeMap
+      expect(result.isRetryable).toBe(false);
+    });
+
+    it('uses errorCodeMap isRetryable flag when available', () => {
+      // Test that when errorCodeMap has explicit isRetryable, it's used
+      const error = { errorCode: 'HTTP_403', message: 'Forbidden', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.isRetryable).toBe(false);
+    });
+  });
+
+  describe('parseErrorResponse - authorization error handling', () => {
+    it('classifies 403 as permanent non-retryable error', async () => {
+      const mockResponse = {
+        status: 403,
+        json: () => Promise.reject(new Error('Invalid JSON')),
+        headers: { get: () => null },
+      } as unknown as Response;
+
+      const result = await parseErrorResponse(mockResponse);
+
+      expect(result.isRetryable).toBe(false);
+      expect(result.classification).toBe('permanent');
+      expect(result.errorCode).toBe('HTTP_403');
+    });
+
+    it('includes request ID from response headers for 403 errors', async () => {
+      const mockResponse = {
+        status: 403,
+        json: () => Promise.reject(new Error('Invalid JSON')),
+        headers: {
+          get: (header: string) => (header === 'x-request-id' ? 'req-403-12345' : null),
+        },
+      } as unknown as Response;
+
+      const result = await parseErrorResponse(mockResponse);
+
+      expect(result.requestId).toBe('req-403-12345');
     });
   });
 });

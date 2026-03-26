@@ -10,12 +10,15 @@ import i18n from '@/i18n'
 import { theme } from '@/theme'
 import { KeyboardShortcutsProvider } from '@/context/KeyboardShortcutsContext'
 import { oidcConfig } from '@/auth/oidc-config'
+import { shouldRetryRequest } from '@/api/clients/retryConfig'
 import App from './App'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      // Selective retry: only retry on transient errors (5xx/network)
+      // Not retryable: 4xx errors (invalid request, permission denied, etc.)
+      retry: shouldRetryRequest,
       staleTime: 30_000,
     },
   },
