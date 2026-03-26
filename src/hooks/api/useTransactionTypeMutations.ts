@@ -1,12 +1,12 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { commandClient } from '@/api/clients'
+import { useQueryClient } from '@tanstack/react-query'
+import { useApiMutation } from '@/hooks/api/useApiMutation'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/transaction-type-command-api'
 import type { TransactionType } from '@/hooks/api/useTransactionTypes'
 
 type CreateTransactionTypeRequest = components['schemas']['CreateTransactionTypeRequest']
 type UpdateTransactionTypeRequest = components['schemas']['UpdateTransactionTypeRequest']
-type TransactionTypeCommandResponse = components['schemas']['TransactionTypeCommandResponse']
 
 export function useTransactionTypeMutations() {
   const qc = useQueryClient()
@@ -31,66 +31,54 @@ export function useTransactionTypeMutations() {
     qc.invalidateQueries({ queryKey: queryKeys.transactions.all() })
   }
 
-  const createTransactionType = useMutation({
-    mutationFn: async (body: CreateTransactionTypeRequest): Promise<TransactionTypeCommandResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).POST('/transaction-types', {
+  const createTransactionType = useApiMutation<TransactionType, CreateTransactionTypeRequest>(
+    (body: CreateTransactionTypeRequest) =>
+      apiClient.command.POST('/transaction-types', {
         body,
-      })
-      if (error)
-        throw new Error((error as { error?: string }).error ?? 'Failed to create transaction type')
-      return data as TransactionTypeCommandResponse
+      }),
+    {
+      onSuccess: (data, variables) => {
+        // Immediately patch all type caches with new type
+        if (data?.id) {
+          const newType: TransactionType = { id: data.id, name: variables.name }
+          patchAllCaches((old) => [...old, newType])
+        }
+        // Schedule background refetch for consistency
+        setTimeout(() => invalidateTransactionTypeQueries(), 1000)
+      },
     },
-    onSuccess: (data, variables) => {
-      // Immediately patch all type caches with new type
-      const newType: TransactionType = { id: data.id, name: variables.name }
-      patchAllCaches((old) => [...old, newType])
-      // Schedule background refetch for consistency
-      setTimeout(() => invalidateTransactionTypeQueries(), 1000)
-    },
-  })
+  )
 
-  const updateTransactionType = useMutation({
-    mutationFn: async ({
-      id,
-      body,
-    }: {
-      id: string
-      body: UpdateTransactionTypeRequest
-    }): Promise<TransactionTypeCommandResponse> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (commandClient as any).PUT('/transaction-types/{id}', {
+  const updateTransactionType = useApiMutation(
+    ({ id, body }: { id: string; body: UpdateTransactionTypeRequest }) =>
+      apiClient.command.PUT('/transaction-types/{id}', {
         params: { path: { id } },
         body,
-      })
-      if (error)
-        throw new Error((error as { error?: string }).error ?? 'Failed to update transaction type')
-      return data as TransactionTypeCommandResponse
+      }),
+    {
+      onSuccess: (_data, { id, body }) => {
+        // Immediately patch all type caches with updated type
+        patchAllCaches((old) => old.map((t) => (t.id === id ? { ...t, name: body.name } : t)))
+        // Schedule background refetch for consistency
+        setTimeout(() => invalidateTransactionTypeQueries(), 1000)
+      },
     },
-    onSuccess: (_data, { id, body }) => {
-      // Immediately patch all type caches with updated type
-      patchAllCaches((old) => old.map((t) => (t.id === id ? { ...t, name: body.name } : t)))
-      // Schedule background refetch for consistency
-      setTimeout(() => invalidateTransactionTypeQueries(), 1000)
-    },
-  })
+  )
 
-  const deleteTransactionType = useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (commandClient as any).DELETE('/transaction-types/{id}', {
+  const deleteTransactionType = useApiMutation(
+    (id: string) =>
+      apiClient.command.DELETE('/transaction-types/{id}', {
         params: { path: { id } },
-      })
-      if (error)
-        throw new Error((error as { error?: string }).error ?? 'Failed to delete transaction type')
+      }),
+    {
+      onSuccess: (_data, id) => {
+        // Immediately patch all type caches to remove deleted type
+        patchAllCaches((old) => old.filter((t) => t.id !== id))
+        // Schedule background refetch for consistency
+        setTimeout(() => invalidateTransactionTypeQueries(), 1000)
+      },
     },
-    onSuccess: (_data, id) => {
-      // Immediately patch all type caches to remove deleted type
-      patchAllCaches((old) => old.filter((t) => t.id !== id))
-      // Schedule background refetch for consistency
-      setTimeout(() => invalidateTransactionTypeQueries(), 1000)
-    },
-  })
+  )
 
   return { createTransactionType, updateTransactionType, deleteTransactionType }
 }

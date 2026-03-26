@@ -70,7 +70,7 @@ export function PrefilledChartsTab() {
 
       {mergeMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {mergeMutation.error?.message}
+          {mergeMutation.error?.userMessage}
         </Alert>
       )}
 

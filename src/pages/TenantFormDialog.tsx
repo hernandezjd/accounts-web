@@ -78,8 +78,10 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
     } else {
       createTenant.mutate(body, {
         onSuccess: (data) => {
-          onCreated?.(data.id!)
-          handleClose()
+          if (data?.id) {
+            onCreated?.(data.id)
+            handleClose()
+          }
         },
         onError: (err) => setErrorMsg(translateApiError(err, t)),
       })

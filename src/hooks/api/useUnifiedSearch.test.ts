@@ -6,14 +6,16 @@ import { useUnifiedSearch } from './useUnifiedSearch'
 
 // ─── Mock the API client ───────────────────────────────────────────────────────
 
-vi.mock('@/api/clients', () => ({
-  queryClient: {
-    GET: vi.fn(),
+vi.mock('@/api/apiClient', () => ({
+  apiClient: {
+    query: {
+      GET: vi.fn(),
+    },
   },
 }))
 
-import { queryClient as apiClient } from '@/api/clients'
-const mockGet = vi.mocked((apiClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET)
+import { apiClient } from '@/api/apiClient'
+const mockGet = vi.mocked((apiClient.query as unknown as { GET: ReturnType<typeof vi.fn> }).GET)
 
 // ─── Wrapper ───────────────────────────────────────────────────────────────────
 
@@ -43,7 +45,7 @@ describe('useUnifiedSearch', () => {
   })
 
   it('shouldReturnResults_whenQueryAndTenantIdProvided', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleResponse, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleResponse, response: new Response() })
 
     const { result } = renderHook(
       () => useUnifiedSearch('tenant-1', 'cash', '2026-01-01', '2026-01-31'),
@@ -73,7 +75,7 @@ describe('useUnifiedSearch', () => {
   })
 
   it('shouldScopeToCurrentPeriod_whenAllHistoryFalse', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleResponse, error: null })
+    mockGet.mockResolvedValueOnce({ data: sampleResponse, response: new Response() })
 
     const { result } = renderHook(
       () => useUnifiedSearch('tenant-1', 'cash', '2026-01-01', '2026-01-31'),
@@ -94,7 +96,7 @@ describe('useUnifiedSearch', () => {
   })
 
   it('shouldRemoveDateScope_whenAllHistoryTrue', async () => {
-    mockGet.mockResolvedValueOnce({ data: { ...sampleResponse, fromDate: null, toDate: null }, error: null })
+    mockGet.mockResolvedValueOnce({ data: { ...sampleResponse, fromDate: null, toDate: null }, response: new Response() })
 
     const { result } = renderHook(
       () => useUnifiedSearch('tenant-1', 'cash', undefined, undefined),

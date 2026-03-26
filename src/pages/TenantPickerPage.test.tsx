@@ -5,29 +5,32 @@ import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { TenantPickerPage } from './TenantPickerPage'
 import i18n from '@/i18n'
 
-// Mock the api clients module
-vi.mock('@/api/clients', () => ({
-  tenantClient: { GET: vi.fn(), POST: vi.fn() },
-  commandClient: { GET: vi.fn() },
-  queryClient: { GET: vi.fn() },
+// Mock the apiClient
+vi.mock('@/api/apiClient', () => ({
+  apiClient: {
+    tenant: {
+      GET: vi.fn(),
+      POST: vi.fn(),
+    },
+  },
 }))
 
 // Import after mock so we get the mocked version
-import { tenantClient } from '@/api/clients'
+import { apiClient } from '@/api/apiClient'
 
 const mockTenants = [
   { id: 'tenant-1', name: 'Acme Corp', status: 'active' as const },
   { id: 'tenant-2', name: 'Globex Corp', status: 'active' as const },
 ]
 
-type MockClient = { GET: ReturnType<typeof vi.fn>; POST: ReturnType<typeof vi.fn> }
+type MockTenantClient = { GET: ReturnType<typeof vi.fn>; POST: ReturnType<typeof vi.fn> }
 
-function mockGet(data: unknown, error?: unknown) {
-  vi.mocked((tenantClient as unknown as MockClient).GET).mockResolvedValue({ data, error })
+function mockGet(data: unknown) {
+  vi.mocked((apiClient.tenant as unknown as MockTenantClient).GET).mockResolvedValue({ data, response: new Response() })
 }
 
-function mockPost(data: unknown, error?: unknown) {
-  vi.mocked((tenantClient as unknown as MockClient).POST).mockResolvedValue({ data, error })
+function mockPost(data: unknown) {
+  vi.mocked((apiClient.tenant as unknown as MockTenantClient).POST).mockResolvedValue({ data, response: new Response() })
 }
 
 beforeEach(() => {
@@ -45,7 +48,7 @@ afterEach(() => {
 
 describe('TenantPickerPage', () => {
   it('shows loading state while fetching', () => {
-    vi.mocked((tenantClient as unknown as MockClient).GET).mockReturnValue(new Promise(() => {}))
+    vi.mocked((apiClient.tenant as unknown as MockTenantClient).GET).mockReturnValue(new Promise(() => {}))
     renderWithProviders(<TenantPickerPage />)
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
   })
@@ -88,7 +91,7 @@ describe('TenantPickerPage', () => {
   })
 
   it('shows error alert on network failure', async () => {
-    vi.mocked((tenantClient as unknown as MockClient).GET).mockResolvedValue({ data: undefined, error: new Error('Network error') })
+    vi.mocked((apiClient.tenant as unknown as MockTenantClient).GET).mockRejectedValueOnce(new Error('Network error'))
     renderWithProviders(<TenantPickerPage />)
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument()

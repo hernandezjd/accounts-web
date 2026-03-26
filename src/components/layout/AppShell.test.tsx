@@ -12,13 +12,15 @@ import { theme } from '@/theme'
 import { KeyboardShortcutsProvider } from '@/context/KeyboardShortcutsContext'
 import { AppShell } from './AppShell'
 
-vi.mock('@/api/clients', () => ({
-  tenantClient: { GET: vi.fn() },
-  commandClient: { GET: vi.fn() },
-  queryClient: { GET: vi.fn() },
+vi.mock('@/api/apiClient', () => ({
+  apiClient: {
+    tenant: {
+      GET: vi.fn(),
+    },
+  },
 }))
 
-import { tenantClient } from '@/api/clients'
+import { apiClient } from '@/api/apiClient'
 
 const mockTenant = { id: 'tenant-1', name: 'Acme Corp', status: 'active' as const }
 const mockTenant2 = { id: 'tenant-2', name: 'Other Corp', status: 'active' as const }
@@ -52,10 +54,10 @@ function renderAppShell(initialPath = '/tenants/tenant-1/accounting') {
 beforeEach(() => {
   sessionStorage.clear()
   vi.clearAllMocks()
-  vi.mocked((tenantClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
+  vi.mocked((apiClient.tenant as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
     (url: string) => {
-      if (url === '/tenants') return Promise.resolve({ data: [mockTenant], error: undefined })
-      return Promise.resolve({ data: mockTenant, error: undefined })
+      if (url === '/tenants') return Promise.resolve({ data: [mockTenant], response: new Response() })
+      return Promise.resolve({ data: mockTenant, response: new Response() })
     },
   )
 })
@@ -88,11 +90,11 @@ describe('AppShell', () => {
   })
 
   it('Switch Tenant button clears sessionStorage and is rendered when multiple tenants exist', async () => {
-    vi.mocked((tenantClient as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
+    vi.mocked((apiClient.tenant as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
       (url: string) => {
         if (url === '/tenants')
-          return Promise.resolve({ data: [mockTenant, mockTenant2], error: undefined })
-        return Promise.resolve({ data: mockTenant, error: undefined })
+          return Promise.resolve({ data: [mockTenant, mockTenant2], response: new Response() })
+        return Promise.resolve({ data: mockTenant, response: new Response() })
       },
     )
     sessionStorage.setItem('lastTenantId', 'tenant-1')

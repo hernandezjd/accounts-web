@@ -64,11 +64,13 @@ export function ThirdPartyCreationDialog({
       },
       {
         onSuccess: (data) => {
-          onCreated({ id: data.id!, name: data.name! })
-          reset()
-          onClose()
+          if (data?.id && data?.name) {
+            onCreated({ id: data.id, name: data.name })
+            reset()
+            onClose()
+          }
         },
-        onError: (err) => setErrorMsg(err.message),
+        onError: (err) => setErrorMsg(err.userMessage),
       },
     )
   }

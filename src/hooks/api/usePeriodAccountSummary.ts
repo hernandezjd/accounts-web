@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { queryClient } from '@/api/clients'
+import { useApiQuery } from '@/hooks/api/useApiQuery'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
 import type { AccountPeriodNode, PeriodAccountSummary } from '@/types/accounting'
 
@@ -47,48 +47,44 @@ function convertClosureNode(node: any): AccountPeriodNode {
   }
 }
 
-async function fetchPeriodAccountSummary(
-  tenantId: string,
-  fromDate: string,
-  toDate: string,
-  simulateClosure?: boolean,
-): Promise<PeriodAccountSummary> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (queryClient as any).GET('/reports/period-account-summary', {
-    params: {
-      query: {
-        fromDate,
-        toDate,
-        ...(simulateClosure ? { simulateClosure } : {}),
-      },
-      header: { 'X-Tenant-Id': tenantId },
-    },
-  })
-  if (error) throw error
-  const resp = data as any
-
-  // Handle both PeriodAccountSummaryResponse and PeriodAccountSummaryWithClosureResponse
-  const accounts = (resp.accounts ?? []).map((node: any) =>
-    // Check if this is a closure response (has original/simulated fields)
-    node.original !== undefined ? convertClosureNode(node) : node
-  )
-
-  return {
-    fromDate: resp.fromDate,
-    toDate: resp.toDate,
-    accounts,
-  }
-}
-
 export function usePeriodAccountSummary(
   tenantId: string | null | undefined,
   fromDate: string,
   toDate: string,
   simulateClosure?: boolean,
 ) {
-  return useQuery({
-    queryKey: queryKeys.reports.periodAccountSummary(tenantId!, { fromDate, toDate, simulateClosure }),
-    queryFn: () => fetchPeriodAccountSummary(tenantId!, fromDate, toDate, simulateClosure),
-    enabled: Boolean(tenantId) && Boolean(fromDate) && Boolean(toDate),
-  })
+  const query: Record<string, string | boolean> = {
+    fromDate,
+    toDate,
+  }
+  if (simulateClosure) query.simulateClosure = simulateClosure
+
+  return useApiQuery<PeriodAccountSummary>(
+    queryKeys.reports.periodAccountSummary(tenantId!, { fromDate, toDate, simulateClosure }),
+    async () => {
+      const response = await apiClient.query.GET('/reports/period-account-summary', {
+        params: {
+          query,
+          header: { 'X-Tenant-Id': tenantId! },
+        },
+      })
+      const data = response.data as any
+
+      // Handle both PeriodAccountSummaryResponse and PeriodAccountSummaryWithClosureResponse
+      const accounts = (data.accounts ?? []).map((node: any) =>
+        // Check if this is a closure response (has original/simulated fields)
+        node.original !== undefined ? convertClosureNode(node) : node
+      )
+
+      return {
+        data: {
+          fromDate: data.fromDate,
+          toDate: data.toDate,
+          accounts,
+        } as PeriodAccountSummary,
+        response,
+      }
+    },
+    { enabled: Boolean(tenantId) && Boolean(fromDate) && Boolean(toDate) },
+  )
 }

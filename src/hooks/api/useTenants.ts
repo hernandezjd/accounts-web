@@ -1,18 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
-import { tenantClient } from '@/api/clients'
+import { useApiQuery } from '@/hooks/api/useApiQuery'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
 import type { Tenant } from '@/types'
 
-async function fetchTenants(): Promise<Tenant[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (tenantClient as any).GET('/tenants')
-  if (error) throw error
-  return (data ?? []) as Tenant[]
-}
-
 export function useTenants() {
-  return useQuery({
-    queryKey: queryKeys.tenants.list(),
-    queryFn: fetchTenants,
-  })
+  return useApiQuery<Tenant[]>(
+    queryKeys.tenants.list(),
+    () => apiClient.tenant.GET('/tenants')
+  )
 }

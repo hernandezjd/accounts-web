@@ -38,9 +38,11 @@ export function TransactionTypeCreationDialog({
       { name },
       {
         onSuccess: (data) => {
-          onCreated({ id: data.id!, name: data.name! })
-          setName('')
-          onClose()
+          if (data?.id && data?.name) {
+            onCreated({ id: data.id, name: data.name })
+            setName('')
+            onClose()
+          }
         },
         onError: (err) => setErrorMsg(translateApiError(err, t)),
       },

@@ -1,22 +1,13 @@
-import { useQuery } from '@tanstack/react-query'
-import { queryClient } from '@/api/clients'
+import { useApiQuery } from '@/hooks/api/useApiQuery'
+import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
 import type { components } from '@/api/generated/third-party-query-api'
 
 export type ThirdParty = components['schemas']['ThirdParty']
 
-async function fetchAllThirdParties(): Promise<ThirdParty[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (queryClient as any).GET('/third-parties', {
-    params: { query: {} },
-  })
-  if (error) throw error
-  return data as ThirdParty[]
-}
-
 export function useAllThirdParties() {
-  return useQuery({
-    queryKey: queryKeys.thirdParties.allGlobal(),
-    queryFn: fetchAllThirdParties,
-  })
+  return useApiQuery<ThirdParty[]>(
+    queryKeys.thirdParties.allGlobal(),
+    () => apiClient.query.GET('/third-parties', { params: { query: {} } })
+  )
 }
