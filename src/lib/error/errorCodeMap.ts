@@ -13,6 +13,19 @@ export interface ErrorCodeMapping {
 }
 
 export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
+  // Authentication & Authorization Errors
+  HTTP_401: {
+    message: 'You are not authorized. Your session has expired. Please log in again.',
+    suggestion: 'Click the login button or refresh the page to re-authenticate.',
+    supportContact: false,
+  },
+
+  UNAUTHORIZED_ERROR: {
+    message: 'You are not authorized. Your session has expired. Please log in again.',
+    suggestion: 'Click the login button or refresh the page to re-authenticate.',
+    supportContact: false,
+  },
+
   // Transaction Query Errors
   TRANSACTION_QUERY_DATE_BEFORE_INITIAL_DATE: {
     message:
