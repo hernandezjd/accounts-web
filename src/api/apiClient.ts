@@ -186,7 +186,28 @@ class ApiClient {
       // openapi-fetch may leave `error` falsy for empty bodies (e.g. 400 with no body),
       // so we must also check the HTTP status directly.
       if (error || response.status >= 400) {
-        const formattedError = await parseErrorFromResponse(response, requestId, method, url)
+        // Use the error object parsed by openapi-fetch if available (response body was already consumed)
+        let formattedError: FormattedError
+
+        if (error && typeof error === 'object' && 'errorCode' in error) {
+          // openapi-fetch already parsed the error response
+          const structuredError: StructuredError = {
+            errorCode: (error as any).errorCode || 'UNKNOWN_ERROR',
+            message: (error as any).message || '',
+            timestamp: (error as any).timestamp || new Date().toISOString(),
+            requestId: requestId || (error as any).requestId || 'MISSING_REQUEST_ID',
+            details: (error as any).details,
+          }
+          formattedError = formatError(structuredError, response.status)
+        } else {
+          // Fall back to parsing response (for non-JSON responses)
+          formattedError = await parseErrorFromResponse(response, requestId, method, url)
+        }
+
+        // Always include debug information
+        formattedError.httpStatus = response.status
+        formattedError.requestUrl = `${method} ${url}`
+
         return {
           error: formattedError,
           response,

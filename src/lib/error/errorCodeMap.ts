@@ -56,6 +56,13 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     isRetryable: false,
   },
 
+  FORBIDDEN: {
+    message: 'You don\'t have permission to perform this action.',
+    suggestion: 'Contact your administrator if you believe you should have access.',
+    supportContact: false,
+    isRetryable: false,
+  },
+
   HTTP_403: {
     message: 'You don\'t have permission to perform this action.',
     suggestion: 'Contact your administrator if you believe you should have access.',
