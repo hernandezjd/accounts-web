@@ -30,7 +30,6 @@ import { useAllThirdParties, type ThirdParty } from '@/hooks/api/useAllThirdPart
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
 import { translateApiError } from '@/utils/errorUtils'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError } from '@/lib/error/useErrorHandler'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -303,7 +302,7 @@ export function ThirdPartiesPage() {
   const { deactivateThirdParty, activateThirdParty } = useThirdPartyMutations()
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<ThirdParty | undefined>(undefined)

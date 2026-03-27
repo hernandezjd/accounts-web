@@ -28,6 +28,10 @@ export interface FormattedError {
   rawDetails?: Record<string, unknown>;
   classification: ErrorClassification;
   isRetryable: boolean;
+  // Debug information (populated only when debug mode is enabled)
+  httpStatus?: number;
+  requestUrl?: string;
+  responseBody?: string;
 }
 
 /**

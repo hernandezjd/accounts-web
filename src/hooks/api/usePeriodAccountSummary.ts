@@ -68,6 +68,9 @@ export function usePeriodAccountSummary(
           header: { 'X-Tenant-Id': tenantId! },
         },
       })
+      if (response.error) {
+        throw response.error
+      }
       const data = response.data as any
 
       // Handle both PeriodAccountSummaryResponse and PeriodAccountSummaryWithClosureResponse

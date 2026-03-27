@@ -204,4 +204,108 @@ describe('ErrorMessage', () => {
       expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
     })
   })
+
+  describe('Debug information display', () => {
+    it('renders debug section when httpStatus is present', () => {
+      const debugError: FormattedError = {
+        ...sampleError,
+        httpStatus: 400,
+      }
+
+      renderWithProviders(<ErrorMessage error={debugError} />)
+
+      expect(screen.getByText('DEBUG')).toBeInTheDocument()
+      expect(screen.getByText('HTTP Status:')).toBeInTheDocument()
+      expect(screen.getByText('400')).toBeInTheDocument()
+    })
+
+    it('renders debug section when requestUrl is present', () => {
+      const debugError: FormattedError = {
+        ...sampleError,
+        requestUrl: 'POST /api/accounts',
+      }
+
+      renderWithProviders(<ErrorMessage error={debugError} />)
+
+      expect(screen.getByText('DEBUG')).toBeInTheDocument()
+      expect(screen.getByText('Request URL:')).toBeInTheDocument()
+      expect(screen.getByText('POST /api/accounts')).toBeInTheDocument()
+    })
+
+    it('renders debug section when responseBody is present', () => {
+      const debugError: FormattedError = {
+        ...sampleError,
+        responseBody: '{"error":"Invalid request"}',
+      }
+
+      renderWithProviders(<ErrorMessage error={debugError} />)
+
+      expect(screen.getByText('DEBUG')).toBeInTheDocument()
+      expect(screen.getByText('Response Body:')).toBeInTheDocument()
+      expect(screen.getByText(/Invalid request/)).toBeInTheDocument()
+    })
+
+    it('prettifies JSON response body', () => {
+      const debugError: FormattedError = {
+        ...sampleError,
+        responseBody: '{"error":"test","code":123}',
+      }
+
+      renderWithProviders(<ErrorMessage error={debugError} />)
+
+      // Check that the response body section exists and is rendered
+      const alertElement = screen.getByRole('alert')
+      expect(alertElement).toHaveTextContent('Response Body:')
+      // The prettified JSON will be rendered in the alert
+      expect(alertElement).toHaveTextContent('error')
+      expect(alertElement).toHaveTextContent('test')
+    })
+
+    it('displays non-JSON response body as-is', () => {
+      const debugError: FormattedError = {
+        ...sampleError,
+        responseBody: 'Plain text error response',
+      }
+
+      renderWithProviders(<ErrorMessage error={debugError} />)
+
+      expect(screen.getByText(/Plain text error response/)).toBeInTheDocument()
+    })
+
+    it('does not render debug section when no debug data is present', () => {
+      renderWithProviders(<ErrorMessage error={sampleError} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('renders all debug info when fully populated', () => {
+      const fullDebugError: FormattedError = {
+        ...sampleError,
+        httpStatus: 500,
+        requestUrl: 'GET /api/accounts/123',
+        responseBody: '{"errorCode":"INTERNAL_ERROR","message":"Server error"}',
+      }
+
+      renderWithProviders(<ErrorMessage error={fullDebugError} />)
+
+      // Get the alert element which contains all the information
+      const alertElement = screen.getByRole('alert')
+      expect(alertElement).toBeInTheDocument()
+
+      // Check DEBUG section exists
+      expect(alertElement).toHaveTextContent('DEBUG')
+
+      // Check HTTP Status is present
+      expect(alertElement).toHaveTextContent('HTTP Status:')
+      expect(alertElement).toHaveTextContent('500')
+
+      // Check Request URL is present
+      expect(alertElement).toHaveTextContent('Request URL:')
+      expect(alertElement).toHaveTextContent('GET /api/accounts/123')
+
+      // Check Response Body is present
+      expect(alertElement).toHaveTextContent('Response Body:')
+      expect(alertElement).toHaveTextContent('INTERNAL_ERROR')
+    })
+  })
 })
