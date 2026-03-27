@@ -7,12 +7,12 @@ import List from '@mui/material/List'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import CircularProgress from '@mui/material/CircularProgress'
-import Alert from '@mui/material/Alert'
 import Paper from '@mui/material/Paper'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import { useTranslation } from 'react-i18next'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { useTenants } from '@/hooks/api/useTenants'
 import { useAppStore } from '@/store/appStore'
 import { TenantFormDialog } from './TenantFormDialog'
@@ -24,7 +24,7 @@ function tenantAccountingPath(id: string): string {
 export function TenantPickerPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { data: tenants, isLoading, isError } = useTenants()
+  const { data: tenants, isLoading, isError, error } = useTenants()
   const [createOpen, setCreateOpen] = useState(false)
   const { language, setLanguage } = useAppStore()
 
@@ -119,11 +119,7 @@ export function TenantPickerPage() {
           </Box>
         )}
 
-        {isError && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {t('errors.networkError')}
-          </Alert>
-        )}
+        {isError && <ErrorMessage error={error ?? null} />}
 
         {tenants && tenants.length === 0 && (
           <>
