@@ -16,7 +16,6 @@ export function useClosingPreview(
     queryKeys.reports.closingPreview(tenantId!, { date: date!, description: description! }),
     async () => {
       const response = await apiClient.query.POST('/reports/closing/preview', {
-        params: { header: { 'X-Tenant-Id': tenantId! } },
         body: {
           date,
           description,

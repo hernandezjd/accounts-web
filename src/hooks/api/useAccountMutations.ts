@@ -29,7 +29,6 @@ export function useAccountMutations(tenantId: string) {
   const createAccount = useApiMutation(
     (body: CreateAccountRequest) =>
       apiClient.command.POST<AccountCommandResponse>('/accounts', {
-        params: { header: { 'X-Tenant-Id': tenantId } },
         body,
       }),
     {
@@ -73,7 +72,7 @@ export function useAccountMutations(tenantId: string) {
   const updateAccount = useApiMutation(
     ({ id, body }: { id: string; body: UpdateAccountRequest }) =>
       apiClient.command.PUT<AccountCommandResponse>('/accounts/{id}', {
-        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+        params: { path: { id } },
         body,
       }),
     {
@@ -87,7 +86,7 @@ export function useAccountMutations(tenantId: string) {
   const deactivateAccount = useApiMutation(
     (id: string) =>
       apiClient.command.POST('/accounts/{id}/deactivate', {
-        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+        params: { path: { id } },
       }),
     {
       onSuccess: async () => {
@@ -104,7 +103,7 @@ export function useAccountMutations(tenantId: string) {
   const activateAccount = useApiMutation(
     (id: string) =>
       apiClient.command.POST('/accounts/{id}/activate', {
-        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+        params: { path: { id } },
       }),
     {
       onSuccess: async () => {
@@ -121,7 +120,7 @@ export function useAccountMutations(tenantId: string) {
   const toggleHasThirdParties = useApiMutation(
     ({ accountId, body }: { accountId: string; body: ToggleHasThirdPartiesRequest }) =>
       apiClient.command.PUT('/accounts/{accountId}/has-third-parties', {
-        params: { path: { accountId }, header: { 'X-Tenant-Id': tenantId } },
+        params: { path: { accountId } },
         body,
       }),
     {

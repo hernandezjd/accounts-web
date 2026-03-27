@@ -34,7 +34,6 @@ import type { ApiResponse } from '@/api/apiClient'
  *   const { data, error, isLoading } = useApiQuery(
  *     queryKeys.accounts.list(tenantId),
  *     () => apiClient.query.GET('/accounts', {
- *       params: { header: { 'X-Tenant-Id': tenantId } }
  *     })
  *   )
  */

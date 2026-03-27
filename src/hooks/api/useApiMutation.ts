@@ -37,7 +37,6 @@ import type { ApiResponse } from '@/api/apiClient'
  *   const createAccount = useApiMutation(
  *     (body: CreateAccountRequest) =>
  *       apiClient.command.POST('/accounts', {
- *         params: { header: { 'X-Tenant-Id': tenantId } },
  *         body
  *       }),
  *     {

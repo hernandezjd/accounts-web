@@ -85,7 +85,6 @@ export function useTransactionMutations(tenantId: string) {
   const createTransaction = useApiMutation(
     (body: CreateTransactionRequest) =>
       apiClient.command.POST('/transactions', {
-        params: { header: { 'X-Tenant-Id': tenantId } },
         body,
       }),
     {
@@ -98,7 +97,7 @@ export function useTransactionMutations(tenantId: string) {
   const editTransaction = useApiMutation(
     ({ id, body }: { id: string; body: EditTransactionRequest }) =>
       apiClient.command.PUT('/transactions/{id}', {
-        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+        params: { path: { id } },
         body,
       }),
     {
@@ -111,7 +110,7 @@ export function useTransactionMutations(tenantId: string) {
   const deleteTransaction = useApiMutation(
     (id: string) =>
       apiClient.command.DELETE('/transactions/{id}', {
-        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+        params: { path: { id } },
       }),
     {
       onSuccess: async () => {
@@ -123,7 +122,6 @@ export function useTransactionMutations(tenantId: string) {
   const createInitialBalance = useApiMutation(
     (body: CreateInitialBalanceRequest) =>
       apiClient.command.POST<InitialBalance>('/transactions/initial-balances', {
-        params: { header: { 'X-Tenant-Id': tenantId } },
         body,
       }),
     {
@@ -138,7 +136,7 @@ export function useTransactionMutations(tenantId: string) {
   const editInitialBalance = useApiMutation(
     ({ id, body }: { id: string; body: EditInitialBalanceRequest }) =>
       apiClient.command.PUT<InitialBalance>('/transactions/initial-balances/{id}', {
-        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+        params: { path: { id } },
         body,
       }),
     {
@@ -153,7 +151,7 @@ export function useTransactionMutations(tenantId: string) {
   const deleteInitialBalance = useApiMutation(
     (id: string) =>
       apiClient.command.DELETE('/transactions/initial-balances/{id}', {
-        params: { path: { id }, header: { 'X-Tenant-Id': tenantId } },
+        params: { path: { id } },
       }),
     {
       onSuccess: (_data, id) => removeInitialBalanceFromCache(id),

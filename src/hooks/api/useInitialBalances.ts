@@ -11,7 +11,6 @@ export function useInitialBalances(tenantId: string | null | undefined) {
     queryKeys.initialBalances.list(tenantId!),
     () =>
       apiClient.query.GET('/transactions/initial-balances', {
-        params: { header: { 'X-Tenant-Id': tenantId! } },
       }),
     { enabled: Boolean(tenantId) },
   )

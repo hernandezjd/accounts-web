@@ -63,10 +63,8 @@ export function usePeriodAccountSummary(
     queryKeys.reports.periodAccountSummary(tenantId!, { fromDate, toDate, simulateClosure }),
     async () => {
       const response = await apiClient.query.GET('/reports/period-account-summary', {
-        params: {
-          query,
-          header: { 'X-Tenant-Id': tenantId! },
-        },
+        params: { query },
+        headers: { 'X-Tenant-Id': tenantId! },
       })
       if (response.error) {
         throw response.error
