@@ -5,10 +5,21 @@ const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost
 const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:8082'
 
 /**
+ * Extract tenantId from current URL pathname.
+ * Handles patterns like /tenants/tenant-1/accounting, /tenants/tenant-uuid/config, etc.
+ * Returns undefined if not in a tenant context.
+ */
+function extractTenantIdFromUrl(): string | undefined {
+  const match = window.location.pathname.match(/^\/tenants\/([^/]+)/)
+  return match?.[1]
+}
+
+/**
  * Custom fetch implementation that:
  * 1. Adds Bearer token to all requests
- * 2. Handles 401 (session expired) by redirecting to login
- * 3. Handles 403 (permission denied) by letting error bubble up for display
+ * 2. Adds X-Tenant-Id header to all requests (extracted from URL)
+ * 3. Handles 401 (session expired) by redirecting to login
+ * 4. Handles 403 (permission denied) by letting error bubble up for display
  *
  * Retry strategy:
  * - 401: Redirect to login (authentication failure, not retryable)
@@ -21,10 +32,16 @@ function createAuthenticatedFetch() {
     // (set by AuthProvider's onSigninCallback)
     const token = localStorage.getItem('access_token')
 
-    // Create a new headers object including the Bearer token
+    // Create a new headers object including the Bearer token and X-Tenant-Id
     const headers = new Headers(init?.headers ?? {})
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
+    }
+
+    // Add X-Tenant-Id header from current URL context
+    const tenantId = extractTenantIdFromUrl()
+    if (tenantId) {
+      headers.set('X-Tenant-Id', tenantId)
     }
 
     // Make the request with the updated headers
