@@ -19,7 +19,6 @@ import { useInitialBalances } from '@/hooks/api/useInitialBalances'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
-import { formatError } from '@/lib/error/useErrorHandler'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from '@/pages/accounting/TransactionForm'
 
 interface FormConfig {
@@ -36,7 +35,7 @@ export function InitialBalancesPage() {
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   if (!tenantId) return null
 

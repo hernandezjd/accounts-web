@@ -58,25 +58,56 @@ function extractRequestId(response: Response): string | undefined {
  *
  * Request ID is extracted from response headers (set by backend RequestIdFilter).
  * This is guaranteed to exist on all responses if the system is working correctly.
+ *
+ * Always captures HTTP status, request URL, and response body for debugging.
  */
-async function parseErrorFromResponse(response: Response, requestId: string | undefined): Promise<FormattedError> {
+async function parseErrorFromResponse(response: Response, requestId: string | undefined, method?: string, url?: string): Promise<FormattedError> {
+  let responseBody: string | undefined
+  let jsonError: unknown
+
   try {
-    const json = await response.json()
-    // If response has errorCode, it's already structured
-    if (json && typeof json === 'object' && 'errorCode' in json) {
-      const structuredError: StructuredError = {
-        ...json,
-        // Use the extracted request ID from headers
-        requestId: requestId || json.requestId || 'MISSING_REQUEST_ID',
-      }
-      return formatError(structuredError, response.status)
+    const text = await response.text()
+    responseBody = text
+
+    // Try to parse as JSON if we have a body
+    if (text) {
+      jsonError = JSON.parse(text)
     }
-    // Otherwise treat it as a generic error
-    return formatError(json, response.status)
   } catch {
-    // Response body is not JSON - create error from status code
-    return formatError(null, response.status)
+    // Response body is not JSON or couldn't be read
+    if (responseBody === undefined) {
+      responseBody = '(unable to read response body)'
+    }
   }
+
+  let formattedError: FormattedError
+
+  if (jsonError && typeof jsonError === 'object' && 'errorCode' in jsonError) {
+    // If response has errorCode, it's already structured
+    const jsonObj = jsonError as any
+    const structuredError: StructuredError = {
+      errorCode: jsonObj.errorCode || 'UNKNOWN_ERROR',
+      message: jsonObj.message || '',
+      timestamp: jsonObj.timestamp || new Date().toISOString(),
+      requestId: requestId || jsonObj.requestId || 'MISSING_REQUEST_ID',
+      details: jsonObj.details,
+    }
+    formattedError = formatError(structuredError, response.status)
+  } else {
+    // Otherwise treat it as a generic error
+    formattedError = formatError(jsonError, response.status)
+  }
+
+  // Always include debug information (HTTP status, request URL, response body)
+  formattedError.httpStatus = response.status
+  if (method && url) {
+    formattedError.requestUrl = `${method} ${url}`
+  }
+  if (responseBody !== undefined) {
+    formattedError.responseBody = responseBody
+  }
+
+  return formattedError
 }
 
 /**
@@ -136,6 +167,7 @@ class ApiClient {
   /**
    * Make an HTTP request through openapi-fetch client.
    * Extracts request ID from response headers and transforms errors.
+   * Captures debug info (HTTP status, request URL, response body) when debug mode is enabled.
    */
   private async makeRequest<T,>(
     client: any,
@@ -150,9 +182,11 @@ class ApiClient {
       // Extract request ID from response headers (set by backend RequestIdFilter)
       const requestId = extractRequestId(response)
 
-      // If openapi-fetch returned an error, transform it
-      if (error) {
-        const formattedError = await parseErrorFromResponse(response, requestId)
+      // If openapi-fetch returned an error OR the response status is 4xx/5xx, transform it.
+      // openapi-fetch may leave `error` falsy for empty bodies (e.g. 400 with no body),
+      // so we must also check the HTTP status directly.
+      if (error || response.status >= 400) {
+        const formattedError = await parseErrorFromResponse(response, requestId, method, url)
         return {
           error: formattedError,
           response,
@@ -165,12 +199,16 @@ class ApiClient {
         response,
       }
     } catch (err) {
-      // Unexpected error (e.g., network error, JSON parse error)
+      // Unexpected error (e.g., network error, CORS block, JSON parse error)
+      console.error('[apiClient] network/CORS error caught:', err)
       const formattedError = formatError(err)
+      formattedError.httpStatus = 0
+      formattedError.requestUrl = `${method} ${url}`
+      formattedError.responseBody = err instanceof Error ? err.message : String(err)
 
       return {
         error: formattedError,
-        response: new Response(null, { status: 0 }),
+        response: new Response(null, { status: 503 }),
       }
     }
   }

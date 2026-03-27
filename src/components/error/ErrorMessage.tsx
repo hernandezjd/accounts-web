@@ -75,7 +75,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   }, [error.requestId]);
 
   // Determine if this is a 5xx error (for request ID prominence)
-  const is5xxError = error.errorCode.startsWith('HTTP_5') ||
+  const is5xxError = (error.errorCode?.startsWith('HTTP_5') ?? false) ||
                       error.errorCode === 'INTERNAL_SERVER_ERROR';
 
   return (
@@ -110,7 +110,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 
           {/* Show context details if available */}
           {error.rawDetails && Object.keys(error.rawDetails).length > 0 && (
-            <Box sx={{ mt: 1, p: 1, bgcolor: 'rgba(0, 0, 0, 0.1)', borderRadius: 1 }}>
+            <Box sx={{ mt: 1, p: 1, backgroundColor: 'rgba(0, 0, 0, 0.1)', borderRadius: 1 }}>
               <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 0.5 }}>
                 Details:
               </Typography>
@@ -127,7 +127,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             <Box sx={{
               mt: 1,
               p: 1.5,
-              bgcolor: 'rgba(0, 0, 0, 0.15)',
+              backgroundColor: 'rgba(0, 0, 0, 0.15)',
               borderRadius: 1,
               border: '1px solid rgba(0, 0, 0, 0.2)',
             }}>
@@ -163,7 +163,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 
           {/* Show request ID for other errors */}
           {showRequestId && !is5xxError && (
-            <Box sx={{ mt: 1, p: 1, bgcolor: 'rgba(0, 0, 0, 0.05)', borderRadius: 1 }}>
+            <Box sx={{ mt: 1, p: 1, backgroundColor: 'rgba(0, 0, 0, 0.05)', borderRadius: 1 }}>
               <Typography variant="caption" component="div">
                 <strong>Request ID:</strong>{' '}
                 <code style={{ wordBreak: 'break-all' }}>{error.requestId}</code>
@@ -208,6 +208,66 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
               </Button>
             </Box>
           )}
+
+          {/* Show debug information if available */}
+          {(error.httpStatus !== undefined || error.requestUrl || error.responseBody) && (
+            <Box sx={{ mt: 2, p: 1.5, backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 1, border: '1px solid rgba(0, 0, 0, 0.15)' }}>
+              <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 1, color: 'inherit' }}>
+                DEBUG
+              </Typography>
+
+              {/* HTTP Status */}
+              {error.httpStatus !== undefined && (
+                <Typography variant="caption" component="div" sx={{ ml: 1, mb: 0.5 }}>
+                  <strong>HTTP Status:</strong> {error.httpStatus === 0 ? '0 (network/CORS error — no response received)' : error.httpStatus}
+                </Typography>
+              )}
+
+              {/* Request URL */}
+              {error.requestUrl && (
+                <Box sx={{ ml: 1, mb: 0.5 }}>
+                  <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 0.25 }}>
+                    Request URL:
+                  </Typography>
+                  <code style={{
+                    wordBreak: 'break-all',
+                    fontSize: '0.75rem',
+                    display: 'block',
+                    padding: '4px 8px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    borderRadius: '2px',
+                  }}>
+                    {error.requestUrl}
+                  </code>
+                </Box>
+              )}
+
+              {/* Response Body */}
+              {error.responseBody && (
+                <Box sx={{ ml: 1 }}>
+                  <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 0.25 }}>
+                    Response Body:
+                  </Typography>
+                  <Box sx={{
+                    maxHeight: '300px',
+                    overflow: 'auto',
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    borderRadius: '2px',
+                    p: 1,
+                  }}>
+                    <code style={{
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      fontSize: '0.75rem',
+                      display: 'block',
+                    }}>
+                      {formatResponseBody(error.responseBody)}
+                    </code>
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          )}
         </Stack>
       </Alert>
     </Collapse>
@@ -236,4 +296,18 @@ function formatDetailValue(value: unknown): string {
   }
 
   return String(value);
+}
+
+/**
+ * Format response body for display.
+ * Attempts to prettify JSON; falls back to raw text if not valid JSON.
+ */
+function formatResponseBody(body: string): string {
+  try {
+    const parsed = JSON.parse(body);
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    // Not valid JSON, return as-is
+    return body;
+  }
 }

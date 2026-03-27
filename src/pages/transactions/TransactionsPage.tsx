@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from 'react'
+import { useState, Fragment } from 'react'
 import { useParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -11,7 +11,6 @@ import TableCell from '@mui/material/TableCell'
 import IconButton from '@mui/material/IconButton'
 import TextField from '@mui/material/TextField'
 import Autocomplete from '@mui/material/Autocomplete'
-import Alert from '@mui/material/Alert'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff'
@@ -20,7 +19,6 @@ import { useTransactions, type Transaction, type TransactionFilters } from '@/ho
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
-import { formatError } from '@/lib/error/useErrorHandler'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData } from '../accounting/TransactionForm'
@@ -42,22 +40,10 @@ export function TransactionsPage() {
   const [activeFormMode, setActiveFormMode] = useState<'create' | 'edit' | null>(null)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
 
-  // Error state
-  const [displayedError, setDisplayedError] = useState<ReturnType<typeof formatError> | null>(null)
-
   const { data: transactions, isLoading, isError, error } = useTransactions(tenantId || null, appliedFilters)
   const { data: transactionTypes } = useTransactionTypes()
   const { data: accounts } = useAccounts(tenantId || null)
   const { data: tenantConfig } = useTenantConfig(tenantId || null)
-
-  // Format error when it changes
-  useEffect(() => {
-    if (error) {
-      setDisplayedError(formatError(error))
-    } else {
-      setDisplayedError(null)
-    }
-  }, [error])
 
   const initialDateMissing = !tenantConfig?.systemInitialDate
 
@@ -221,10 +207,7 @@ export function TransactionsPage() {
       </Box>
 
       {isLoading && <Typography>{t('transactionsPage.loading')}</Typography>}
-      {isError && displayedError && (
-        <ErrorMessage error={displayedError} onDismiss={() => setDisplayedError(null)} />
-      )}
-      {isError && !displayedError && <Alert severity="error">{t('transactionsPage.error')}</Alert>}
+      {isError && <ErrorMessage error={error ?? null} />}
 
       {!isLoading && !isError && (
         <Table size="small" data-testid="transactions-table">

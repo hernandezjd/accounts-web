@@ -40,6 +40,10 @@ function createAuthenticatedFetch() {
       localStorage.removeItem('id_token')
       localStorage.removeItem('refresh_token')
 
+      // Clear session storage to prevent TenantPickerPage from auto-redirecting
+      // back to the same page before the user re-authenticates
+      sessionStorage.removeItem('lastTenantId')
+
       // Redirect to login
       // Using window.location to force a page reload and auth flow restart
       window.location.href = '/'

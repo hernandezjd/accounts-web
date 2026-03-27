@@ -40,7 +40,6 @@ import { ThemeEditorTab } from './ThemeEditorTab'
 import { PrefilledChartsTab } from './PrefilledChartsTab'
 import { translateApiError } from '@/utils/errorUtils'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError } from '@/lib/error/useErrorHandler'
 import { TenantFormDialog } from '@/pages/TenantFormDialog'
 import type { TenantFormData } from '@/pages/TenantFormDialog'
 import { AccountPicker } from '@/components/AccountPicker'
@@ -138,7 +137,7 @@ function TenantsTab() {
   const { deactivateTenant, reactivateTenant } = useTenantMutations()
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<TenantRow | undefined>(undefined)

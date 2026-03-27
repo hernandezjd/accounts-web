@@ -27,7 +27,6 @@ import { useTransactionById } from '@/hooks/api/useTransactionById'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError } from '@/lib/error/useErrorHandler'
 import { PeriodControls } from './PeriodControls'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from './TransactionForm'
 
@@ -83,7 +82,7 @@ export function TransactionView({
   )
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   // ── Form state ──
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)

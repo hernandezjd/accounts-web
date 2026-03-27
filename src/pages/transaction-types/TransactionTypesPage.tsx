@@ -23,7 +23,6 @@ import { useTransactionTypes, type TransactionType } from '@/hooks/api/useTransa
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
 import { translateApiError } from '@/utils/errorUtils'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError } from '@/lib/error/useErrorHandler'
 
 // ─── TransactionTypeFormDialog ─────────────────────────────────────────────────
 
@@ -171,7 +170,7 @@ export function TransactionTypesContent({ hideTitle = false }: TransactionTypesC
   const { data: types, isLoading, isError, error: apiError, refetch } = useTransactionTypes()
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<TransactionType | undefined>(undefined)

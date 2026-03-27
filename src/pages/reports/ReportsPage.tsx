@@ -21,7 +21,6 @@ import { usePeriodReport, type PeriodReportWithClosureResponse, type PeriodRepor
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError } from '@/lib/error/useErrorHandler'
 
 // ─── Type guards & Helpers ──────────────────────────────────────────────────
 
@@ -97,7 +96,7 @@ function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false,
   )
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   const isFromDateBeforeInitial = !!(systemInitialDate && fromDate && fromDate < systemInitialDate)
   const isToDateBeforeInitial = !!(systemInitialDate && toDate && toDate < systemInitialDate)
@@ -291,7 +290,7 @@ function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false
   )
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   const isDateBeforeInitial = !!(systemInitialDate && date && date < systemInitialDate)
 
@@ -423,7 +422,7 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = fals
   )
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   const isDateBeforeInitial = !!(systemInitialDate && date && date < systemInitialDate)
   const canRun = Boolean(date) && Boolean(levelStr) && parseInt(levelStr, 10) >= 1 && !isDateBeforeInitial

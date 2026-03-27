@@ -29,7 +29,6 @@ import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { translateApiError } from '@/utils/errorUtils'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError } from '@/lib/error/useErrorHandler'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 
 // ─── AccountFormDialog ─────────────────────────────────────────────────────────
@@ -382,7 +381,7 @@ export function AccountsPage() {
   const { data: accounts, isLoading, isError, error: apiError, refetch } = useAccounts(tenantId || null, true)
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Account | undefined>(undefined)

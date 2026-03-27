@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError } from '@/lib/error/useErrorHandler'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -176,7 +175,7 @@ export function AccountingPage() {
   const { data, isLoading, isError, error: apiError, refetch } = usePeriodAccountSummary(tenantId, effectiveFrom, to, simulateClosure)
 
   // Format error for display with classification
-  const formattedError = apiError ? formatError(apiError, (apiError as any)?.status) : null
+  const formattedError = apiError ?? null
 
   // ── Snap period forward if it ends before systemInitialDate ──────────────
   // Use `to < systemInitialDate` (not `from`) so a yearly period that straddles
