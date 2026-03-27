@@ -50,8 +50,8 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
   },
 
   TENANT_ACCESS_REQUIRED: {
-    message: 'You don\'t have access to the requested organization.',
-    suggestion: 'Make sure you\'re accessing the correct organization, or contact support if you believe this is an error.',
+    message: 'You don\'t have access to the requested tenant.',
+    suggestion: 'Make sure you\'re accessing the correct tenant, or contact support if you believe this is an error.',
     supportContact: false,
     isRetryable: false,
   },
