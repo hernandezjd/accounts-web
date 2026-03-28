@@ -84,25 +84,24 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
                       error.errorCode === 'INTERNAL_SERVER_ERROR';
 
   return (
-    <Collapse in={true}>
-      <Alert
-        severity={severity}
-        icon={icon}
-        variant={variant}
-        sx={{ mb: 2 }}
-        action={
-          onDismiss && (
-            <IconButton
-              aria-label="close"
-              color="inherit"
-              size="small"
-              onClick={onDismiss}
-            >
-              <CloseIcon fontSize="inherit" />
-            </IconButton>
-          )
-        }
-      >
+    <Alert
+      severity={severity}
+      icon={icon}
+      variant={variant}
+      sx={{ mb: 2 }}
+      action={
+        onDismiss && (
+          <IconButton
+            aria-label="close"
+            color="inherit"
+            size="small"
+            onClick={onDismiss}
+          >
+            <CloseIcon fontSize="inherit" />
+          </IconButton>
+        )
+      }
+    >
         <Stack spacing={1}>
           <AlertTitle>{error.userMessage}</AlertTitle>
 
@@ -300,8 +299,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
         </Stack>
-      </Alert>
-    </Collapse>
+    </Alert>
   );
 };
 

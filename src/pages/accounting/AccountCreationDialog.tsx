@@ -4,6 +4,7 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
@@ -72,40 +73,42 @@ export function AccountCreationDialog({
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth scroll="paper">
       <DialogTitle>{t('transactionForm.createAccount')}</DialogTitle>
-      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {error && <ErrorMessage error={error} onDismiss={() => setError(null)} />}
-        <TextField
-          label={t('transactionForm.accountCode')}
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          required
-          size="small"
-          inputProps={{ 'data-testid': 'account-code-input' }}
-        />
-        <TextField
-          label={t('transactionForm.accountName')}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          size="small"
-          inputProps={{ 'data-testid': 'account-name-input' }}
-        />
-        <AccountPicker
-          tenantId={tenantId}
-          value={parentAccount}
-          onChange={setParentAccount}
-          label={t('transactionForm.parentAccount')}
-        />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={hasThirdParties}
-              onChange={(e) => setHasThirdParties(e.target.checked)}
-              data-testid="has-third-parties-checkbox"
-            />
-          }
-          label={t('accountForm.hasThirdParties')}
-        />
+      <DialogContent dividers>
+        <Stack spacing={2}>
+          {error && <ErrorMessage error={error} onDismiss={() => setError(null)} />}
+          <TextField
+            label={t('transactionForm.accountCode')}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            required
+            size="small"
+            inputProps={{ 'data-testid': 'account-code-input' }}
+          />
+          <TextField
+            label={t('transactionForm.accountName')}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            size="small"
+            inputProps={{ 'data-testid': 'account-name-input' }}
+          />
+          <AccountPicker
+            tenantId={tenantId}
+            value={parentAccount}
+            onChange={setParentAccount}
+            label={t('transactionForm.parentAccount')}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={hasThirdParties}
+                onChange={(e) => setHasThirdParties(e.target.checked)}
+                data-testid="has-third-parties-checkbox"
+              />
+            }
+            label={t('accountForm.hasThirdParties')}
+          />
+        </Stack>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>{t('common.cancel')}</Button>
