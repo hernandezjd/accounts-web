@@ -17,9 +17,11 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
+import Tooltip from '@mui/material/Tooltip'
 import { usePeriodReport, type PeriodReportWithClosureResponse, type PeriodReportResponse } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useUserActions } from '@/hooks/useUserActions'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 
 // ─── Type guards & Helpers ──────────────────────────────────────────────────
@@ -74,6 +76,8 @@ interface PeriodReportTabProps {
 
 function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: PeriodReportTabProps) {
   const { t } = useTranslation()
+  const { hasAction } = useUserActions()
+  const canViewReports = hasAction('view_reports')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [levelStr, setLevelStr] = useState('')
@@ -150,14 +154,18 @@ function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false,
           inputProps={{ min: 1, 'data-testid': 'period-level' }}
           sx={{ width: 200 }}
         />
-        <Button
-          variant="contained"
-          onClick={handleRun}
-          disabled={!fromDate || !toDate || isFromDateBeforeInitial || isToDateBeforeInitial}
-          data-testid="run-period-report-btn"
-        >
-          {t('reports.form.run')}
-        </Button>
+        <Tooltip title={!canViewReports ? t('common.insufficientPermissions') : ''}>
+          <span>
+            <Button
+              variant="contained"
+              onClick={handleRun}
+              disabled={!fromDate || !toDate || isFromDateBeforeInitial || isToDateBeforeInitial || !canViewReports}
+              data-testid="run-period-report-btn"
+            >
+              {t('reports.form.run')}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {isLoading && (
@@ -276,6 +284,8 @@ interface BalanceAtDateTabProps {
 
 function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: BalanceAtDateTabProps) {
   const { t } = useTranslation()
+  const { hasAction } = useUserActions()
+  const canViewReports = hasAction('view_reports')
   const [date, setDate] = useState('')
   const [appliedDate, setAppliedDate] = useState('')
   const [enabled, setEnabled] = useState(false)
@@ -318,14 +328,18 @@ function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false
           error={isDateBeforeInitial}
           helperText={isDateBeforeInitial ? t('reports.dateBeforeInitial') : ''}
         />
-        <Button
-          variant="contained"
-          onClick={handleRun}
-          disabled={!date || isDateBeforeInitial}
-          data-testid="run-balance-at-date-btn"
-        >
-          {t('reports.form.run')}
-        </Button>
+        <Tooltip title={!canViewReports ? t('common.insufficientPermissions') : ''}>
+          <span>
+            <Button
+              variant="contained"
+              onClick={handleRun}
+              disabled={!date || isDateBeforeInitial || !canViewReports}
+              data-testid="run-balance-at-date-btn"
+            >
+              {t('reports.form.run')}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {isLoading && (
@@ -405,6 +419,8 @@ interface BalanceAtLevelTabProps {
 
 function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: BalanceAtLevelTabProps) {
   const { t } = useTranslation()
+  const { hasAction } = useUserActions()
+  const canViewReports = hasAction('view_reports')
   const [date, setDate] = useState('')
   const [levelStr, setLevelStr] = useState('')
   const [appliedParams, setAppliedParams] = useState<{
@@ -460,14 +476,18 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = fals
           inputProps={{ min: 1, 'data-testid': 'level-input' }}
           sx={{ width: 160 }}
         />
-        <Button
-          variant="contained"
-          onClick={handleRun}
-          disabled={!canRun}
-          data-testid="run-balance-at-level-btn"
-        >
-          {t('reports.form.run')}
-        </Button>
+        <Tooltip title={!canViewReports ? t('common.insufficientPermissions') : ''}>
+          <span>
+            <Button
+              variant="contained"
+              onClick={handleRun}
+              disabled={!canRun || !canViewReports}
+              data-testid="run-balance-at-level-btn"
+            >
+              {t('reports.form.run')}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {isLoading && (
