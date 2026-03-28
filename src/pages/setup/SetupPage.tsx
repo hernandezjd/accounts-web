@@ -35,11 +35,13 @@ import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 import { useTenantConfigMutations } from '@/hooks/api/useTenantConfigMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureConfigMutations'
+import { useUserActions } from '@/hooks/useUserActions'
 import { TransactionTypesContent } from '@/pages/transaction-types/TransactionTypesPage'
 import { ThemeEditorTab } from './ThemeEditorTab'
 import { PrefilledChartsTab } from './PrefilledChartsTab'
 import { translateApiError } from '@/utils/errorUtils'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError, type FormattedError } from '@/lib/error/useErrorHandler'
 import { TenantFormDialog } from '@/pages/TenantFormDialog'
 import type { TenantFormData } from '@/pages/TenantFormDialog'
 import { AccountPicker } from '@/components/AccountPicker'
@@ -86,19 +88,19 @@ interface DeleteTenantDialogProps {
 function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) {
   const { t } = useTranslation()
   const { deleteTenant } = useTenantMutations()
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [error, setError] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
-    setErrorMsg(null)
+    setError(null)
     onClose()
   }
 
   const handleConfirm = () => {
     if (!tenant) return
-    setErrorMsg(null)
+    setError(null)
     deleteTenant.mutate(tenant.id, {
       onSuccess: handleClose,
-      onError: (err) => setErrorMsg(translateApiError(err, t)),
+      onError: (err) => setError(formatError(err)),
     })
   }
 
@@ -106,15 +108,15 @@ function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) 
     <Dialog open={open} onClose={handleClose} data-testid="delete-tenant-dialog">
       <DialogTitle>{t('setup.tenants.deleteTitle')}</DialogTitle>
       <DialogContent>
-        {errorMsg ? (
-          <Alert severity="error">{errorMsg}</Alert>
+        {error ? (
+          <ErrorMessage error={error} onDismiss={() => setError(null)} />
         ) : (
           <DialogContentText>{t('setup.tenants.deleteConfirm')}</DialogContentText>
         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>{t('common.cancel')}</Button>
-        {!errorMsg && (
+        {!error && (
           <Button
             color="error"
             onClick={handleConfirm}
@@ -135,6 +137,8 @@ function TenantsTab() {
   const { t } = useTranslation()
   const { data: tenants, isLoading, isError, error: apiError, refetch } = useTenants()
   const { deactivateTenant, reactivateTenant } = useTenantMutations()
+  const { hasAction } = useUserActions()
+  const canManageTenants = hasAction('manage_tenants')
 
   // Format error for display with classification
   const formattedError = apiError ?? null
@@ -147,14 +151,16 @@ function TenantsTab() {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Box sx={{ flexGrow: 1 }} />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
-          data-testid="new-tenant-btn"
-        >
-          {t('setup.tenants.newTenant')}
-        </Button>
+        {canManageTenants && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
+            data-testid="new-tenant-btn"
+          >
+            {t('setup.tenants.newTenant')}
+          </Button>
+        )}
       </Box>
 
       {isLoading && <Typography>{t('setup.tenants.loading')}</Typography>}
@@ -192,41 +198,45 @@ function TenantsTab() {
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => { setEditTarget(tenant); setFormOpen(true) }}
-                    aria-label={t('common.edit')}
-                    data-testid={`edit-tenant-${tenant.id}`}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  {tenant.status === 'active' ? (
-                    <IconButton
-                      size="small"
-                      onClick={() => deactivateTenant.mutate(tenant.id, {})}
-                      aria-label={t('setup.tenants.deactivate')}
-                      data-testid={`deactivate-tenant-${tenant.id}`}
-                    >
-                      <PauseIcon fontSize="small" />
-                    </IconButton>
-                  ) : (
-                    <IconButton
-                      size="small"
-                      onClick={() => reactivateTenant.mutate(tenant.id, {})}
-                      aria-label={t('setup.tenants.reactivate')}
-                      data-testid={`reactivate-tenant-${tenant.id}`}
-                    >
-                      <PlayArrowIcon fontSize="small" />
-                    </IconButton>
+                  {canManageTenants && (
+                    <>
+                      <IconButton
+                        size="small"
+                        onClick={() => { setEditTarget(tenant); setFormOpen(true) }}
+                        aria-label={t('common.edit')}
+                        data-testid={`edit-tenant-${tenant.id}`}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      {tenant.status === 'active' ? (
+                        <IconButton
+                          size="small"
+                          onClick={() => deactivateTenant.mutate(tenant.id, {})}
+                          aria-label={t('setup.tenants.deactivate')}
+                          data-testid={`deactivate-tenant-${tenant.id}`}
+                        >
+                          <PauseIcon fontSize="small" />
+                        </IconButton>
+                      ) : (
+                        <IconButton
+                          size="small"
+                          onClick={() => reactivateTenant.mutate(tenant.id, {})}
+                          aria-label={t('setup.tenants.reactivate')}
+                          data-testid={`reactivate-tenant-${tenant.id}`}
+                        >
+                          <PlayArrowIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                      <IconButton
+                        size="small"
+                        onClick={() => setDeleteTarget(tenant)}
+                        aria-label={t('common.delete')}
+                        data-testid={`delete-tenant-${tenant.id}`}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </>
                   )}
-                  <IconButton
-                    size="small"
-                    onClick={() => setDeleteTarget(tenant)}
-                    aria-label={t('common.delete')}
-                    data-testid={`delete-tenant-${tenant.id}`}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

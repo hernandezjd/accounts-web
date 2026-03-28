@@ -6,10 +6,10 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
-import Alert from '@mui/material/Alert'
 import { useTranslation } from 'react-i18next'
 import { useTenantMutations } from '@/hooks/api/useTenantMutations'
-import { translateApiError } from '@/utils/errorUtils'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { formatError, type FormattedError } from '@/lib/error/useErrorHandler'
 
 export interface TenantFormData {
   id: string
@@ -47,15 +47,15 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
   const [state, setState] = useState(editTenant?.address?.state ?? '')
   const [postalCode, setPostalCode] = useState(editTenant?.address?.postalCode ?? '')
   const [country, setCountry] = useState(editTenant?.address?.country ?? '')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [error, setError] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
-    setErrorMsg(null)
+    setError(null)
     onClose()
   }
 
   const handleSubmit = () => {
-    setErrorMsg(null)
+    setError(null)
     const body = {
       name,
       contactName: contactName || '',
@@ -73,7 +73,7 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
     if (isEdit) {
       updateTenant.mutate(
         { id: editTenant!.id, body },
-        { onSuccess: handleClose, onError: (err) => setErrorMsg(translateApiError(err, t)) },
+        { onSuccess: handleClose, onError: (err) => setError(formatError(err)) },
       )
     } else {
       createTenant.mutate(body, {
@@ -83,7 +83,7 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
             handleClose()
           }
         },
-        onError: (err) => setErrorMsg(translateApiError(err, t)),
+        onError: (err) => setError(formatError(err)),
       })
     }
   }
@@ -98,7 +98,7 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
         {isEdit ? t('setup.tenants.editTenant') : t('setup.tenants.createTenant')}
       </DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        {error && <ErrorMessage error={error} onDismiss={() => setError(null)} />}
         <TextField
           label={t('setup.tenants.name')}
           value={name}

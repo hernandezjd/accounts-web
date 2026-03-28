@@ -11,10 +11,12 @@ import Paper from '@mui/material/Paper'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+import Alert from '@mui/material/Alert'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { useTenants } from '@/hooks/api/useTenants'
 import { useAppStore } from '@/store/appStore'
+import { useUserActions } from '@/hooks/useUserActions'
 import { TenantFormDialog } from './TenantFormDialog'
 
 function tenantAccountingPath(id: string): string {
@@ -27,6 +29,8 @@ export function TenantPickerPage() {
   const { data: tenants, isLoading, isError, error } = useTenants()
   const [createOpen, setCreateOpen] = useState(false)
   const { language, setLanguage } = useAppStore()
+  const { hasAction } = useUserActions()
+  const canManageTenants = hasAction('manage_tenants')
 
   function handleLanguageChange(newLanguage: string) {
     setLanguage(newLanguage)
@@ -126,11 +130,17 @@ export function TenantPickerPage() {
             <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
               {t('tenant.noTenants')}
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-              <Button variant="contained" onClick={() => setCreateOpen(true)}>
-                {t('tenant.createFirstTenant')}
-              </Button>
-            </Box>
+            {canManageTenants ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                <Button variant="contained" onClick={() => setCreateOpen(true)}>
+                  {t('tenant.createFirstTenant')}
+                </Button>
+              </Box>
+            ) : (
+              <Alert severity="warning" sx={{ mt: 3 }}>
+                {t('tenant.insufficientPermissionsCreate')}
+              </Alert>
+            )}
             <TenantFormDialog
               open={createOpen}
               onClose={() => setCreateOpen(false)}

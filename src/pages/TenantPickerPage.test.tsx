@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { TenantPickerPage } from './TenantPickerPage'
 import i18n from '@/i18n'
+import * as useAuthContextModule from '@/hooks/useAuthContext'
 
 // Mock the apiClient
 vi.mock('@/api/apiClient', () => ({
@@ -17,6 +18,13 @@ vi.mock('@/api/apiClient', () => ({
 
 // Import after mock so we get the mocked version
 import { apiClient } from '@/api/apiClient'
+
+// Default auth mock: user has manage_tenants permission
+const defaultAuthMock = {
+  user: { profile: { actions: ['manage_tenants'], tenants: ['tenant-1', 'tenant-2'] } },
+  isAuthenticated: true,
+  isLoading: false,
+}
 
 const mockTenants = [
   { id: 'tenant-1', name: 'Acme Corp', status: 'active' as const },
@@ -38,6 +46,8 @@ beforeEach(() => {
   vi.clearAllMocks()
   // Reset language to English before each test
   i18n.changeLanguage('en')
+  // Mock auth context with manage_tenants permission by default
+  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
 })
 
 afterEach(() => {
@@ -191,6 +201,25 @@ describe('TenantPickerPage', () => {
       expect(ariaLabel).toBeTruthy()
       // In English, should be "Help", in Spanish "Ayuda"
       expect(['Help', 'Ayuda']).toContain(ariaLabel)
+    })
+  })
+
+  it('hides create button and shows permission warning when user lacks manage_tenants action', async () => {
+    // Mock user without manage_tenants permission
+    vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
+      user: { profile: { actions: [], tenants: [] } },
+      isAuthenticated: true,
+      isLoading: false,
+    } as any)
+
+    mockGet([])
+    renderWithProviders(<TenantPickerPage />)
+    await waitFor(() => {
+      expect(screen.getByText(/no tenants available/i)).toBeInTheDocument()
+      // Create button should not be present
+      expect(screen.queryByRole('button', { name: /create your first tenant/i })).not.toBeInTheDocument()
+      // Permission warning should be displayed
+      expect(screen.getByText(/do not have permission to create tenants/i)).toBeInTheDocument()
     })
   })
 })

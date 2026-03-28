@@ -33,7 +33,8 @@
     "autoSelecting": "Seleccionando tu tenant automáticamente...",
     "noTenants": "No hay tenants disponibles",
     "switchTenant": "Cambiar Tenant",
-    "createFirstTenant": "Crear tu primer tenant"
+    "createFirstTenant": "Crear tu primer tenant",
+    "insufficientPermissionsCreate": "No tienes permiso para crear tenants. Contacta a tu administrador del sistema."
   },
   "shortcuts": {
     "title": "Atajos de Teclado",
