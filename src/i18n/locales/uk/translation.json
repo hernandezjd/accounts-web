@@ -11,7 +11,8 @@
     "search": "Пошук...",
     "goToSetup": "Перейти до налаштування",
     "debit": "Дебет",
-    "credit": "Кредит"
+    "credit": "Кредит",
+    "insufficientPermissions": "Недостатньо дозволів"
   },
   "nav": {
     "accounting": "Бухгалтерія",

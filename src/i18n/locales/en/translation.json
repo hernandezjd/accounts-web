@@ -11,7 +11,8 @@
     "search": "Search...",
     "goToSetup": "Go to Setup",
     "debit": "Debit",
-    "credit": "Credit"
+    "credit": "Credit",
+    "insufficientPermissions": "Insufficient Permissions"
   },
   "nav": {
     "accounting": "Accounting",

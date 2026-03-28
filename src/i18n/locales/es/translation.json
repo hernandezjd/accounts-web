@@ -11,7 +11,8 @@
     "goToSetup": "Ir a Configuración",
     "close": "Cerrar",
     "debit": "Débito",
-    "credit": "Crédito"
+    "credit": "Crédito",
+    "insufficientPermissions": "Permisos Insuficientes"
   },
   "nav": {
     "accounting": "Contabilidad",

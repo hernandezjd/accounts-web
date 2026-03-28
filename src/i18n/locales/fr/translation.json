@@ -11,7 +11,8 @@
     "search": "Rechercher...",
     "goToSetup": "Aller au paramétrage",
     "debit": "Débit",
-    "credit": "Crédit"
+    "credit": "Crédit",
+    "insufficientPermissions": "Autorisations insuffisantes"
   },
   "nav": {
     "accounting": "Comptabilité",
