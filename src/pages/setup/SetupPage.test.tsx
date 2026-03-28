@@ -393,7 +393,16 @@ describe('SetupPage — loading / error states', () => {
   })
 
   it('shows error in Accounting Config tab', async () => {
-    mockUseTenantConfig.mockReturnValue({ data: undefined, isLoading: false, isError: true } as ReturnType<typeof useTenantConfig>)
+    const mockError = {
+      userMessage: 'Failed to load config',
+      errorCode: 'UNKNOWN_ERROR',
+      requestId: 'req-123',
+      timestamp: '2024-01-01T00:00:00Z',
+      isRetryable: true,
+      showSupportContact: false,
+      classification: 'transient' as const,
+    }
+    mockUseTenantConfig.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: mockError } as ReturnType<typeof useTenantConfig>)
     const user = userEvent.setup()
     render()
     await user.click(screen.getByTestId('tab-accounting-config'))

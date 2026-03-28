@@ -735,8 +735,8 @@ function ClosingTransactionTypeDialog({
 
 function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; initialEditMode?: string | null }) {
   const { t } = useTranslation()
-  const { data: config, isLoading: configLoading, isError: configError } = useTenantConfig(tenantId)
-  const { data: codeStructure, isLoading: csLoading, isError: csError } = useCodeStructureConfig(tenantId)
+  const { data: config, isLoading: configLoading, isError: configHasError, error: configError } = useTenantConfig(tenantId)
+  const { data: codeStructure, isLoading: csLoading, isError: csHasError, error: csError } = useCodeStructureConfig(tenantId)
   const { data: allAccounts } = useAccounts(tenantId)
   const { data: transactionTypes } = useTransactionTypes()
   const mutations = useTenantConfigMutations(tenantId)
@@ -748,7 +748,8 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
   const [editError, setEditError] = useState<string | null>(null)
 
   const isLoading = configLoading || csLoading
-  const isError = configError || csError
+  const isError = configHasError || csHasError
+  const error = configError ?? csError
 
   if (isLoading) {
     return (
@@ -760,7 +761,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
   }
 
   if (isError) {
-    return <Alert severity="error">{t('setup.config.error')}</Alert>
+    return <ErrorMessage error={error} />
   }
 
   const handleFieldSave = (

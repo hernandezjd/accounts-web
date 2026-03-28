@@ -47,12 +47,15 @@ export function useApiQuery<TData,>(
     queryFn: async () => {
       const response = await queryFn()
 
-      // Handle ApiResponse format from apiClient
-      if ('error' in response && 'data' in response) {
+      // Handle ApiResponse format from apiClient.
+      // Error responses have { error, response } with no 'data' key, so we check
+      // for 'response' (the HTTP Response object) to identify all ApiResponse shapes.
+      if ('response' in response) {
         const apiResponse = response as ApiResponse<TData>
 
         if (apiResponse.error) {
-          // Error is already formatted as FormattedError from apiClient
+          // Already a FormattedError — throw as-is to preserve httpStatus,
+          // requestUrl, responseBody populated by apiClient.
           throw apiResponse.error
         }
 

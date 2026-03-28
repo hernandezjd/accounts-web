@@ -14,9 +14,9 @@ import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
-import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
 import {
   usePrefilledCharts,
   usePrefilledChartDetail,
@@ -56,7 +56,7 @@ export function PrefilledChartsTab() {
   }
 
   if (error) {
-    return <Alert severity="error">{t('prefilledCharts.error')}</Alert>
+    return <ErrorMessage error={error} />
   }
 
   return (
@@ -68,10 +68,8 @@ export function PrefilledChartsTab() {
         {t('prefilledCharts.description')}
       </Typography>
 
-      {mergeMutation.isError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {mergeMutation.error?.userMessage}
-        </Alert>
+      {mergeMutation.isError && mergeMutation.error && (
+        <ErrorMessage error={mergeMutation.error} />
       )}
 
       <Table size="small">
