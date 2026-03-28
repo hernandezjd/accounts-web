@@ -27,8 +27,8 @@ import { useTranslation } from 'react-i18next'
 import { useAccounts, type Account } from '@/hooks/api/useAccounts'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
-import { translateApiError } from '@/utils/errorUtils'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
+import type { FormattedError } from '@/lib/error/useErrorHandler'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 
 // ─── AccountFormDialog ─────────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ function AccountFormDialog({
   )
   const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [hasThirdParties, setHasThirdParties] = useState(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
     setCode(editAccount?.code ?? '')
@@ -98,7 +98,7 @@ function AccountFormDialog({
         { id: editAccount!.id!, body: { code, name, parentId: parentId ?? undefined } as any },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => setErrorMsg(err),
         },
       )
     } else {
@@ -106,7 +106,7 @@ function AccountFormDialog({
         { code, name, hasThirdParties, parentId: parentAccount?.id },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => setErrorMsg(err),
         },
       )
     }
@@ -118,7 +118,7 @@ function AccountFormDialog({
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <DialogTitle>{isEdit ? t('accounts.editAccount') : t('accounts.createAccount')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        {errorMsg && <ErrorMessage error={errorMsg} />}
         <TextField
           label={t('accounts.code')}
           value={code}
@@ -197,7 +197,7 @@ interface DeactivateAccountDialogProps {
 function DeactivateAccountDialog({ open, onClose, account, tenantId }: DeactivateAccountDialogProps) {
   const { t } = useTranslation()
   const { deactivateAccount } = useAccountMutations(tenantId)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
     setErrorMsg(null)
@@ -209,7 +209,7 @@ function DeactivateAccountDialog({ open, onClose, account, tenantId }: Deactivat
     setErrorMsg(null)
     deactivateAccount.mutate(account.id, {
       onSuccess: handleClose,
-      onError: (err) => setErrorMsg(translateApiError(err, t)),
+      onError: (err) => setErrorMsg(err),
     })
   }
 
@@ -218,7 +218,7 @@ function DeactivateAccountDialog({ open, onClose, account, tenantId }: Deactivat
       <DialogTitle>{t('accounts.deactivateTitle')}</DialogTitle>
       <DialogContent>
         {errorMsg ? (
-          <Alert severity="error">{errorMsg}</Alert>
+          <ErrorMessage error={errorMsg} />
         ) : (
           <DialogContentText>{t('accounts.deactivateConfirm')}</DialogContentText>
         )}
@@ -252,7 +252,7 @@ interface ReactivateAccountDialogProps {
 function ReactivateAccountDialog({ open, onClose, account, tenantId }: ReactivateAccountDialogProps) {
   const { t } = useTranslation()
   const { activateAccount } = useAccountMutations(tenantId)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
     setErrorMsg(null)
@@ -264,7 +264,7 @@ function ReactivateAccountDialog({ open, onClose, account, tenantId }: Reactivat
     setErrorMsg(null)
     activateAccount.mutate(account.id, {
       onSuccess: handleClose,
-      onError: (err) => setErrorMsg(translateApiError(err, t)),
+      onError: (err) => setErrorMsg(err),
     })
   }
 
@@ -273,7 +273,7 @@ function ReactivateAccountDialog({ open, onClose, account, tenantId }: Reactivat
       <DialogTitle>{t('accounts.reactivateTitle')}</DialogTitle>
       <DialogContent>
         {errorMsg ? (
-          <Alert severity="error">{errorMsg}</Alert>
+          <ErrorMessage error={errorMsg} />
         ) : (
           <DialogContentText>{t('accounts.reactivateConfirm')}</DialogContentText>
         )}
@@ -309,7 +309,7 @@ function ToggleTpDialog({ open, onClose, account, tenantId }: ToggleTpDialogProp
   const { t } = useTranslation()
   const { toggleHasThirdParties } = useAccountMutations(tenantId)
   const [thirdPartyId, setThirdPartyId] = useState('')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
   const [needsThirdPartyId, setNeedsThirdPartyId] = useState(false)
 
   const enabling = !account?.hasThirdParties
@@ -329,11 +329,11 @@ function ToggleTpDialog({ open, onClose, account, tenantId }: ToggleTpDialogProp
       {
         onSuccess: handleClose,
         onError: (err) => {
-          const msg = err instanceof Error ? err.message : ''
+          const msg = (err as any).userMessage || (err instanceof Error ? err.message : '')
           if (enabling && msg.toLowerCase().includes('thirdparty')) {
             setNeedsThirdPartyId(true)
           }
-          setErrorMsg(translateApiError(err, t))
+          setErrorMsg(err)
         },
       },
     )
@@ -346,7 +346,7 @@ function ToggleTpDialog({ open, onClose, account, tenantId }: ToggleTpDialogProp
         <DialogContentText>
           {enabling ? t('accounts.toggleTpEnable') : t('accounts.toggleTpDisable')}
         </DialogContentText>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        {errorMsg && <ErrorMessage error={errorMsg} />}
         {needsThirdPartyId && (
           <TextField
             label={t('accounts.toggleTpThirdPartyId')}

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { AccountsPage } from './AccountsPage'
 import type { Account } from '@/hooks/api/useAccounts'
+import type { FormattedError } from '@/lib/error/useErrorHandler'
 
 // ─── Mock hooks ─────────────────────────────────────────────────────────────
 
@@ -178,7 +179,19 @@ describe('AccountsPage', () => {
 
   it('shows friendly message on 409 deactivate error', async () => {
     const deactivateMutate = vi.fn((_id, opts) => {
-      opts.onError(new Error('409 Conflict: has transactions'))
+      const formattedError: FormattedError = {
+        userMessage: 'Account has child accounts and cannot be deactivated',
+        suggestion: 'Please deactivate child accounts first',
+        errorCode: 'ACCOUNT_HAS_CHILDREN',
+        requestId: 'req-123',
+        isRetryable: false,
+        showSupportContact: false,
+        rawDetails: {},
+        httpStatus: 409,
+        requestUrl: '/api/accounts/acc-1/deactivate',
+        responseBody: '{"error": "has transactions"}',
+      }
+      opts.onError(formattedError)
     })
     mockUseAccountMutations.mockReturnValue({
       createAccount: { ...noOpMutation },

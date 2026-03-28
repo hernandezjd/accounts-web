@@ -78,9 +78,6 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   const is5xxError = (error.errorCode?.startsWith('HTTP_5') ?? false) ||
                       error.errorCode === 'INTERNAL_SERVER_ERROR';
 
-  // Determine if this is a 403 Forbidden error (hide request ID and debug info for permission errors)
-  const is403Error = error.errorCode === 'FORBIDDEN' || error.errorCode === 'HTTP_403';
-
   return (
     <Collapse in={true}>
       <Alert
@@ -125,8 +122,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show request ID prominently for 5xx errors with copy button (not for 403) */}
-          {showRequestId && is5xxError && !is403Error && (
+          {/* Show request ID prominently for 5xx errors with copy button */}
+          {showRequestId && is5xxError && (
             <Box sx={{
               mt: 1,
               p: 1.5,
@@ -164,8 +161,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show request ID for other errors (except 403) */}
-          {showRequestId && !is5xxError && !is403Error && (
+          {/* Show request ID for other errors */}
+          {showRequestId && !is5xxError && (
             <Box sx={{ mt: 1, p: 1, backgroundColor: 'rgba(0, 0, 0, 0.05)', borderRadius: 1 }}>
               <Typography variant="caption" component="div">
                 <strong>Request ID:</strong>{' '}
@@ -212,8 +209,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show debug information if available (except for 403 permission errors) */}
-          {!is403Error && (error.httpStatus !== undefined || error.requestUrl || error.responseBody) && (
+          {/* Show debug information if available */}
+          {(error.httpStatus !== undefined || error.requestUrl || error.responseBody) && (
             <Box sx={{ mt: 2, p: 1.5, backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 1, border: '1px solid rgba(0, 0, 0, 0.15)' }}>
               <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 1, color: 'inherit' }}>
                 DEBUG
