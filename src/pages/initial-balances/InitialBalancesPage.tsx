@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useInitialBalances } from '@/hooks/api/useInitialBalances'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useTenantAccess } from '@/hooks/useTenantAccess'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from '@/pages/accounting/TransactionForm'
@@ -32,6 +33,7 @@ export function InitialBalancesPage() {
   const { tenantId } = useParams<{ tenantId: string }>()
   const { data, isLoading, isError, error: apiError, refetch } = useInitialBalances(tenantId)
   const { data: tenantConfig } = useTenantConfig(tenantId)
+  const { hasTenantAccess } = useTenantAccess()
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
 
   // Format error for display with classification
@@ -40,6 +42,7 @@ export function InitialBalancesPage() {
   if (!tenantId) return null
 
   const initialDateMissing = !tenantConfig?.systemInitialDate
+  const hasAccess = hasTenantAccess(tenantId)
 
   return (
     <Box sx={{ p: 3 }}>
@@ -57,7 +60,7 @@ export function InitialBalancesPage() {
         </Button>
       </Box>
 
-      {initialDateMissing && (
+      {initialDateMissing && hasAccess && (
         <InitialDateConfigurationAlert
           tenantId={tenantId}
           messageKey="initialBalances.initialDateNotConfiguredWarning"
