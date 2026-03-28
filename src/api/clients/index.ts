@@ -32,8 +32,9 @@ function createAuthenticatedFetch() {
     // (set by AuthProvider's onSigninCallback)
     const token = localStorage.getItem('access_token')
 
-    // Create a new headers object including the Bearer token and X-Tenant-Id
-    const headers = new Headers(init?.headers ?? {})
+    // Merge headers from the Request object (set by openapi-fetch) and init overrides
+    const requestHeaders = input instanceof Request ? input.headers : undefined
+    const headers = new Headers(requestHeaders ?? init?.headers ?? {})
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     }
