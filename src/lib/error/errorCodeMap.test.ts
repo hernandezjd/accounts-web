@@ -118,4 +118,28 @@ describe('errorCodeMap', () => {
       expect(ERROR_CODE_MAP.HTTP_403.isRetryable).toBe(false)
     })
   })
+
+  describe('Error Severity', () => {
+    it('all 403-related errors have warning severity', () => {
+      const error403Codes = [
+        'ACTION_NOT_ALLOWED',
+        'INSUFFICIENT_PERMISSIONS',
+        'ROLE_REQUIRED',
+        'TENANT_ACCESS_REQUIRED',
+        'FORBIDDEN',
+        'HTTP_403',
+      ]
+      error403Codes.forEach(code => {
+        const mapping = ERROR_CODE_MAP[code as keyof typeof ERROR_CODE_MAP]
+        expect(mapping.severity).toBe('warning', `${code} should have warning severity`)
+      })
+    })
+
+    it('other error codes default to error severity (undefined)', () => {
+      // HTTP_500 should not have severity set (defaults to error)
+      expect(ERROR_CODE_MAP.HTTP_500.severity).toBeUndefined()
+      // HTTP_401 should not have severity set (defaults to error)
+      expect(ERROR_CODE_MAP.HTTP_401.severity).toBeUndefined()
+    })
+  })
 })

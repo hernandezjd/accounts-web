@@ -37,6 +37,7 @@ export interface ErrorMessageProps {
   onRetry?: () => void | Promise<void>;
   showRequestId?: boolean;
   variant?: 'standard' | 'filled' | 'outlined';
+  // severity is now derived from error.severity; this prop is deprecated
   severity?: 'error' | 'warning';
 }
 
@@ -54,7 +55,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   onRetry,
   showRequestId = true,
   variant = 'filled',
-  severity = 'error',
+  severity: severityProp = 'error',
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [debugExpanded, setDebugExpanded] = useState(false);
@@ -63,6 +64,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
     return null;
   }
 
+  // Use severity from error object, fall back to prop for backward compatibility
+  const severity = error.severity ?? severityProp;
   const icon = severity === 'error' ? <ErrorOutlineIcon /> : <WarningIcon />;
   const isRetryable = error.isRetryable && onRetry !== undefined;
 

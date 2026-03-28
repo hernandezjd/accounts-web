@@ -11,6 +11,7 @@ export interface ErrorCodeMapping {
   suggestion?: string;
   supportContact?: boolean;
   isRetryable?: boolean; // Mark if this error can be retried (default: false)
+  severity?: 'error' | 'warning'; // Mark as warning for non-critical issues like 403 (default: error)
 }
 
 export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
@@ -33,6 +34,7 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     suggestion: 'Contact your administrator if you believe you should have access to this feature.',
     supportContact: false,
     isRetryable: false,
+    severity: 'warning',
   },
 
   INSUFFICIENT_PERMISSIONS: {
@@ -40,6 +42,7 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     suggestion: 'Contact your administrator to request the required permissions.',
     supportContact: false,
     isRetryable: false,
+    severity: 'warning',
   },
 
   ROLE_REQUIRED: {
@@ -47,6 +50,7 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     suggestion: 'Contact your administrator to request the required role or permissions.',
     supportContact: false,
     isRetryable: false,
+    severity: 'warning',
   },
 
   TENANT_ACCESS_REQUIRED: {
@@ -54,6 +58,7 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     suggestion: 'Make sure you\'re accessing the correct tenant, or contact support if you believe this is an error.',
     supportContact: false,
     isRetryable: false,
+    severity: 'warning',
   },
 
   FORBIDDEN: {
@@ -61,6 +66,7 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     suggestion: 'Contact your administrator if you believe you should have access.',
     supportContact: false,
     isRetryable: false,
+    severity: 'warning',
   },
 
   HTTP_403: {
@@ -68,6 +74,7 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     suggestion: 'Contact your administrator if you believe you should have access.',
     supportContact: false,
     isRetryable: false,
+    severity: 'warning',
   },
 
   // Transaction Query Errors

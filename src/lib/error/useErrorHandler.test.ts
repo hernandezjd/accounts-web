@@ -283,4 +283,94 @@ describe('useErrorHandler', () => {
       expect(result.requestId).toBe('req-403-12345');
     });
   });
+
+  describe('formatError - error severity', () => {
+    it('sets warning severity for ACTION_NOT_ALLOWED', () => {
+      const error = { errorCode: 'ACTION_NOT_ALLOWED', message: 'Permission denied', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.severity).toBe('warning');
+    });
+
+    it('sets warning severity for INSUFFICIENT_PERMISSIONS', () => {
+      const error = { errorCode: 'INSUFFICIENT_PERMISSIONS', message: 'Insufficient permissions', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.severity).toBe('warning');
+    });
+
+    it('sets warning severity for ROLE_REQUIRED', () => {
+      const error = { errorCode: 'ROLE_REQUIRED', message: 'Role required', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.severity).toBe('warning');
+    });
+
+    it('sets warning severity for TENANT_ACCESS_REQUIRED', () => {
+      const error = { errorCode: 'TENANT_ACCESS_REQUIRED', message: 'Tenant access required', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.severity).toBe('warning');
+    });
+
+    it('sets warning severity for FORBIDDEN', () => {
+      const error = { errorCode: 'FORBIDDEN', message: 'Forbidden', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 403);
+
+      expect(result.severity).toBe('warning');
+    });
+
+    it('sets error severity for non-403 errors (default)', () => {
+      const error = { errorCode: 'INTERNAL_SERVER_ERROR', message: 'Server error', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+      const result = formatError(error, 500);
+
+      expect(result.severity).toBe('error');
+    });
+
+    it('sets error severity for unknown errors', () => {
+      const error = new Error('Unknown');
+      const result = formatError(error);
+
+      expect(result.severity).toBe('error');
+    });
+  });
+
+  describe('parseErrorResponse - error severity', () => {
+    it('sets warning severity for HTTP_403 in fallback scenario', async () => {
+      const mockResponse = {
+        status: 403,
+        json: () => Promise.reject(new Error('Invalid JSON')),
+        headers: { get: () => null },
+      } as unknown as Response;
+
+      const result = await parseErrorResponse(mockResponse);
+
+      expect(result.severity).toBe('warning');
+    });
+
+    it('sets error severity for HTTP_500 in fallback scenario', async () => {
+      const mockResponse = {
+        status: 500,
+        json: () => Promise.reject(new Error('Invalid JSON')),
+        headers: { get: () => null },
+      } as unknown as Response;
+
+      const result = await parseErrorResponse(mockResponse);
+
+      expect(result.severity).toBe('error');
+    });
+
+    it('respects severity from structured error response', async () => {
+      const mockError = { errorCode: 'ACTION_NOT_ALLOWED', message: 'Permission denied', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' };
+      const mockResponse = {
+        status: 403,
+        json: () => Promise.resolve(mockError),
+        headers: { get: () => null },
+      } as unknown as Response;
+
+      const result = await parseErrorResponse(mockResponse);
+
+      expect(result.severity).toBe('warning');
+    });
+  });
 });

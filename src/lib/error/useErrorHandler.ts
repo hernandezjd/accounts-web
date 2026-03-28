@@ -28,6 +28,7 @@ export interface FormattedError {
   rawDetails?: Record<string, unknown>;
   classification: ErrorClassification;
   isRetryable: boolean;
+  severity: 'error' | 'warning';
   // Debug information (populated only when debug mode is enabled)
   httpStatus?: number;
   requestUrl?: string;
@@ -66,6 +67,7 @@ export function formatError(error: unknown, statusCode?: number): FormattedError
       rawDetails: structuredError.details,
       classification,
       isRetryable,
+      severity: errorCodeMapping?.severity ?? 'error',
     };
   }
 
@@ -82,6 +84,7 @@ export function formatError(error: unknown, statusCode?: number): FormattedError
     showSupportContact: true,
     classification,
     isRetryable,
+    severity: 'error',
   };
 }
 
@@ -113,6 +116,7 @@ export async function parseErrorResponse(response: Response): Promise<FormattedE
       showSupportContact: true,
       classification,
       isRetryable,
+      severity: errorCodeMapping?.severity ?? 'error',
     };
   }
 }

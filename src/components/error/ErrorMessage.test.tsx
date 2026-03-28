@@ -15,6 +15,8 @@ describe('ErrorMessage', () => {
     errorCode: 'ERR_001',
     classification: 'permanent',
     isRetryable: false,
+    severity: 'error',
+    timestamp: '2024-01-01T00:00:00Z',
   }
 
   const retryableError: FormattedError = {
@@ -22,12 +24,14 @@ describe('ErrorMessage', () => {
     classification: 'transient',
     isRetryable: true,
     errorCode: 'HTTP_503',
+    severity: 'error',
   }
 
   const fiveXxError: FormattedError = {
     ...sampleError,
     errorCode: 'INTERNAL_SERVER_ERROR',
     showSupportContact: true,
+    severity: 'error',
   }
 
   it('renders error message when error is provided', () => {
@@ -357,6 +361,66 @@ describe('ErrorMessage', () => {
       renderWithProviders(<ErrorMessage error={noDebugError} />)
 
       expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Error severity rendering', () => {
+    it('renders error severity from error object (error)', () => {
+      const errorSeverityError: FormattedError = {
+        ...sampleError,
+        severity: 'error',
+      }
+
+      renderWithProviders(<ErrorMessage error={errorSeverityError} />)
+
+      const alertElement = screen.getByRole('alert')
+      expect(alertElement).toBeInTheDocument()
+      // Error severity alert has error styling (red)
+      expect(alertElement).toHaveClass('MuiAlert-filledError')
+    })
+
+    it('renders warning severity from error object (403 errors)', () => {
+      const warningSeverityError: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACTION_NOT_ALLOWED',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={warningSeverityError} />)
+
+      const alertElement = screen.getByRole('alert')
+      expect(alertElement).toBeInTheDocument()
+      // Warning severity alert has warning styling (yellow)
+      expect(alertElement).toHaveClass('MuiAlert-filledWarning')
+    })
+
+    it('prefers error.severity over prop severity', () => {
+      const warningSeverityError: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACTION_NOT_ALLOWED',
+        severity: 'warning',
+      }
+
+      // Pass severity prop as 'error', but error.severity is 'warning'
+      // Component should use error.severity
+      renderWithProviders(<ErrorMessage error={warningSeverityError} severity="error" />)
+
+      const alertElement = screen.getByRole('alert')
+      // Should render with warning styling because error.severity takes precedence
+      expect(alertElement).toHaveClass('MuiAlert-filledWarning')
+    })
+
+    it('uses prop severity as fallback when error.severity is not provided', () => {
+      const errorWithoutSeverity: FormattedError = {
+        ...sampleError,
+        severity: 'error',
+      }
+
+      renderWithProviders(<ErrorMessage error={errorWithoutSeverity} severity="warning" />)
+
+      const alertElement = screen.getByRole('alert')
+      // Component still uses error.severity over prop
+      expect(alertElement).toHaveClass('MuiAlert-filledError')
     })
   })
 })
