@@ -5,12 +5,13 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
-import Alert from '@mui/material/Alert'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { useTranslation } from 'react-i18next'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import type { FormattedError } from '@/lib/error/useErrorHandler'
 
 interface CreatedAccount {
   id: string
@@ -39,10 +40,10 @@ export function AccountCreationDialog({
   const [name, setName] = useState('')
   const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [hasThirdParties, setHasThirdParties] = useState(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [error, setError] = useState<FormattedError | null>(null)
 
   const handleSubmit = () => {
-    setErrorMsg(null)
+    setError(null)
     createAccount.mutate(
       { code, name, hasThirdParties, parentId: parentAccount?.id },
       {
@@ -54,7 +55,7 @@ export function AccountCreationDialog({
           setHasThirdParties(false)
           onClose()
         },
-        onError: (err) => setErrorMsg(err.userMessage),
+        onError: (err) => setError(err),
       },
     )
   }
@@ -64,15 +65,15 @@ export function AccountCreationDialog({
     setName('')
     setParentAccount(null)
     setHasThirdParties(false)
-    setErrorMsg(null)
+    setError(null)
     onClose()
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth scroll="paper">
       <DialogTitle>{t('transactionForm.createAccount')}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {error && <ErrorMessage error={error} onDismiss={() => setError(null)} />}
         <TextField
           label={t('transactionForm.accountCode')}
           value={code}

@@ -208,6 +208,7 @@ class ApiClient {
         formattedError.httpStatus = response.status
         formattedError.requestUrl = `${method} ${url}`
 
+
         return {
           error: formattedError,
           response,
