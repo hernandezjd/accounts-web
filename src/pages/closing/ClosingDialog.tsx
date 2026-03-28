@@ -5,7 +5,6 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 import Table from '@mui/material/Table'
@@ -17,8 +16,10 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { useExecuteClosingMutation } from '@/hooks/api/useExecuteClosingMutation'
 import { useClosingPreview } from '@/hooks/api/useClosingPreview'
-import { translateApiError } from '@/utils/errorUtils'
+import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { components as Reporting } from '@/api/generated/reporting-api'
+import type { FormattedError } from '@/lib/error/useErrorHandler'
 
 type ClosingAccountLine = Reporting['schemas']['ClosingAccountLine']
 
@@ -43,7 +44,7 @@ export function ClosingDialog({ tenantId, open, onClose, onSuccess }: ClosingDia
   const [stage, setStage] = useState<DialogStage>('input')
   const [closingDate, setClosingDate] = useState('')
   const [description, setDescription] = useState('')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const { error, setError, clearError } = useErrorHandler()
   const [showPreviewFetch, setShowPreviewFetch] = useState(false)
 
   // Fetch closing preview when dates are available and preview is requested
@@ -57,35 +58,55 @@ export function ClosingDialog({ tenantId, open, onClose, onSuccess }: ClosingDia
   // Update error message when preview fetch fails
   useEffect(() => {
     if (previewError) {
-      setErrorMsg(translateApiError(previewError, t))
+      setError(previewError as FormattedError)
     }
-  }, [previewError])
+  }, [previewError, setError])
 
   // Move to preview stage when preview data is loaded
   useEffect(() => {
     if (preview && stage === 'input') {
       setStage('preview')
-      setErrorMsg(null)
+      clearError()
     }
-  }, [preview, stage])
+  }, [preview, stage, clearError])
 
   const handleInputClose = () => {
     setStage('input')
     setClosingDate('')
     setDescription('')
-    setErrorMsg(null)
+    clearError()
     setShowPreviewFetch(false)
     onClose()
   }
 
   const handlePreview = () => {
-    setErrorMsg(null)
+    clearError()
     if (!closingDate) {
-      setErrorMsg(t('closing.dateRequired'))
+      const validationError: FormattedError = {
+        errorCode: 'VALIDATION_ERROR',
+        userMessage: t('closing.dateRequired'),
+        requestId: 'local-validation',
+        timestamp: new Date().toISOString(),
+        showSupportContact: false,
+        classification: 'validation' as any,
+        isRetryable: false,
+        severity: 'error',
+      }
+      setError(validationError)
       return
     }
     if (!description.trim()) {
-      setErrorMsg(t('closing.descriptionRequired'))
+      const validationError: FormattedError = {
+        errorCode: 'VALIDATION_ERROR',
+        userMessage: t('closing.descriptionRequired'),
+        requestId: 'local-validation',
+        timestamp: new Date().toISOString(),
+        showSupportContact: false,
+        classification: 'validation' as any,
+        isRetryable: false,
+        severity: 'error',
+      }
+      setError(validationError)
       return
     }
 
@@ -94,7 +115,7 @@ export function ClosingDialog({ tenantId, open, onClose, onSuccess }: ClosingDia
   }
 
   const handleExecute = async () => {
-    setErrorMsg(null)
+    clearError()
     executeClosing.mutate(
       { date: closingDate, description },
       {
@@ -106,14 +127,14 @@ export function ClosingDialog({ tenantId, open, onClose, onSuccess }: ClosingDia
           onSuccess()
           handleInputClose()
         },
-        onError: (err) => setErrorMsg(translateApiError(err, t)),
+        onError: (err) => setError(err as FormattedError),
       },
     )
   }
 
   const handleBackToInput = () => {
     setStage('input')
-    setErrorMsg(null)
+    clearError()
     setShowPreviewFetch(false)
   }
 
@@ -123,7 +144,7 @@ export function ClosingDialog({ tenantId, open, onClose, onSuccess }: ClosingDia
         <>
           <DialogTitle>{t('closing.executeClosing')}</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+            <ErrorMessage error={error} onDismiss={clearError} />
             <TextField
               label={t('closing.closingDate')}
               type="date"
@@ -161,7 +182,7 @@ export function ClosingDialog({ tenantId, open, onClose, onSuccess }: ClosingDia
         <>
           <DialogTitle>{t('closing.previewClosing')}</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+            <ErrorMessage error={error} onDismiss={clearError} />
             {preview && (
               <>
                 <Box>

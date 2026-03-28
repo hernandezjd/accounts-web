@@ -18,7 +18,6 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
-import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
 import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
@@ -30,8 +29,9 @@ import { useTranslation } from 'react-i18next'
 import { useAllThirdParties, type ThirdParty } from '@/hooks/api/useAllThirdParties'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
 import { useUserActions } from '@/hooks/useUserActions'
-import { translateApiError } from '@/utils/errorUtils'
+import { useErrorHandler } from '@/lib/error/useErrorHandler'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
+import type { FormattedError } from '@/lib/error/useErrorHandler'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -52,6 +52,7 @@ interface ThirdPartyFormDialogProps {
 function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormDialogProps) {
   const { t } = useTranslation()
   const { createThirdParty, updateThirdParty } = useThirdPartyMutations()
+  const { error, handleError, clearError } = useErrorHandler()
 
   const isEdit = Boolean(editThirdParty)
 
@@ -69,7 +70,6 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
       type: p.type,
     })),
   )
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const resetToEdit = () => {
     setExternalId(editThirdParty?.externalId ?? '')
@@ -86,7 +86,7 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
         type: p.type,
       })),
     )
-    setErrorMsg(null)
+    clearError()
   }
 
   const handleClose = () => {
@@ -104,7 +104,7 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
     setPhones((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)))
 
   const handleSubmit = () => {
-    setErrorMsg(null)
+    clearError()
     const body = {
       externalId,
       name,
@@ -122,13 +122,13 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
         { id: editThirdParty!.id!, body },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => handleError(err),
         },
       )
     } else {
       createThirdParty.mutate(body, {
         onSuccess: handleClose,
-        onError: (err) => setErrorMsg(translateApiError(err, t)),
+        onError: (err) => handleError(err),
       })
     }
   }
@@ -142,7 +142,7 @@ function ThirdPartyFormDialog({ open, onClose, editThirdParty }: ThirdPartyFormD
         {isEdit ? t('thirdParties.editThirdParty') : t('thirdParties.newThirdParty')}
       </DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        <ErrorMessage error={error} onDismiss={clearError} />
         <TextField
           label={t('thirdParties.externalId')}
           value={externalId}
@@ -247,7 +247,7 @@ interface ConfirmActionDialogProps {
   confirmText: string
   confirmLabel: string
   confirmColor?: 'error' | 'warning' | 'success'
-  onConfirm: (onSuccess: () => void, onError: (err: Error) => void) => void
+  onConfirm: (onSuccess: () => void, onError: (err: FormattedError) => void) => void
   isPending: boolean
   testId?: string
 }
@@ -257,31 +257,31 @@ function ConfirmActionDialog({
   onConfirm, isPending, testId,
 }: ConfirmActionDialogProps) {
   const { t } = useTranslation()
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const { error, setError, clearError } = useErrorHandler()
 
   const handleClose = () => {
-    setErrorMsg(null)
+    clearError()
     onClose()
   }
 
   const handleConfirm = () => {
-    setErrorMsg(null)
-    onConfirm(handleClose, (err) => setErrorMsg(translateApiError(err, t)))
+    clearError()
+    onConfirm(handleClose, (err) => setError(err))
   }
 
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        {errorMsg ? (
-          <Alert severity="error">{errorMsg}</Alert>
+        {error ? (
+          <ErrorMessage error={error} onDismiss={clearError} />
         ) : (
           <DialogContentText>{confirmText}</DialogContentText>
         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>{t('common.cancel')}</Button>
-        {!errorMsg && (
+        {!error && (
           <Button
             color={confirmColor}
             onClick={handleConfirm}
@@ -436,8 +436,7 @@ export function ThirdPartiesPage() {
           mutation.mutate(actionTarget.id, {
             onSuccess,
             onError: (err) => {
-              const error = new Error(err.userMessage)
-              onError(error)
+              onError(err as FormattedError)
             },
           })
         }}

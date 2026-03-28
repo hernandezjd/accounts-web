@@ -14,15 +14,15 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
 import TextField from '@mui/material/TextField'
-import Alert from '@mui/material/Alert'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import { useTranslation } from 'react-i18next'
 import { useTransactionTypes, type TransactionType } from '@/hooks/api/useTransactionTypes'
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
-import { translateApiError } from '@/utils/errorUtils'
+import { useErrorHandler } from '@/lib/error/useErrorHandler'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
+import type { FormattedError } from '@/lib/error/useErrorHandler'
 
 // ─── TransactionTypeFormDialog ─────────────────────────────────────────────────
 
@@ -35,26 +35,26 @@ interface TransactionTypeFormDialogProps {
 function TransactionTypeFormDialog({ open, onClose, editType }: TransactionTypeFormDialogProps) {
   const { t } = useTranslation()
   const { createTransactionType, updateTransactionType } = useTransactionTypeMutations()
+  const { error, handleError, clearError } = useErrorHandler()
 
   const isEdit = Boolean(editType)
 
   const [name, setName] = useState(editType?.name ?? '')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleClose = () => {
     setName(editType?.name ?? '')
-    setErrorMsg(null)
+    clearError()
     onClose()
   }
 
   const handleSubmit = () => {
-    setErrorMsg(null)
+    clearError()
     if (isEdit) {
       updateTransactionType.mutate(
         { id: editType!.id!, body: { name } },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => handleError(err),
         },
       )
     } else {
@@ -62,7 +62,7 @@ function TransactionTypeFormDialog({ open, onClose, editType }: TransactionTypeF
         { name },
         {
           onSuccess: handleClose,
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => handleError(err),
         },
       )
     }
@@ -76,7 +76,7 @@ function TransactionTypeFormDialog({ open, onClose, editType }: TransactionTypeF
         {isEdit ? t('transactionTypes.editTransactionType') : t('transactionTypes.newTransactionType')}
       </DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        <ErrorMessage error={error} onDismiss={clearError} />
         <TextField
           label={t('transactionTypes.name')}
           value={name}
@@ -116,19 +116,19 @@ function DeleteTransactionTypeDialog({
 }: DeleteTransactionTypeDialogProps) {
   const { t } = useTranslation()
   const { deleteTransactionType } = useTransactionTypeMutations()
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const { error, setError, clearError } = useErrorHandler()
 
   const handleClose = () => {
-    setErrorMsg(null)
+    clearError()
     onClose()
   }
 
   const handleConfirm = () => {
     if (!transactionType?.id) return
-    setErrorMsg(null)
+    clearError()
     deleteTransactionType.mutate(transactionType.id, {
       onSuccess: handleClose,
-      onError: (err) => setErrorMsg(translateApiError(err, t)),
+      onError: (err) => setError(err as FormattedError),
     })
   }
 
@@ -136,15 +136,15 @@ function DeleteTransactionTypeDialog({
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>{t('transactionTypes.deleteTitle')}</DialogTitle>
       <DialogContent>
-        {errorMsg ? (
-          <Alert severity="error" data-testid="delete-tt-error">{errorMsg}</Alert>
+        {error ? (
+          <ErrorMessage error={error} onDismiss={clearError} />
         ) : (
           <DialogContentText>{t('transactionTypes.deleteConfirm')}</DialogContentText>
         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>{t('common.cancel')}</Button>
-        {!errorMsg && (
+        {!error && (
           <Button
             color="error"
             onClick={handleConfirm}

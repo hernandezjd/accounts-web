@@ -24,8 +24,9 @@ import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { PREFERENCE_KEYS } from '@/utils/preferences'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
-import { translateApiError } from '@/utils/errorUtils'
 import { useFormDraft } from '@/hooks/useFormDraft'
+import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { AccountSearchField, type AccountOption } from './AccountSearchField'
 import { ThirdPartySearchField, type ThirdPartyOption } from './ThirdPartySearchField'
 import { TransactionTypeSearchField, type TransactionTypeOption } from './TransactionTypeSearchField'
@@ -214,7 +215,7 @@ export function TransactionForm({
     return [makeEmptyItem()]
   })
 
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const { error, handleError, clearError } = useErrorHandler()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   // ── Draft persistence (create mode only) ────────────────────────────────────
@@ -371,7 +372,7 @@ export function TransactionForm({
     items.every((item) => item.account && (parseAmount(item.debitAmount) > 0 || parseAmount(item.creditAmount) > 0))
 
   const handleSave = () => {
-    setErrorMsg(null)
+    clearError()
     const requestItems = buildRequestItems()
 
     if (mode === 'create') {
@@ -390,7 +391,7 @@ export function TransactionForm({
             clearDraft()
             onSuccess()
           },
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => handleError(err),
         },
       )
     } else if (mode === 'createInitialBalance') {
@@ -398,7 +399,7 @@ export function TransactionForm({
         { transactionNumber: number, description, items: requestItems },
         {
           onSuccess: () => onSuccess(),
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => handleError(err),
         },
       )
     } else if (mode === 'editInitialBalance') {
@@ -409,7 +410,7 @@ export function TransactionForm({
         },
         {
           onSuccess: () => onSuccess(),
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => handleError(err),
         },
       )
     } else if (mode === 'edit') {
@@ -426,7 +427,7 @@ export function TransactionForm({
         },
         {
           onSuccess: () => onSuccess(),
-          onError: (err) => setErrorMsg(translateApiError(err, t)),
+          onError: (err) => handleError(err),
         },
       )
     }
@@ -434,7 +435,7 @@ export function TransactionForm({
 
   // ── Delete ──
   const handleDeleteConfirm = () => {
-    setErrorMsg(null)
+    clearError()
     if (mode === 'editInitialBalance') {
       deleteInitialBalance.mutate(transactionId!, {
         onSuccess: () => {
@@ -443,7 +444,7 @@ export function TransactionForm({
         },
         onError: (err) => {
           setDeleteDialogOpen(false)
-          setErrorMsg(translateApiError(err, t))
+          handleError(err)
         },
       })
     } else {
@@ -454,7 +455,7 @@ export function TransactionForm({
         },
         onError: (err) => {
           setDeleteDialogOpen(false)
-          setErrorMsg(translateApiError(err, t))
+          handleError(err)
         },
       })
     }
@@ -501,11 +502,7 @@ export function TransactionForm({
         </Alert>
       )}
 
-      {errorMsg && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errorMsg}
-        </Alert>
-      )}
+      <ErrorMessage error={error} onDismiss={clearError} />
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
         {/* Type — hidden for initial balance modes */}

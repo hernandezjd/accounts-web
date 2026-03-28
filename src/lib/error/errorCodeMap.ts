@@ -107,6 +107,13 @@ export const ERROR_CODE_MAP: Record<string, ErrorCodeMapping> = {
     supportContact: false,
   },
 
+  TRANSACTION_TYPE_IN_USE: {
+    message: "This transaction type is in use by existing transactions and cannot be deleted.",
+    suggestion: "Remove or reassign all transactions using this type before deletion.",
+    supportContact: false,
+    isRetryable: false,
+  },
+
   // Third Party Errors
   THIRD_PARTY_ACCOUNT_NOT_FOUND: {
     message: "The third-party account relationship could not be found.",

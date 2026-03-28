@@ -8,15 +8,6 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
-vi.mock('@/utils/errorUtils', () => ({
-  translateApiError: vi.fn((err: unknown) => {
-    if (err && typeof err === 'object' && 'error' in err) {
-      return (err as { error: string }).error
-    }
-    return 'Unknown error'
-  }),
-}))
-
 import { useExecuteClosingMutation } from '@/hooks/api/useExecuteClosingMutation'
 
 vi.mock('@/hooks/api/useExecuteClosingMutation', () => ({
@@ -33,6 +24,30 @@ vi.mock('@/hooks/api/useExecuteClosingMutation', () => ({
 
 const mockUseExecuteClosingMutation = vi.mocked(useExecuteClosingMutation)
 
+// Memoize preview data to prevent infinite loop (stable object reference)
+const mockPreviewData = {
+  closingDate: '2024-12-31',
+  description: 'Year-end closing',
+  nominalAccountLines: [
+    {
+      accountId: '1',
+      accountCode: '4000',
+      accountName: 'Revenue',
+      debitAmount: null,
+      creditAmount: 1000.00,
+    },
+  ],
+  profitLossLine: {
+    accountId: '2',
+    accountCode: '3000',
+    accountName: 'Retained Earnings',
+    debitAmount: 1000.00,
+    creditAmount: null,
+  },
+  totalDebits: 1000.00,
+  totalCredits: 1000.00,
+}
+
 vi.mock('@/hooks/api/useClosingPreview', () => ({
   useClosingPreview: vi.fn((tenantId, date, description, enabled) => {
     if (!enabled) {
@@ -44,28 +59,7 @@ vi.mock('@/hooks/api/useClosingPreview', () => ({
     }
 
     return {
-      data: {
-        closingDate: date,
-        description,
-        nominalAccountLines: [
-          {
-            accountId: '1',
-            accountCode: '4000',
-            accountName: 'Revenue',
-            debitAmount: null,
-            creditAmount: 1000.00,
-          },
-        ],
-        profitLossLine: {
-          accountId: '2',
-          accountCode: '3000',
-          accountName: 'Retained Earnings',
-          debitAmount: 1000.00,
-          creditAmount: null,
-        },
-        totalDebits: 1000.00,
-        totalCredits: 1000.00,
-      },
+      data: mockPreviewData,
       isLoading: false,
       error: null,
     }
@@ -191,11 +185,20 @@ describe('ClosingDialog', () => {
   })
 
   describe('Error Display', () => {
-    it('displays error from executeClosing using translateApiError', async () => {
+    it('displays error from executeClosing using error handler', async () => {
       mockUseExecuteClosingMutation.mockReturnValue({
         executeClosing: {
           mutate: vi.fn((_body, callbacks) => {
-            callbacks.onError({ error: 'Closing transaction type is not configured' })
+            callbacks.onError({
+              errorCode: 'CLOSING_CONFIG_ERROR',
+              userMessage: 'Closing transaction type is not configured',
+              requestId: 'test-request-1',
+              timestamp: new Date().toISOString(),
+              showSupportContact: false,
+              classification: 'permanent',
+              isRetryable: false,
+              severity: 'error',
+            })
           }),
           isPending: false,
         },
@@ -224,8 +227,19 @@ describe('ClosingDialog', () => {
       })
     })
 
-    it('displays error from preview fetch using translateApiError', async () => {
+    it('displays error from preview fetch using error handler', async () => {
       const { useClosingPreview } = await import('@/hooks/api/useClosingPreview')
+      // Memoize error object to prevent infinite loop
+      const mockError = {
+        errorCode: 'CONFIG_ERROR',
+        userMessage: 'No nominal accounts configured',
+        requestId: 'test-request-2',
+        timestamp: new Date().toISOString(),
+        showSupportContact: false,
+        classification: 'permanent',
+        isRetryable: false,
+        severity: 'error',
+      }
       vi.mocked(useClosingPreview).mockImplementation((_tenantId, _date, _desc, enabled) => {
         if (!enabled) {
           return { data: undefined, isLoading: false, error: null } as ReturnType<typeof useClosingPreview>
@@ -233,7 +247,7 @@ describe('ClosingDialog', () => {
         return {
           data: undefined,
           isLoading: false,
-          error: { error: 'No nominal accounts configured' },
+          error: mockError,
         } as unknown as ReturnType<typeof useClosingPreview>
       })
 

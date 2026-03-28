@@ -37,8 +37,6 @@ export interface ErrorMessageProps {
   onRetry?: () => void | Promise<void>;
   showRequestId?: boolean;
   variant?: 'standard' | 'filled' | 'outlined';
-  // severity is now derived from error.severity; this prop is deprecated
-  severity?: 'error' | 'warning';
 }
 
 /**
@@ -55,21 +53,12 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   onRetry,
   showRequestId = true,
   variant = 'filled',
-  severity: severityProp = 'error',
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [debugExpanded, setDebugExpanded] = useState(false);
 
-  if (!error) {
-    return null;
-  }
-
-  // Use severity from error object, fall back to prop for backward compatibility
-  const severity = error.severity ?? severityProp;
-  const icon = severity === 'error' ? <ErrorOutlineIcon /> : <WarningIcon />;
-  const isRetryable = error.isRetryable && onRetry !== undefined;
-
   const handleCopyRequestId = useCallback(async () => {
+    if (!error) return;
     try {
       await navigator.clipboard.writeText(error.requestId);
       setCopiedId(error.requestId);
@@ -77,7 +66,15 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
     } catch (err) {
       console.error('Failed to copy request ID:', err);
     }
-  }, [error.requestId]);
+  }, [error]);
+
+  if (!error) {
+    return null;
+  }
+
+  const severity = error.severity;
+  const icon = severity === 'error' ? <ErrorOutlineIcon /> : <WarningIcon />;
+  const isRetryable = error.isRetryable && onRetry !== undefined;
 
   // Determine if this is a 5xx error (for request ID prominence)
   const is5xxError = (error.errorCode?.startsWith('HTTP_5') ?? false) ||
