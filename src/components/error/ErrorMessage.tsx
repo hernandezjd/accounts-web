@@ -37,6 +37,7 @@ export interface ErrorMessageProps {
   onRetry?: () => void | Promise<void>;
   showRequestId?: boolean;
   variant?: 'standard' | 'filled' | 'outlined';
+  // severity is now derived from error.severity; this prop is deprecated
   severity?: 'error' | 'warning';
 }
 
@@ -54,7 +55,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   onRetry,
   showRequestId = true,
   variant = 'filled',
-  severity = 'error',
+  severity: severityProp = 'error',
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [debugExpanded, setDebugExpanded] = useState(false);
@@ -63,6 +64,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
     return null;
   }
 
+  // Use severity from error object, fall back to prop for backward compatibility
+  const severity = error.severity ?? severityProp;
   const icon = severity === 'error' ? <ErrorOutlineIcon /> : <WarningIcon />;
   const isRetryable = error.isRetryable && onRetry !== undefined;
 
@@ -124,8 +127,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show request ID prominently for 5xx errors with copy button */}
-          {showRequestId && is5xxError && (
+          {/* Show request ID prominently for 5xx errors with copy button (but not for 403 errors) */}
+          {showRequestId && is5xxError && !is403Error(error.errorCode) && (
             <Box sx={{
               mt: 1,
               p: 1.5,
@@ -163,8 +166,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show request ID for other errors */}
-          {showRequestId && !is5xxError && (
+          {/* Show request ID for other errors (but not for 403 errors) */}
+          {showRequestId && !is5xxError && !is403Error(error.errorCode) && (
             <Box sx={{ mt: 1, p: 1, backgroundColor: 'rgba(0, 0, 0, 0.05)', borderRadius: 1 }}>
               <Typography variant="caption" component="div">
                 <strong>Request ID:</strong>{' '}
@@ -211,8 +214,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show debug information if available */}
-          {(error.httpStatus !== undefined || error.requestUrl || error.responseBody) && (
+          {/* Show debug information if available (but not for 403 permission errors) */}
+          {(error.httpStatus !== undefined || error.requestUrl || error.responseBody) && !is403Error(error.errorCode) && (
             <Box sx={{ mt: 2, backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 1, border: '1px solid rgba(0, 0, 0, 0.15)' }}>
               {/* Debug toggle header */}
               <Box
@@ -338,4 +341,21 @@ function formatResponseBody(body: string): string {
     // Not valid JSON, return as-is
     return body;
   }
+}
+
+/**
+ * Check if error code is a 403 permission-related error.
+ * For these errors, we hide the DEBUG section entirely.
+ */
+function is403Error(errorCode?: string): boolean {
+  if (!errorCode) return false;
+  const permissionErrorCodes = [
+    'ACTION_NOT_ALLOWED',
+    'INSUFFICIENT_PERMISSIONS',
+    'ROLE_REQUIRED',
+    'TENANT_ACCESS_REQUIRED',
+    'FORBIDDEN',
+    'HTTP_403',
+  ];
+  return permissionErrorCodes.includes(errorCode);
 }

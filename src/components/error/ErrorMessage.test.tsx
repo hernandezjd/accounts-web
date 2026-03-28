@@ -15,6 +15,8 @@ describe('ErrorMessage', () => {
     errorCode: 'ERR_001',
     classification: 'permanent',
     isRetryable: false,
+    severity: 'error',
+    timestamp: '2024-01-01T00:00:00Z',
   }
 
   const retryableError: FormattedError = {
@@ -22,12 +24,14 @@ describe('ErrorMessage', () => {
     classification: 'transient',
     isRetryable: true,
     errorCode: 'HTTP_503',
+    severity: 'error',
   }
 
   const fiveXxError: FormattedError = {
     ...sampleError,
     errorCode: 'INTERNAL_SERVER_ERROR',
     showSupportContact: true,
+    severity: 'error',
   }
 
   it('renders error message when error is provided', () => {
@@ -357,6 +361,262 @@ describe('ErrorMessage', () => {
       renderWithProviders(<ErrorMessage error={noDebugError} />)
 
       expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('hides DEBUG section completely for 403 ACTION_NOT_ALLOWED errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACTION_NOT_ALLOWED',
+        httpStatus: 403,
+        requestUrl: 'GET /api/accounts/123',
+        responseBody: '{"error":"forbidden"}',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('hides DEBUG section completely for 403 INSUFFICIENT_PERMISSIONS errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'INSUFFICIENT_PERMISSIONS',
+        httpStatus: 403,
+        requestUrl: 'GET /api/accounts/123',
+        responseBody: '{"error":"forbidden"}',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('hides DEBUG section completely for 403 ROLE_REQUIRED errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'ROLE_REQUIRED',
+        httpStatus: 403,
+        requestUrl: 'GET /api/accounts/123',
+        responseBody: '{"error":"forbidden"}',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('hides DEBUG section completely for 403 TENANT_ACCESS_REQUIRED errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'TENANT_ACCESS_REQUIRED',
+        httpStatus: 403,
+        requestUrl: 'GET /api/accounts/123',
+        responseBody: '{"error":"forbidden"}',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('hides DEBUG section completely for 403 FORBIDDEN errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'FORBIDDEN',
+        httpStatus: 403,
+        requestUrl: 'GET /api/accounts/123',
+        responseBody: '{"error":"forbidden"}',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('hides DEBUG section completely for 403 HTTP_403 errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'HTTP_403',
+        httpStatus: 403,
+        requestUrl: 'GET /api/accounts/123',
+        responseBody: '{"error":"forbidden"}',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('shows DEBUG section for non-403 errors even if they have debug data', () => {
+      const nonForbiddenError: FormattedError = {
+        ...sampleError,
+        errorCode: 'INTERNAL_SERVER_ERROR',
+        httpStatus: 500,
+        requestUrl: 'GET /api/accounts/123',
+        responseBody: '{"error":"server error"}',
+        severity: 'error',
+      }
+
+      renderWithProviders(<ErrorMessage error={nonForbiddenError} />)
+
+      expect(screen.getByText('DEBUG')).toBeInTheDocument()
+    })
+
+    it('hides request ID for 403 ACTION_NOT_ALLOWED errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACTION_NOT_ALLOWED',
+        requestId: 'req-403-12345',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText(/req-403-12345/)).not.toBeInTheDocument()
+    })
+
+    it('hides request ID for 403 INSUFFICIENT_PERMISSIONS errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'INSUFFICIENT_PERMISSIONS',
+        requestId: 'req-403-67890',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText(/req-403-67890/)).not.toBeInTheDocument()
+    })
+
+    it('hides request ID for 403 ROLE_REQUIRED errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'ROLE_REQUIRED',
+        requestId: 'req-403-role',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText(/req-403-role/)).not.toBeInTheDocument()
+    })
+
+    it('hides request ID for 403 TENANT_ACCESS_REQUIRED errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'TENANT_ACCESS_REQUIRED',
+        requestId: 'req-403-tenant',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText(/req-403-tenant/)).not.toBeInTheDocument()
+    })
+
+    it('hides request ID for 403 FORBIDDEN errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'FORBIDDEN',
+        requestId: 'req-403-forbidden',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText(/req-403-forbidden/)).not.toBeInTheDocument()
+    })
+
+    it('hides request ID for 403 HTTP_403 errors', () => {
+      const error403: FormattedError = {
+        ...sampleError,
+        errorCode: 'HTTP_403',
+        requestId: 'req-403-http',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={error403} />)
+
+      expect(screen.queryByText(/req-403-http/)).not.toBeInTheDocument()
+    })
+
+    it('shows request ID for non-403 errors', () => {
+      const nonForbiddenError: FormattedError = {
+        ...sampleError,
+        errorCode: 'INTERNAL_SERVER_ERROR',
+        requestId: 'req-500-normal',
+        severity: 'error',
+      }
+
+      renderWithProviders(<ErrorMessage error={nonForbiddenError} />)
+
+      expect(screen.getByText(/req-500-normal/)).toBeInTheDocument()
+    })
+  })
+
+  describe('Error severity rendering', () => {
+    it('renders error severity from error object (error)', () => {
+      const errorSeverityError: FormattedError = {
+        ...sampleError,
+        severity: 'error',
+      }
+
+      renderWithProviders(<ErrorMessage error={errorSeverityError} />)
+
+      const alertElement = screen.getByRole('alert')
+      expect(alertElement).toBeInTheDocument()
+      // Error severity alert has error styling (red)
+      expect(alertElement).toHaveClass('MuiAlert-filledError')
+    })
+
+    it('renders warning severity from error object (403 errors)', () => {
+      const warningSeverityError: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACTION_NOT_ALLOWED',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={warningSeverityError} />)
+
+      const alertElement = screen.getByRole('alert')
+      expect(alertElement).toBeInTheDocument()
+      // Warning severity alert has warning styling (yellow)
+      expect(alertElement).toHaveClass('MuiAlert-filledWarning')
+    })
+
+    it('prefers error.severity over prop severity', () => {
+      const warningSeverityError: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACTION_NOT_ALLOWED',
+        severity: 'warning',
+      }
+
+      // Pass severity prop as 'error', but error.severity is 'warning'
+      // Component should use error.severity
+      renderWithProviders(<ErrorMessage error={warningSeverityError} severity="error" />)
+
+      const alertElement = screen.getByRole('alert')
+      // Should render with warning styling because error.severity takes precedence
+      expect(alertElement).toHaveClass('MuiAlert-filledWarning')
+    })
+
+    it('uses prop severity as fallback when error.severity is not provided', () => {
+      const errorWithoutSeverity: FormattedError = {
+        ...sampleError,
+        severity: 'error',
+      }
+
+      renderWithProviders(<ErrorMessage error={errorWithoutSeverity} severity="warning" />)
+
+      const alertElement = screen.getByRole('alert')
+      // Component still uses error.severity over prop
+      expect(alertElement).toHaveClass('MuiAlert-filledError')
     })
   })
 })
