@@ -18,7 +18,6 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
 import TextField from '@mui/material/TextField'
-import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -39,9 +38,9 @@ import { useUserActions } from '@/hooks/useUserActions'
 import { TransactionTypesContent } from '@/pages/transaction-types/TransactionTypesPage'
 import { ThemeEditorTab } from './ThemeEditorTab'
 import { PrefilledChartsTab } from './PrefilledChartsTab'
-import { translateApiError } from '@/utils/errorUtils'
+import { useErrorHandler } from '@/lib/error/useErrorHandler'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError, type FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@/lib/error/useErrorHandler'
 import { TenantFormDialog } from '@/pages/TenantFormDialog'
 import type { TenantFormData } from '@/pages/TenantFormDialog'
 import { AccountPicker } from '@/components/AccountPicker'
@@ -100,7 +99,7 @@ function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) 
     setError(null)
     deleteTenant.mutate(tenant.id, {
       onSuccess: handleClose,
-      onError: (err) => setError(formatError(err)),
+      onError: (err) => setError(err as FormattedError),
     })
   }
 
@@ -272,7 +271,8 @@ interface ConfigFieldDialogProps {
   fieldType: ConfigFieldType
   onSave: (value: string) => void
   isPending: boolean
-  errorMsg: string | null
+  error: FormattedError | null
+  onDismissError: () => void
 }
 
 function ConfigFieldDialog({
@@ -283,7 +283,8 @@ function ConfigFieldDialog({
   fieldType,
   onSave,
   isPending,
-  errorMsg,
+  error,
+  onDismissError,
 }: ConfigFieldDialogProps) {
   const { t } = useTranslation()
   const [value, setValue] = useState(currentValue)
@@ -302,7 +303,7 @@ function ConfigFieldDialog({
     >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        {errorMsg && <Alert severity="error" sx={{ mb: 1 }}>{errorMsg}</Alert>}
+        <ErrorMessage error={error} onDismiss={onDismissError} />
         <TextField
           fullWidth
           size="small"
@@ -350,6 +351,7 @@ interface CodeStructureDialogProps {
 function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructureDialogProps) {
   const { t } = useTranslation()
   const { configureCodeStructure } = useCodeStructureConfigMutations(tenantId)
+  const { error, handleError, clearError } = useErrorHandler()
 
   const [enabled, setEnabled] = useState(current?.enabled ?? false)
   const [rootLen, setRootLen] = useState(String(current?.rootCodeLength ?? ''))
@@ -359,7 +361,6 @@ function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructure
       length: String(length),
     })),
   )
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleOpen = () => {
     setEnabled(current?.enabled ?? false)
@@ -370,11 +371,11 @@ function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructure
         length: String(length),
       })),
     )
-    setErrorMsg(null)
+    clearError()
   }
 
   const handleSave = () => {
-    setErrorMsg(null)
+    clearError()
     const segmentLengthByLevel: Record<string, number> = {}
     for (const seg of segments) {
       if (seg.level && seg.length) {
@@ -390,7 +391,7 @@ function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructure
       },
       {
         onSuccess: onClose,
-        onError: (err) => setErrorMsg(translateApiError(err, t)),
+        onError: (err) => handleError(err),
       },
     )
   }
@@ -412,7 +413,7 @@ function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructure
     >
       <DialogTitle>{t('setup.config.editCodeStructure')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        <ErrorMessage error={error} onDismiss={clearError} />
         <FormControlLabel
           control={
             <Checkbox
@@ -504,10 +505,10 @@ function NominalAccountsDialog({
 
   const [nominalAccounts, setNominalAccounts] = useState<AccountPickerOption[]>([])
   const [profitLossAccount, setProfitLossAccount] = useState<AccountPickerOption | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const { error, setError, clearError } = useErrorHandler()
 
   const handleOpen = () => {
-    setErrorMsg(null)
+    clearError()
     // Load current values
     if (allAccounts && current.nominalAccounts) {
       const selected = current.nominalAccounts
@@ -534,15 +535,35 @@ function NominalAccountsDialog({
   }
 
   const handleSave = () => {
-    setErrorMsg(null)
+    clearError()
 
     if (nominalAccounts.length === 0) {
-      setErrorMsg(t('setup.config.atLeastOneNominalAccount'))
+      const validationError: FormattedError = {
+        errorCode: 'VALIDATION_ERROR',
+        userMessage: t('setup.config.atLeastOneNominalAccount'),
+        requestId: 'local-validation',
+        timestamp: new Date().toISOString(),
+        showSupportContact: false,
+        classification: 'validation' as any,
+        isRetryable: false,
+        severity: 'error',
+      }
+      setError(validationError)
       return
     }
 
     if (!profitLossAccount) {
-      setErrorMsg(t('setup.config.profitLossAccountRequired'))
+      const validationError: FormattedError = {
+        errorCode: 'VALIDATION_ERROR',
+        userMessage: t('setup.config.profitLossAccountRequired'),
+        requestId: 'local-validation',
+        timestamp: new Date().toISOString(),
+        showSupportContact: false,
+        classification: 'validation' as any,
+        isRetryable: false,
+        severity: 'error',
+      }
+      setError(validationError)
       return
     }
 
@@ -553,7 +574,7 @@ function NominalAccountsDialog({
       },
       {
         onSuccess: onClose,
-        onError: (err) => setErrorMsg(translateApiError(err, t)),
+        onError: (err) => setError(err as FormattedError),
       },
     )
   }
@@ -569,7 +590,7 @@ function NominalAccountsDialog({
     >
       <DialogTitle>{t('setup.config.editNominalAccountsConfig')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        <ErrorMessage error={error} onDismiss={clearError} />
 
         <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
           <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
@@ -656,18 +677,18 @@ function ClosingTransactionTypeDialog({
   const { setClosingTransactionType } = useTenantConfigMutations(tenantId)
 
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const { error, setError, clearError } = useErrorHandler()
 
   const handleOpen = () => {
-    setErrorMsg(null)
+    clearError()
     setSelectedTypeId(current.closingTransactionTypeId ?? null)
   }
 
   const handleSave = () => {
-    setErrorMsg(null)
+    clearError()
     setClosingTransactionType.mutate(selectedTypeId, {
       onSuccess: onClose,
-      onError: (err) => setErrorMsg(translateApiError(err, t)),
+      onError: (err) => setError(err as FormattedError),
     })
   }
 
@@ -682,7 +703,7 @@ function ClosingTransactionTypeDialog({
     >
       <DialogTitle>{t('setup.config.closingTransactionTypeTitle')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        <ErrorMessage error={error} onDismiss={clearError} />
 
         <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
           <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
@@ -750,12 +771,12 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
   const { data: allAccounts } = useAccounts(tenantId)
   const { data: transactionTypes } = useTransactionTypes()
   const mutations = useTenantConfigMutations(tenantId)
+  const { error: editError, setError: setEditError, clearError: clearEditError } = useErrorHandler()
 
   type EditMode = 'initialDate' | 'lockedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | 'nominalAccounts' | 'closingTransactionType' | null
   const [editMode, setEditMode] = useState<EditMode>(
     initialEditMode === 'initialDate' ? 'initialDate' : initialEditMode === 'nominalAccounts' ? 'nominalAccounts' : initialEditMode === 'closingTransactionType' ? 'closingTransactionType' : null
   )
-  const [editError, setEditError] = useState<string | null>(null)
 
   const isLoading = configLoading || csLoading
   const isError = configHasError || csHasError
@@ -778,7 +799,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
     mutationFn: (val: string) => void,
     value: string,
   ) => {
-    setEditError(null)
+    clearEditError()
     mutationFn(value)
   }
 
@@ -804,7 +825,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
       mutationFn: (v) =>
         mutations.setInitialDate.mutate(v, {
           onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(translateApiError(err, t)),
+          onError: (err) => setEditError(err as FormattedError),
         }),
       isPending: mutations.setInitialDate.isPending,
     },
@@ -819,7 +840,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
       mutationFn: (v) =>
         mutations.setLockedPeriodDate.mutate(v, {
           onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(translateApiError(err, t)),
+          onError: (err) => setEditError(err as FormattedError),
         }),
       isPending: mutations.setLockedPeriodDate.isPending,
     },
@@ -835,7 +856,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
         const numVal = v ? parseInt(v, 10) : null
         mutations.setMinimumAccountLevel.mutate(numVal, {
           onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(translateApiError(err, t)),
+          onError: (err) => setEditError(err as FormattedError),
         })
       },
       isPending: mutations.setMinimumAccountLevel.isPending,
@@ -852,7 +873,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
         const numVal = v ? parseInt(v, 10) : null
         mutations.setSnapshotFrequency.mutate(numVal, {
           onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(translateApiError(err, t)),
+          onError: (err) => setEditError(err as FormattedError),
         })
       },
       isPending: mutations.setSnapshotFrequency.isPending,
@@ -875,7 +896,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
               <TableCell>
                 <IconButton
                   size="small"
-                  onClick={() => { setEditError(null); setEditMode(row.editMode) }}
+                  onClick={() => { clearEditError(); setEditMode(row.editMode) }}
                   data-testid={row.editBtn}
                 >
                   <EditIcon fontSize="small" />
@@ -896,7 +917,8 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
           fieldType={activeRow.fieldType}
           onSave={(val) => handleFieldSave(activeRow.mutationFn, val)}
           isPending={activeRow.isPending}
-          errorMsg={editError}
+          error={editError}
+          onDismissError={clearEditError}
         />
       )}
 

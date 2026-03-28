@@ -5,9 +5,10 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
-import Alert from '@mui/material/Alert'
 import { useTranslation } from 'react-i18next'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
+import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
 
 interface CreatedThirdParty {
   id: string
@@ -27,6 +28,7 @@ export function ThirdPartyCreationDialog({
 }: ThirdPartyCreationDialogProps) {
   const { t } = useTranslation()
   const { createThirdParty } = useThirdPartyMutations()
+  const { error, handleError, clearError } = useErrorHandler()
 
   const [externalId, setExternalId] = useState('')
   const [name, setName] = useState('')
@@ -35,7 +37,6 @@ export function ThirdPartyCreationDialog({
   const [state, setState] = useState('')
   const [postalCode, setPostalCode] = useState('')
   const [country, setCountry] = useState('')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const reset = () => {
     setExternalId('')
@@ -45,11 +46,11 @@ export function ThirdPartyCreationDialog({
     setState('')
     setPostalCode('')
     setCountry('')
-    setErrorMsg(null)
+    clearError()
   }
 
   const handleSubmit = () => {
-    setErrorMsg(null)
+    clearError()
     createThirdParty.mutate(
       {
         externalId,
@@ -70,7 +71,7 @@ export function ThirdPartyCreationDialog({
             onClose()
           }
         },
-        onError: (err) => setErrorMsg(err.userMessage),
+        onError: (err) => handleError(err),
       },
     )
   }
@@ -86,7 +87,7 @@ export function ThirdPartyCreationDialog({
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>{t('transactionForm.createThirdParty')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        <ErrorMessage error={error} onDismiss={clearError} />
         <TextField
           label={t('transactionForm.externalId')}
           value={externalId}

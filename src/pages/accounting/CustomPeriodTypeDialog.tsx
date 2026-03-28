@@ -5,9 +5,11 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
-import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
+import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
+import type { FormattedError } from '@/lib/error/useErrorHandler'
 
 export interface CustomPeriodType {
   id: string
@@ -34,22 +36,42 @@ export function CustomPeriodTypeDialog({
   existingNames,
 }: CustomPeriodTypeDialogProps) {
   const { t } = useTranslation()
+  const { error, setError, clearError } = useErrorHandler()
 
   const [name, setName] = useState('')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleSubmit = () => {
-    setErrorMsg(null)
+    clearError()
 
     // Validate name
     const trimmedName = name.trim()
     if (!trimmedName) {
-      setErrorMsg(t('accounting.period.customType.nameRequired'))
+      const validationError: FormattedError = {
+        errorCode: 'VALIDATION_ERROR',
+        userMessage: t('accounting.period.customType.nameRequired'),
+        requestId: 'local-validation',
+        timestamp: new Date().toISOString(),
+        showSupportContact: false,
+        classification: 'validation' as any,
+        isRetryable: false,
+        severity: 'error',
+      }
+      setError(validationError)
       return
     }
 
     if (existingNames.includes(trimmedName)) {
-      setErrorMsg(t('accounting.period.customType.nameDuplicate'))
+      const validationError: FormattedError = {
+        errorCode: 'VALIDATION_ERROR',
+        userMessage: t('accounting.period.customType.nameDuplicate'),
+        requestId: 'local-validation',
+        timestamp: new Date().toISOString(),
+        showSupportContact: false,
+        classification: 'validation' as any,
+        isRetryable: false,
+        severity: 'error',
+      }
+      setError(validationError)
       return
     }
 
@@ -62,7 +84,7 @@ export function CustomPeriodTypeDialog({
 
   const handleClose = () => {
     setName('')
-    setErrorMsg(null)
+    clearError()
     onClose()
   }
 
@@ -71,7 +93,7 @@ export function CustomPeriodTypeDialog({
       <DialogTitle>{t('accounting.period.customType.saveTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
-          {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+          <ErrorMessage error={error} onDismiss={clearError} />
           <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
             {t('accounting.period.customType.periodRange', {
               from,

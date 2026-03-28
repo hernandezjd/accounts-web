@@ -115,8 +115,18 @@ describe('TransactionTypesPage', () => {
   })
 
   it('shows friendly message on 409 delete error', async () => {
+    const mockError = {
+      errorCode: 'TRANSACTION_TYPE_IN_USE',
+      userMessage: 'This transaction type is in use by existing transactions and cannot be deleted.',
+      requestId: 'test-request-409',
+      timestamp: new Date().toISOString(),
+      showSupportContact: false,
+      classification: 'permanent' as const,
+      isRetryable: false,
+      severity: 'error' as const,
+    }
     const deleteMutate = vi.fn((_id, opts) => {
-      opts.onError(new Error('409 Conflict: in use'))
+      opts.onError(mockError)
     })
     mockUseTransactionTypeMutations.mockReturnValue({
       createTransactionType: { ...noOpMutation },

@@ -5,10 +5,10 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
-import Alert from '@mui/material/Alert'
 import { useTranslation } from 'react-i18next'
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
-import { translateApiError } from '@/utils/errorUtils'
+import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
 
 interface CreatedTransactionType {
   id: string
@@ -28,12 +28,12 @@ export function TransactionTypeCreationDialog({
 }: TransactionTypeCreationDialogProps) {
   const { t } = useTranslation()
   const { createTransactionType } = useTransactionTypeMutations()
+  const { error, handleError, clearError } = useErrorHandler()
 
   const [name, setName] = useState('')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleSubmit = () => {
-    setErrorMsg(null)
+    clearError()
     createTransactionType.mutate(
       { name },
       {
@@ -44,14 +44,14 @@ export function TransactionTypeCreationDialog({
             onClose()
           }
         },
-        onError: (err) => setErrorMsg(translateApiError(err, t)),
+        onError: (err) => handleError(err),
       },
     )
   }
 
   const handleClose = () => {
     setName('')
-    setErrorMsg(null)
+    clearError()
     onClose()
   }
 
@@ -59,7 +59,7 @@ export function TransactionTypeCreationDialog({
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <DialogTitle>{t('transactionForm.createTransactionType')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        <ErrorMessage error={error} onDismiss={clearError} />
         <TextField
           label={t('transactionForm.transactionTypeName')}
           value={name}
