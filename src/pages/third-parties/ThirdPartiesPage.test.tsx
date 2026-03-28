@@ -13,12 +13,17 @@ vi.mock('@/hooks/api/useAllThirdParties', () => ({
 vi.mock('@/hooks/api/useThirdPartyMutations', () => ({
   useThirdPartyMutations: vi.fn(),
 }))
+vi.mock('@/hooks/useUserActions', () => ({
+  useUserActions: vi.fn(),
+}))
 
 import { useAllThirdParties } from '@/hooks/api/useAllThirdParties'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
+import { useUserActions } from '@/hooks/useUserActions'
 
 const mockUseAllThirdParties = vi.mocked(useAllThirdParties)
 const mockUseThirdPartyMutations = vi.mocked(useThirdPartyMutations)
+const mockUseUserActions = vi.mocked(useUserActions)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -72,6 +77,10 @@ beforeEach(() => {
     updateThirdParty: { ...noOpMutation },
     deactivateThirdParty: { ...noOpMutation },
     activateThirdParty: { ...noOpMutation },
+  })
+
+  mockUseUserActions.mockReturnValue({
+    hasAction: () => true,
   })
 })
 
@@ -221,5 +230,39 @@ describe('ThirdPartiesPage', () => {
     renderWithProviders(<ThirdPartiesPage />)
 
     expect(screen.getByText(/no third parties found/i)).toBeInTheDocument()
+  })
+
+  it('"New Third Party" button is enabled when user has manage_third_parties action', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: (action: string) => action === 'manage_third_parties',
+    })
+
+    renderWithProviders(<ThirdPartiesPage />)
+
+    const button = screen.getByTestId('new-tp-btn')
+    expect(button).not.toBeDisabled()
+  })
+
+  it('"New Third Party" button is disabled when user lacks manage_third_parties action', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: () => false,
+    })
+
+    renderWithProviders(<ThirdPartiesPage />)
+
+    const button = screen.getByTestId('new-tp-btn')
+    expect(button).toBeDisabled()
+  })
+
+  it('disabled "New Third Party" button has disabled attribute', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: () => false,
+    })
+
+    renderWithProviders(<ThirdPartiesPage />)
+
+    const button = screen.getByTestId('new-tp-btn')
+    expect(button).toBeDisabled()
+    expect(button).toHaveAttribute('disabled')
   })
 })
