@@ -28,6 +28,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import WarningIcon from '@mui/icons-material/Warning';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { FormattedError } from '../../lib/error/useErrorHandler';
 
 export interface ErrorMessageProps {
@@ -56,6 +57,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   severity = 'error',
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [debugExpanded, setDebugExpanded] = useState(false);
 
   if (!error) {
     return null;
@@ -211,61 +213,87 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 
           {/* Show debug information if available */}
           {(error.httpStatus !== undefined || error.requestUrl || error.responseBody) && (
-            <Box sx={{ mt: 2, p: 1.5, backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 1, border: '1px solid rgba(0, 0, 0, 0.15)' }}>
-              <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 1, color: 'inherit' }}>
-                DEBUG
-              </Typography>
-
-              {/* HTTP Status */}
-              {error.httpStatus !== undefined && (
-                <Typography variant="caption" component="div" sx={{ ml: 1, mb: 0.5 }}>
-                  <strong>HTTP Status:</strong> {error.httpStatus === 0 ? '0 (network/CORS error — no response received)' : error.httpStatus}
+            <Box sx={{ mt: 2, backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 1, border: '1px solid rgba(0, 0, 0, 0.15)' }}>
+              {/* Debug toggle header */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 1.5,
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.05)' },
+                }}
+                onClick={() => setDebugExpanded(!debugExpanded)}
+              >
+                <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', color: 'inherit' }}>
+                  DEBUG
                 </Typography>
-              )}
+                <ExpandMoreIcon
+                  sx={{
+                    fontSize: '1.25rem',
+                    transform: debugExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s',
+                  }}
+                />
+              </Box>
 
-              {/* Request URL */}
-              {error.requestUrl && (
-                <Box sx={{ ml: 1, mb: 0.5 }}>
-                  <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 0.25 }}>
-                    Request URL:
-                  </Typography>
-                  <code style={{
-                    wordBreak: 'break-all',
-                    fontSize: '0.75rem',
-                    display: 'block',
-                    padding: '4px 8px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                    borderRadius: '2px',
-                  }}>
-                    {error.requestUrl}
-                  </code>
-                </Box>
-              )}
+              {/* Debug content - collapsible */}
+              <Collapse in={debugExpanded}>
+                <Box sx={{ px: 1.5, pb: 1.5 }}>
+                  {/* HTTP Status */}
+                  {error.httpStatus !== undefined && (
+                    <Typography variant="caption" component="div" sx={{ mb: 0.5 }}>
+                      <strong>HTTP Status:</strong> {error.httpStatus === 0 ? '0 (network/CORS error — no response received)' : error.httpStatus}
+                    </Typography>
+                  )}
 
-              {/* Response Body */}
-              {error.responseBody && (
-                <Box sx={{ ml: 1 }}>
-                  <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 0.25 }}>
-                    Response Body:
-                  </Typography>
-                  <Box sx={{
-                    maxHeight: '300px',
-                    overflow: 'auto',
-                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                    borderRadius: '2px',
-                    p: 1,
-                  }}>
-                    <code style={{
-                      wordBreak: 'break-word',
-                      whiteSpace: 'pre-wrap',
-                      fontSize: '0.75rem',
-                      display: 'block',
-                    }}>
-                      {formatResponseBody(error.responseBody)}
-                    </code>
-                  </Box>
+                  {/* Request URL */}
+                  {error.requestUrl && (
+                    <Box sx={{ mb: 0.5 }}>
+                      <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 0.25 }}>
+                        Request URL:
+                      </Typography>
+                      <code style={{
+                        wordBreak: 'break-all',
+                        fontSize: '0.75rem',
+                        display: 'block',
+                        padding: '4px 8px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                        borderRadius: '2px',
+                      }}>
+                        {error.requestUrl}
+                      </code>
+                    </Box>
+                  )}
+
+                  {/* Response Body */}
+                  {error.responseBody && (
+                    <Box>
+                      <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 0.25 }}>
+                        Response Body:
+                      </Typography>
+                      <Box sx={{
+                        maxHeight: '300px',
+                        overflow: 'auto',
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                        borderRadius: '2px',
+                        p: 1,
+                      }}>
+                        <code style={{
+                          wordBreak: 'break-word',
+                          whiteSpace: 'pre-wrap',
+                          fontSize: '0.75rem',
+                          display: 'block',
+                        }}>
+                          {formatResponseBody(error.responseBody)}
+                        </code>
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
-              )}
+              </Collapse>
             </Box>
           )}
         </Stack>

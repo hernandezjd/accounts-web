@@ -308,4 +308,55 @@ describe('ErrorMessage', () => {
       expect(alertElement).toHaveTextContent('INTERNAL_ERROR')
     })
   })
+
+  describe('Collapsible DEBUG section', () => {
+    const debugError: FormattedError = {
+      ...sampleError,
+      httpStatus: 500,
+      requestUrl: 'GET /api/accounts/123',
+      responseBody: '{"error":"test"}',
+    }
+
+    it('displays DEBUG header when debug data is present', () => {
+      renderWithProviders(<ErrorMessage error={debugError} />)
+
+      expect(screen.getByText('DEBUG')).toBeInTheDocument()
+    })
+
+    it('allows clicking DEBUG header without errors', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ErrorMessage error={debugError} />)
+
+      const debugHeader = screen.getByText('DEBUG').closest('div')
+      expect(debugHeader).toBeInTheDocument()
+
+      // Click should not throw an error
+      await user.click(debugHeader!)
+      expect(screen.getByText('DEBUG')).toBeInTheDocument()
+    })
+
+    it('shows debug details (HTTP Status, URL, Body) in the component', () => {
+      renderWithProviders(<ErrorMessage error={debugError} />)
+
+      const alertElement = screen.getByRole('alert')
+      expect(alertElement).toHaveTextContent('DEBUG')
+      // Debug data should be in the rendered output
+      expect(alertElement).toHaveTextContent('500')
+      expect(alertElement).toHaveTextContent('GET /api/accounts/123')
+      expect(alertElement).toHaveTextContent('error')
+    })
+
+    it('does not show DEBUG section when no debug data exists', () => {
+      const noDebugError: FormattedError = {
+        ...sampleError,
+        httpStatus: undefined,
+        requestUrl: undefined,
+        responseBody: undefined,
+      }
+
+      renderWithProviders(<ErrorMessage error={noDebugError} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+  })
 })
