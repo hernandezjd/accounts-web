@@ -70,10 +70,10 @@ export function AccountCreationDialog({
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth scroll="paper">
       <DialogTitle>{t('transactionForm.createAccount')}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <ErrorMessage error={error} onDismiss={() => setError(null)} />
+      <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {error && <ErrorMessage error={error} onDismiss={() => setError(null)} />}
         <TextField
           label={t('transactionForm.accountCode')}
           value={code}

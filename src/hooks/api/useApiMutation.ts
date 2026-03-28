@@ -56,7 +56,8 @@ export function useApiMutation<TData, TVariables, TContext = unknown>(
       const response = await mutationFn(variables)
 
       // Handle ApiResponse format from apiClient
-      if ('error' in response && 'data' in response) {
+      // Note: ApiResponse may have error without data, or data without error
+      if ('error' in response || 'response' in response) {
         const apiResponse = response as ApiResponse<TData>
 
         if (apiResponse.error) {
