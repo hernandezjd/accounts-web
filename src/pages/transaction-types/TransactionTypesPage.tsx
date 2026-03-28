@@ -14,12 +14,14 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
 import TextField from '@mui/material/TextField'
+import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
 import { useTranslation } from 'react-i18next'
 import { useTransactionTypes, type TransactionType } from '@/hooks/api/useTransactionTypes'
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
+import { useUserActions } from '@/hooks/useUserActions'
 import { useErrorHandler } from '@/lib/error/useErrorHandler'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { FormattedError } from '@/lib/error/useErrorHandler'
@@ -168,6 +170,7 @@ interface TransactionTypesContentProps {
 export function TransactionTypesContent({ hideTitle = false }: TransactionTypesContentProps) {
   const { t } = useTranslation()
   const { data: types, isLoading, isError, error: apiError, refetch } = useTransactionTypes()
+  const { hasAction } = useUserActions()
 
   // Format error for display with classification
   const formattedError = apiError ?? null
@@ -175,6 +178,8 @@ export function TransactionTypesContent({ hideTitle = false }: TransactionTypesC
   const [formOpen, setFormOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<TransactionType | undefined>(undefined)
   const [deleteTarget, setDeleteTarget] = useState<TransactionType | null>(null)
+
+  const canManageTransactionTypes = hasAction('manage_configuration')
 
   return (
     <Box>
@@ -185,14 +190,19 @@ export function TransactionTypesContent({ hideTitle = false }: TransactionTypesC
           </Typography>
         )}
         {hideTitle && <Box sx={{ flexGrow: 1 }} />}
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
-          data-testid="new-tt-btn"
-        >
-          {t('transactionTypes.newTransactionType')}
-        </Button>
+        <Tooltip title={canManageTransactionTypes ? '' : t('common.insufficientPermissions')}>
+          <span>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
+              disabled={!canManageTransactionTypes}
+              data-testid="new-tt-btn"
+            >
+              {t('transactionTypes.newTransactionType')}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {isLoading && <Typography>{t('transactionTypes.loading')}</Typography>}
@@ -216,22 +226,32 @@ export function TransactionTypesContent({ hideTitle = false }: TransactionTypesC
               <TableRow key={type.id} data-testid={`tt-row-${type.id}`}>
                 <TableCell>{type.name}</TableCell>
                 <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => { setEditTarget(type); setFormOpen(true) }}
-                    aria-label={t('common.edit')}
-                    data-testid={`edit-tt-${type.id}`}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => setDeleteTarget(type)}
-                    aria-label={t('common.delete')}
-                    data-testid={`delete-tt-${type.id}`}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                  <Tooltip title={canManageTransactionTypes ? '' : t('common.insufficientPermissions')}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        onClick={() => { setEditTarget(type); setFormOpen(true) }}
+                        aria-label={t('common.edit')}
+                        data-testid={`edit-tt-${type.id}`}
+                        disabled={!canManageTransactionTypes}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={canManageTransactionTypes ? '' : t('common.insufficientPermissions')}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        onClick={() => setDeleteTarget(type)}
+                        aria-label={t('common.delete')}
+                        data-testid={`delete-tt-${type.id}`}
+                        disabled={!canManageTransactionTypes}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))}

@@ -13,12 +13,17 @@ vi.mock('@/hooks/api/useTransactionTypes', () => ({
 vi.mock('@/hooks/api/useTransactionTypeMutations', () => ({
   useTransactionTypeMutations: vi.fn(),
 }))
+vi.mock('@/hooks/useUserActions', () => ({
+  useUserActions: vi.fn(),
+}))
 
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
+import { useUserActions } from '@/hooks/useUserActions'
 
 const mockUseTransactionTypes = vi.mocked(useTransactionTypes)
 const mockUseTransactionTypeMutations = vi.mocked(useTransactionTypeMutations)
+const mockUseUserActions = vi.mocked(useUserActions)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -45,6 +50,11 @@ beforeEach(() => {
     createTransactionType: { ...noOpMutation },
     updateTransactionType: { ...noOpMutation },
     deleteTransactionType: { ...noOpMutation },
+  })
+
+  // Default: user has manage_configuration permission
+  mockUseUserActions.mockReturnValue({
+    hasAction: (action: string) => action === 'manage_configuration',
   })
 })
 
@@ -171,5 +181,78 @@ describe('TransactionTypesPage', () => {
     renderWithProviders(<TransactionTypesPage />)
 
     expect(screen.getByText(/no transaction types found/i)).toBeInTheDocument()
+  })
+
+  it('disables "New Transaction Type" button when user lacks manage_configuration permission', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: () => false,
+    })
+
+    renderWithProviders(<TransactionTypesPage />)
+
+    const newButton = screen.getByTestId('new-tt-btn') as HTMLButtonElement
+    expect(newButton).toBeDisabled()
+  })
+
+  it('enables "New Transaction Type" button when user has manage_configuration permission', async () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: (action: string) => action === 'manage_configuration',
+    })
+
+    renderWithProviders(<TransactionTypesPage />)
+
+    const newButton = screen.getByTestId('new-tt-btn') as HTMLButtonElement
+    expect(newButton).not.toBeDisabled()
+
+    // Verify clicking still opens the dialog
+    await userEvent.click(newButton)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('tt-name-input')).toBeInTheDocument()
+    })
+  })
+
+  it('disables Edit button when user lacks manage_configuration permission', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: () => false,
+    })
+
+    renderWithProviders(<TransactionTypesPage />)
+
+    const editButton = screen.getByTestId('edit-tt-tt-1') as HTMLButtonElement
+    expect(editButton).toBeDisabled()
+  })
+
+  it('enables Edit button when user has manage_configuration permission', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: (action: string) => action === 'manage_configuration',
+    })
+
+    renderWithProviders(<TransactionTypesPage />)
+
+    const editButton = screen.getByTestId('edit-tt-tt-1') as HTMLButtonElement
+    expect(editButton).not.toBeDisabled()
+  })
+
+  it('disables Delete button when user lacks manage_configuration permission', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: () => false,
+    })
+
+    renderWithProviders(<TransactionTypesPage />)
+
+    const deleteButton = screen.getByTestId('delete-tt-tt-1') as HTMLButtonElement
+    expect(deleteButton).toBeDisabled()
+  })
+
+  it('enables Delete button when user has manage_configuration permission', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: (action: string) => action === 'manage_configuration',
+    })
+
+    renderWithProviders(<TransactionTypesPage />)
+
+    const deleteButton = screen.getByTestId('delete-tt-tt-1') as HTMLButtonElement
+    expect(deleteButton).not.toBeDisabled()
   })
 })
