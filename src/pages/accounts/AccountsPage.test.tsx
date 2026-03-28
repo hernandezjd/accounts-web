@@ -17,14 +17,19 @@ vi.mock('@/hooks/api/useAccountMutations', () => ({
 vi.mock('@/hooks/api/useCodeStructureConfig', () => ({
   useCodeStructureConfig: vi.fn(),
 }))
+vi.mock('@/hooks/useUserActions', () => ({
+  useUserActions: vi.fn(),
+}))
 
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
+import { useUserActions } from '@/hooks/useUserActions'
 
 const mockUseAccounts = vi.mocked(useAccounts)
 const mockUseAccountMutations = vi.mocked(useAccountMutations)
 const mockUseCodeStructureConfig = vi.mocked(useCodeStructureConfig)
+const mockUseUserActions = vi.mocked(useUserActions)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -93,6 +98,11 @@ beforeEach(() => {
     isError: false,
     error: null,
   } as ReturnType<typeof useCodeStructureConfig>)
+
+  // Default: user has create_account permission
+  mockUseUserActions.mockReturnValue({
+    hasAction: vi.fn((action: string) => action === 'create_account'),
+  })
 })
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -318,5 +328,40 @@ describe('AccountsPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('combobox', { name: /parent account/i })).toBeInTheDocument()
     })
+  })
+
+  it('"New Account" button is enabled when user has create_account permission', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: vi.fn((action: string) => action === 'create_account'),
+    })
+
+    renderWithProviders(<AccountsPage />)
+
+    const button = screen.getByTestId('new-account-btn')
+    expect(button).not.toBeDisabled()
+  })
+
+  it('"New Account" button is disabled when user lacks create_account permission', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: vi.fn(() => false),
+    })
+
+    renderWithProviders(<AccountsPage />)
+
+    const button = screen.getByTestId('new-account-btn')
+    expect(button).toBeDisabled()
+  })
+
+  it('"New Account" button shows tooltip when disabled', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: vi.fn(() => false),
+    })
+
+    renderWithProviders(<AccountsPage />)
+
+    const button = screen.getByTestId('new-account-btn')
+    expect(button).toBeDisabled()
+    // Tooltip should be present (aria-label or title attribute)
+    expect(button).toHaveAttribute('disabled')
   })
 })

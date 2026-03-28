@@ -18,6 +18,7 @@ import TextField from '@mui/material/TextField'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Alert from '@mui/material/Alert'
+import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
 import BlockIcon from '@mui/icons-material/Block'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -27,6 +28,7 @@ import { useTranslation } from 'react-i18next'
 import { useAccounts, type Account } from '@/hooks/api/useAccounts'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
+import { useUserActions } from '@/hooks/useUserActions'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { FormattedError } from '@/lib/error/useErrorHandler'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
@@ -377,6 +379,7 @@ function ToggleTpDialog({ open, onClose, account, tenantId }: ToggleTpDialogProp
 export function AccountsPage() {
   const { t } = useTranslation()
   const { tenantId = '' } = useParams<{ tenantId: string }>()
+  const { hasAction } = useUserActions()
 
   const { data: accounts, isLoading, isError, error: apiError, refetch } = useAccounts(tenantId || null, true)
 
@@ -388,6 +391,8 @@ export function AccountsPage() {
   const [deactivateTarget, setDeactivateTarget] = useState<Account | null>(null)
   const [reactivateTarget, setReactivateTarget] = useState<Account | null>(null)
   const [toggleTpTarget, setToggleTpTarget] = useState<Account | null>(null)
+
+  const canCreateAccount = hasAction('create_account')
 
   // id → code map for parent code display
   const idToCode: Record<string, string> = {}
@@ -401,14 +406,19 @@ export function AccountsPage() {
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
           {t('accounts.title')}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
-          data-testid="new-account-btn"
-        >
-          {t('accounts.newAccount')}
-        </Button>
+        <Tooltip title={!canCreateAccount ? t('common.insufficientPermissions') : ''}>
+          <span>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
+              disabled={!canCreateAccount}
+              data-testid="new-account-btn"
+            >
+              {t('accounts.newAccount')}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {isLoading && <Typography>{t('accounts.loading')}</Typography>}
