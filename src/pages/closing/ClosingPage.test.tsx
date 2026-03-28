@@ -35,6 +35,11 @@ vi.mock('@/hooks/api/useTenantConfig', () => ({
   })),
 }))
 
+vi.mock('@/components/error/ErrorMessage', () => ({
+  ErrorMessage: ({ error }: { error: unknown }) =>
+    error ? <div data-testid="error-message">{JSON.stringify(error)}</div> : null,
+}))
+
 const mockUseTenantConfig = vi.mocked(useTenantConfig)
 
 function mockConfig(overrides: Record<string, unknown> = {}) {
@@ -84,7 +89,8 @@ describe('ClosingPage', () => {
     expect(screen.getByText('closing.accountClosing')).toBeInTheDocument()
   })
 
-  it('displays description and process text', () => {
+  it('displays description and process text when config is loaded', () => {
+    mockConfig()
     renderComponent()
     expect(screen.getByText('closing.closingDescription')).toBeInTheDocument()
     expect(screen.getByText('closing.closingProcess')).toBeInTheDocument()
@@ -104,9 +110,10 @@ describe('ClosingPage', () => {
       expect(screen.getByTestId('open-closing-dialog-button')).not.toBeDisabled()
     })
 
-    it('disables Preview button when config is not loaded yet', () => {
+    it('shows loading spinner when config is not loaded yet', () => {
       renderComponent()
-      expect(screen.getByTestId('open-closing-dialog-button')).toBeDisabled()
+      expect(screen.getByRole('progressbar')).toBeInTheDocument()
+      expect(screen.queryByTestId('open-closing-dialog-button')).not.toBeInTheDocument()
     })
 
     it('shows warning when nominal accounts are not configured', () => {
@@ -195,6 +202,30 @@ describe('ClosingPage', () => {
       renderComponent()
       fireEvent.click(screen.getByTestId('open-closing-dialog-button'))
       expect(screen.queryByTestId('closing-dialog')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Error Handling', () => {
+    it('shows error message when config fetch fails', () => {
+      const mockError = {
+        userMessage: 'You do not have access to this tenant',
+        errorCode: 'FORBIDDEN',
+        isRetryable: false,
+      }
+      mockUseTenantConfig.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        error: mockError,
+      } as ReturnType<typeof useTenantConfig>)
+      renderComponent()
+      expect(screen.getByTestId('error-message')).toBeInTheDocument()
+      expect(screen.queryByTestId('open-closing-dialog-button')).not.toBeInTheDocument()
+    })
+
+    it('hides button and shows loading state initially', () => {
+      renderComponent()
+      expect(screen.getByRole('progressbar')).toBeInTheDocument()
+      expect(screen.queryByTestId('open-closing-dialog-button')).not.toBeInTheDocument()
     })
   })
 })

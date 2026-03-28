@@ -7,7 +7,9 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
+import CircularProgress from '@mui/material/CircularProgress'
 import ArchiveIcon from '@mui/icons-material/Archive'
+import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { ClosingDialog } from './ClosingDialog'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
 
@@ -18,7 +20,7 @@ export function ClosingPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const { data: config } = useTenantConfig(tenantId)
+  const { data: config, error, isLoading } = useTenantConfig(tenantId)
 
   const hasNominalAccounts = Boolean(config?.nominalAccounts && config.nominalAccounts.length > 0)
   const hasProfitLossAccount = Boolean(config?.profitLossAccountId)
@@ -61,6 +63,17 @@ export function ClosingPage() {
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>
           {successMessage}
         </Alert>
+      )}
+
+      {isLoading && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 4 }}>
+          <CircularProgress size={24} />
+          <Typography color="text.secondary">{t('common.loading')}</Typography>
+        </Box>
+      )}
+
+      {error && (
+        <ErrorMessage error={error} />
       )}
 
       {config && !hasNominalAccounts && (
@@ -114,29 +127,31 @@ export function ClosingPage() {
         </Alert>
       )}
 
-      <Card>
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            {t('closing.closingDescription')}
-          </Typography>
+      {config && (
+        <Card>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('closing.closingDescription')}
+            </Typography>
 
-          <Typography variant="body2" color="text.secondary">
-            {t('closing.closingProcess')}
-          </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('closing.closingProcess')}
+            </Typography>
 
-          <Box sx={{ pt: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<ArchiveIcon />}
-              onClick={handleOpenDialog}
-              disabled={!allPrerequisitesMet}
-              data-testid="open-closing-dialog-button"
-            >
-              {t('closing.preview')}
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
+            <Box sx={{ pt: 2 }}>
+              <Button
+                variant="contained"
+                startIcon={<ArchiveIcon />}
+                onClick={handleOpenDialog}
+                disabled={!allPrerequisitesMet}
+                data-testid="open-closing-dialog-button"
+              >
+                {t('closing.preview')}
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {tenantId && (
         <ClosingDialog
