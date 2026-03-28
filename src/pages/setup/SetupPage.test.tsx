@@ -21,6 +21,9 @@ vi.mock('./ThemeEditorTab', () => ({
 vi.mock('./PrefilledChartsTab', () => ({
   PrefilledChartsTab: () => <div data-testid="prefilled-charts-tab">Pre-filled Charts</div>,
 }))
+vi.mock('@/hooks/useAuthContext', () => ({
+  useAuthContext: vi.fn(),
+}))
 
 import { useTenants } from '@/hooks/api/useTenants'
 import { useTenantMutations } from '@/hooks/api/useTenantMutations'
@@ -31,6 +34,7 @@ import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureCon
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutations'
 import { useAccounts } from '@/hooks/api/useAccounts'
+import * as useAuthContextModule from '@/hooks/useAuthContext'
 
 const mockUseTenants = vi.mocked(useTenants)
 const mockUseTenantMutations = vi.mocked(useTenantMutations)
@@ -77,6 +81,13 @@ const sampleTransactionTypes = [
 ]
 
 const noOpMutation = { mutate: vi.fn(), isPending: false }
+
+// Default auth mock: user has manage_tenants permission
+const defaultAuthMock = {
+  user: { profile: { actions: ['manage_tenants'], tenants: ['t-1', 't-2'] } },
+  isAuthenticated: true,
+  isLoading: false,
+}
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
@@ -142,6 +153,8 @@ function setupMocks() {
 beforeEach(() => {
   vi.clearAllMocks()
   setupMocks()
+  // Mock auth context with manage_tenants permission by default
+  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
 })
 
 function render() {

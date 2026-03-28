@@ -33,7 +33,8 @@
     "autoSelecting": "Sélection automatique de votre client...",
     "noTenants": "Aucun client disponible",
     "switchTenant": "Changer de client",
-    "createFirstTenant": "Créez votre premier client"
+    "createFirstTenant": "Créez votre premier client",
+    "insufficientPermissionsCreate": "Vous n'avez pas la permission de créer des clients. Contactez votre administrateur système."
   },
   "shortcuts": {
     "title": "Raccourcis clavier",

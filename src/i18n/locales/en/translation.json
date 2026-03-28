@@ -33,7 +33,8 @@
     "autoSelecting": "Automatically selecting your tenant...",
     "noTenants": "No tenants available",
     "switchTenant": "Switch Tenant",
-    "createFirstTenant": "Create Your First Tenant"
+    "createFirstTenant": "Create Your First Tenant",
+    "insufficientPermissionsCreate": "You do not have permission to create tenants. Contact your system administrator."
   },
   "shortcuts": {
     "title": "Keyboard Shortcuts",
