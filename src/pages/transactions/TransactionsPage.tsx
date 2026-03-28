@@ -19,6 +19,7 @@ import { useTransactions, type Transaction, type TransactionFilters } from '@/ho
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useTenantAccess } from '@/hooks/useTenantAccess'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData } from '../accounting/TransactionForm'
@@ -44,8 +45,10 @@ export function TransactionsPage() {
   const { data: transactionTypes } = useTransactionTypes()
   const { data: accounts } = useAccounts(tenantId || null)
   const { data: tenantConfig } = useTenantConfig(tenantId || null)
+  const { hasTenantAccess } = useTenantAccess()
 
   const initialDateMissing = !tenantConfig?.systemInitialDate
+  const hasAccess = hasTenantAccess(tenantId)
 
   const typeOptions = (transactionTypes ?? []).map((tt) => ({ id: tt.id!, name: tt.name! }))
   const accountOptions = (accounts ?? []).map((a) => ({ id: a.id!, label: `${a.code} — ${a.name}` }))
@@ -130,7 +133,7 @@ export function TransactionsPage() {
         )}
       </Box>
 
-      {initialDateMissing && (
+      {initialDateMissing && hasAccess && (
         <InitialDateConfigurationAlert
           tenantId={tenantId}
           messageKey="transactionsPage.initialDateNotConfiguredWarning"
