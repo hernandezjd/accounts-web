@@ -23,13 +23,19 @@ vi.mock('@/hooks/api/useTenantConfig', () => ({
   useTenantConfig: vi.fn(),
 }))
 
+vi.mock('@/hooks/useUserActions', () => ({
+  useUserActions: vi.fn(),
+}))
+
 import { usePeriodReport } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useUserActions } from '@/hooks/useUserActions'
 
 const mockUsePeriodReport = vi.mocked(usePeriodReport)
 const mockUseBalanceAtLevel = vi.mocked(useBalanceAtLevel)
 const mockUseTenantConfig = vi.mocked(useTenantConfig)
+const mockUseUserActions = vi.mocked(useUserActions)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -107,6 +113,9 @@ beforeEach(() => {
     isError: false,
     error: null,
   } as unknown as ReturnType<typeof useTenantConfig>)
+  mockUseUserActions.mockReturnValue({
+    hasAction: vi.fn((action: string) => action === 'view_reports'),
+  })
 })
 
 // ─── Helper to render and switch to a tab ────────────────────────────────────
@@ -633,6 +642,75 @@ describe('ReportsPage', () => {
       await waitFor(() => {
         const calls = mockUseBalanceAtLevel.mock.calls
         expect(calls[calls.length - 1][3]).toBe(true) // simulateClosure parameter (4th arg, index 3)
+      })
+    })
+  })
+
+  describe('Button permissions (view_reports action)', () => {
+    it('Period Report button is disabled when user lacks view_reports action', () => {
+      mockUseUserActions.mockReturnValue({
+        hasAction: vi.fn(() => false),
+      })
+
+      renderWithProviders(<ReportsPage />)
+
+      expect(screen.getByTestId('run-period-report-btn')).toBeDisabled()
+    })
+
+    it('Period Report button is enabled when user has view_reports action and dates are filled', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ReportsPage />)
+
+      await user.type(screen.getByTestId('period-from-date'), '2026-01-01')
+      await user.type(screen.getByTestId('period-to-date'), '2026-01-31')
+
+      expect(screen.getByTestId('run-period-report-btn')).not.toBeDisabled()
+    })
+
+    it('Balance at Date button is disabled when user lacks view_reports action', async () => {
+      mockUseUserActions.mockReturnValue({
+        hasAction: vi.fn(() => false),
+      })
+
+      await renderOnTab('tab-balance-at-date')
+
+      await waitFor(() => {
+        expect(screen.getByTestId('run-balance-at-date-btn')).toBeDisabled()
+      })
+    })
+
+    it('Balance at Date button is enabled when user has view_reports action and date is filled', async () => {
+      const user = userEvent.setup()
+      await renderOnTab('tab-balance-at-date')
+
+      await user.type(screen.getByTestId('balance-date'), '2026-01-31')
+
+      await waitFor(() => {
+        expect(screen.getByTestId('run-balance-at-date-btn')).not.toBeDisabled()
+      })
+    })
+
+    it('Balance at Level button is disabled when user lacks view_reports action', async () => {
+      mockUseUserActions.mockReturnValue({
+        hasAction: vi.fn(() => false),
+      })
+
+      await renderOnTab('tab-balance-at-level')
+
+      await waitFor(() => {
+        expect(screen.getByTestId('run-balance-at-level-btn')).toBeDisabled()
+      })
+    })
+
+    it('Balance at Level button is enabled when user has view_reports action and inputs are filled', async () => {
+      const user = userEvent.setup()
+      await renderOnTab('tab-balance-at-level')
+
+      await user.type(screen.getByTestId('level-date'), '2026-01-31')
+      await user.type(screen.getByTestId('level-input'), '2')
+
+      await waitFor(() => {
+        expect(screen.getByTestId('run-balance-at-level-btn')).not.toBeDisabled()
       })
     })
   })
