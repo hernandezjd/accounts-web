@@ -20,6 +20,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
+import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
 import BlockIcon from '@mui/icons-material/Block'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
@@ -28,6 +29,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { useTranslation } from 'react-i18next'
 import { useAllThirdParties, type ThirdParty } from '@/hooks/api/useAllThirdParties'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
+import { useUserActions } from '@/hooks/useUserActions'
 import { translateApiError } from '@/utils/errorUtils'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 
@@ -300,6 +302,7 @@ export function ThirdPartiesPage() {
   const { t } = useTranslation()
   const { data: thirdParties, isLoading, isError, error: apiError, refetch } = useAllThirdParties()
   const { deactivateThirdParty, activateThirdParty } = useThirdPartyMutations()
+  const { hasAction } = useUserActions()
 
   // Format error for display with classification
   const formattedError = apiError ?? null
@@ -309,6 +312,7 @@ export function ThirdPartiesPage() {
   const [actionTarget, setActionTarget] = useState<ThirdParty | null>(null)
 
   const isDeactivating = actionTarget?.active !== false
+  const canCreateThirdParty = hasAction('manage_third_parties')
 
   return (
     <Box>
@@ -316,14 +320,19 @@ export function ThirdPartiesPage() {
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
           {t('thirdParties.title')}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
-          data-testid="new-tp-btn"
-        >
-          {t('thirdParties.newThirdParty')}
-        </Button>
+        <Tooltip title={canCreateThirdParty ? '' : t('common.insufficientPermissions')}>
+          <span>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
+              disabled={!canCreateThirdParty}
+              data-testid="new-tp-btn"
+            >
+              {t('thirdParties.newThirdParty')}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {isLoading && <Typography>{t('thirdParties.loading')}</Typography>}
