@@ -16,6 +16,7 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
+import Tooltip from '@mui/material/Tooltip'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import {
   usePrefilledCharts,
@@ -23,18 +24,24 @@ import {
   useMergePrefilledChart,
 } from '@/hooks/api/usePrefilledCharts'
 import type { MergeReportResponse } from '@/hooks/api/usePrefilledCharts'
+import { useUserActions } from '@/hooks/useUserActions'
+import { useTenantAccess } from '@/hooks/useTenantAccess'
 
 export function PrefilledChartsTab() {
   const { t } = useTranslation()
   const { tenantId = '' } = useParams<{ tenantId: string }>()
   const { data: charts, isLoading, error } = usePrefilledCharts()
   const mergeMutation = useMergePrefilledChart(tenantId)
+  const { hasAction } = useUserActions()
+  const { hasTenantAccess } = useTenantAccess()
 
   const [viewChartId, setViewChartId] = useState<string | null>(null)
   const [mergeChartId, setMergeChartId] = useState<string | null>(null)
   const [mergeReport, setMergeReport] = useState<MergeReportResponse | null>(null)
 
   const { data: chartDetail } = usePrefilledChartDetail(viewChartId)
+
+  const canMerge = hasAction('create_account') && hasTenantAccess(tenantId)
 
   const handleMerge = async () => {
     if (!mergeChartId) return
@@ -95,16 +102,20 @@ export function PrefilledChartsTab() {
                 >
                   {t('prefilledCharts.view')}
                 </Button>
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={() => setMergeChartId(chart.id)}
-                  disabled={!tenantId || mergeMutation.isPending}
-                  data-testid={`merge-${chart.id}`}
-                  sx={{ ml: 1 }}
-                >
-                  {t('prefilledCharts.merge')}
-                </Button>
+                <Tooltip title={canMerge ? '' : t('common.insufficientPermissions')}>
+                  <span>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => setMergeChartId(chart.id)}
+                      disabled={!tenantId || !canMerge || mergeMutation.isPending}
+                      data-testid={`merge-${chart.id}`}
+                      sx={{ ml: 1 }}
+                    >
+                      {t('prefilledCharts.merge')}
+                    </Button>
+                  </span>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}

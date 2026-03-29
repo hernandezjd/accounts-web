@@ -15,15 +15,27 @@ vi.mock('@/hooks/api/usePrefilledCharts', () => ({
   useMergePrefilledChart: vi.fn(),
 }))
 
+vi.mock('@/hooks/useUserActions', () => ({
+  useUserActions: vi.fn(),
+}))
+
+vi.mock('@/hooks/useTenantAccess', () => ({
+  useTenantAccess: vi.fn(),
+}))
+
 import {
   usePrefilledCharts,
   usePrefilledChartDetail,
   useMergePrefilledChart,
 } from '@/hooks/api/usePrefilledCharts'
+import { useUserActions } from '@/hooks/useUserActions'
+import { useTenantAccess } from '@/hooks/useTenantAccess'
 
 const mockUsePrefilledCharts = vi.mocked(usePrefilledCharts)
 const mockUsePrefilledChartDetail = vi.mocked(usePrefilledChartDetail)
 const mockUseMergePrefilledChart = vi.mocked(useMergePrefilledChart)
+const mockUseUserActions = vi.mocked(useUserActions)
+const mockUseTenantAccess = vi.mocked(useTenantAccess)
 
 const sampleCharts = [
   { id: 'es-pgc', name: 'PGC', description: 'Spanish chart', accountCount: 120 },
@@ -61,6 +73,14 @@ beforeEach(() => {
     isError: false,
     error: null,
   } as unknown as ReturnType<typeof useMergePrefilledChart>)
+
+  mockUseUserActions.mockReturnValue({
+    hasAction: vi.fn(() => true),
+  } as ReturnType<typeof useUserActions>)
+
+  mockUseTenantAccess.mockReturnValue({
+    hasTenantAccess: vi.fn(() => true),
+  } as ReturnType<typeof useTenantAccess>)
 })
 
 describe('PrefilledChartsTab', () => {
@@ -140,6 +160,49 @@ describe('PrefilledChartsTab', () => {
     // Report dialog shows
     await waitFor(() => {
       expect(screen.getByText('already exists')).toBeInTheDocument()
+    })
+  })
+
+  it('disables merge button when user has no permissions', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: vi.fn(() => false),
+    } as ReturnType<typeof useUserActions>)
+
+    renderWithProviders(<PrefilledChartsTab />)
+
+    const mergeButtons = screen.getAllByTestId(/merge-/)
+    mergeButtons.forEach((button) => {
+      expect(button).toBeDisabled()
+    })
+  })
+
+  it('disables merge button when user has no tenant access', () => {
+    mockUseTenantAccess.mockReturnValue({
+      hasTenantAccess: vi.fn(() => false),
+    } as ReturnType<typeof useTenantAccess>)
+
+    renderWithProviders(<PrefilledChartsTab />)
+
+    const mergeButtons = screen.getAllByTestId(/merge-/)
+    mergeButtons.forEach((button) => {
+      expect(button).toBeDisabled()
+    })
+  })
+
+  it('disables merge button when user has both no permissions and no tenant access', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: vi.fn(() => false),
+    } as ReturnType<typeof useUserActions>)
+
+    mockUseTenantAccess.mockReturnValue({
+      hasTenantAccess: vi.fn(() => false),
+    } as ReturnType<typeof useTenantAccess>)
+
+    renderWithProviders(<PrefilledChartsTab />)
+
+    const mergeButtons = screen.getAllByTestId(/merge-/)
+    mergeButtons.forEach((button) => {
+      expect(button).toBeDisabled()
     })
   })
 })
