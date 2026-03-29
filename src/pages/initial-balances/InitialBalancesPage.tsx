@@ -10,6 +10,7 @@ import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
@@ -45,19 +46,23 @@ export function InitialBalancesPage() {
   const hasAccess = hasTenantAccess(tenantId)
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <Typography variant="h5" component="h1" sx={{ flexGrow: 1 }}>
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <Typography variant="h4" component="h1" sx={{ flexGrow: 1 }}>
           {t('initialBalances.title')}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setFormConfig({ mode: 'createInitialBalance' })}
-          disabled={!!formConfig || initialDateMissing}
-        >
-          {t('initialBalances.newInitialBalance')}
-        </Button>
+        <Tooltip title={!!formConfig || initialDateMissing ? t('common.insufficientPermissions') : ''}>
+          <span>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setFormConfig({ mode: 'createInitialBalance' })}
+              disabled={!!formConfig || initialDateMissing}
+            >
+              {t('initialBalances.newInitialBalance')}
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
 
       {initialDateMissing && hasAccess && (
