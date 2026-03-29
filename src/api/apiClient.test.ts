@@ -42,7 +42,7 @@ vi.mock('./clients', () => ({
   },
 }))
 
-vi.mock('@/lib/error/useErrorHandler', () => ({
+vi.mock('@accounts/error-handling-web', () => ({
   formatError: vi.fn((error: unknown, _statusCode?: number) => ({
     errorCode: (typeof error === 'object' && error !== null && 'errorCode' in error)
       ? (error as { errorCode: string }).errorCode
@@ -60,7 +60,7 @@ vi.mock('@/lib/error/useErrorHandler', () => ({
 
 import { apiClient } from './apiClient'
 import { commandClient, queryClient, tenantClient } from './clients'
-import { formatError } from '@/lib/error/useErrorHandler'
+import { formatError } from '@accounts/error-handling-web'
 
 const mockedCommandClient = commandClient as { [key: string]: ReturnType<typeof vi.fn> }
 const mockedQueryClient = queryClient as { [key: string]: ReturnType<typeof vi.fn> }

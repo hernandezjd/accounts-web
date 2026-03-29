@@ -15,7 +15,7 @@
  */
 
 import { commandClient, queryClient, tenantClient } from './clients'
-import { formatError, type FormattedError } from '@/lib/error/useErrorHandler'
+import { formatError, type FormattedError } from '@accounts/error-handling-web'
 
 /**
  * Structured error response from the API.
