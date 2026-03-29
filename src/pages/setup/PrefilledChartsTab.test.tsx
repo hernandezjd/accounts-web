@@ -162,4 +162,47 @@ describe('PrefilledChartsTab', () => {
       expect(screen.getByText('already exists')).toBeInTheDocument()
     })
   })
+
+  it('disables merge button when user has no permissions', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: vi.fn(() => false),
+    } as ReturnType<typeof useUserActions>)
+
+    renderWithProviders(<PrefilledChartsTab />)
+
+    const mergeButtons = screen.getAllByTestId(/merge-/)
+    mergeButtons.forEach((button) => {
+      expect(button).toBeDisabled()
+    })
+  })
+
+  it('disables merge button when user has no tenant access', () => {
+    mockUseTenantAccess.mockReturnValue({
+      hasTenantAccess: vi.fn(() => false),
+    } as ReturnType<typeof useTenantAccess>)
+
+    renderWithProviders(<PrefilledChartsTab />)
+
+    const mergeButtons = screen.getAllByTestId(/merge-/)
+    mergeButtons.forEach((button) => {
+      expect(button).toBeDisabled()
+    })
+  })
+
+  it('disables merge button when user has both no permissions and no tenant access', () => {
+    mockUseUserActions.mockReturnValue({
+      hasAction: vi.fn(() => false),
+    } as ReturnType<typeof useUserActions>)
+
+    mockUseTenantAccess.mockReturnValue({
+      hasTenantAccess: vi.fn(() => false),
+    } as ReturnType<typeof useTenantAccess>)
+
+    renderWithProviders(<PrefilledChartsTab />)
+
+    const mergeButtons = screen.getAllByTestId(/merge-/)
+    mergeButtons.forEach((button) => {
+      expect(button).toBeDisabled()
+    })
+  })
 })

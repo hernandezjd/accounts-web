@@ -103,16 +103,18 @@ export function PrefilledChartsTab() {
                   {t('prefilledCharts.view')}
                 </Button>
                 <Tooltip title={canMerge ? '' : t('common.insufficientPermissions')}>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    onClick={() => setMergeChartId(chart.id)}
-                    disabled={!tenantId || !canMerge || mergeMutation.isPending}
-                    data-testid={`merge-${chart.id}`}
-                    sx={{ ml: 1 }}
-                  >
-                    {t('prefilledCharts.merge')}
-                  </Button>
+                  <span>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => setMergeChartId(chart.id)}
+                      disabled={!tenantId || !canMerge || mergeMutation.isPending}
+                      data-testid={`merge-${chart.id}`}
+                      sx={{ ml: 1 }}
+                    >
+                      {t('prefilledCharts.merge')}
+                    </Button>
+                  </span>
                 </Tooltip>
               </TableCell>
             </TableRow>

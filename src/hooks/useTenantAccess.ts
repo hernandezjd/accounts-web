@@ -16,10 +16,10 @@ export function useTenantAccess() {
   const auth = useAuthContext()
 
   const hasTenantAccess = (tenantId: string): boolean => {
-    // In test environments or when auth is not initialized, default to true
-    // (tests will mock the API responses to test both access and no-access scenarios)
+    // If tenants claim is missing, deny access
+    // (tests will mock the hook to test both access and no-access scenarios)
     if (!auth?.user?.profile?.tenants) {
-      return true
+      return false
     }
 
     const tenants = auth.user.profile.tenants
