@@ -2,6 +2,7 @@ import { useState, Fragment } from 'react'
 import { useParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import Table from '@mui/material/Table'
 import TableHead from '@mui/material/TableHead'
@@ -121,15 +122,19 @@ export function TransactionsPage() {
           {t('transactionsPage.title')}
         </Typography>
         {activeFormMode === null && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleNewTransaction}
-            disabled={initialDateMissing}
-            data-testid="new-transaction-btn"
-          >
-            {t('transactionsPage.newTransaction')}
-          </Button>
+          <Tooltip title={initialDateMissing ? t('common.insufficientPermissions') : ''}>
+            <span>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleNewTransaction}
+                disabled={initialDateMissing}
+                data-testid="new-transaction-btn"
+              >
+                {t('transactionsPage.newTransaction')}
+              </Button>
+            </span>
+          </Tooltip>
         )}
       </Box>
 

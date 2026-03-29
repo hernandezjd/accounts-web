@@ -54,8 +54,8 @@ export function ClosingPage() {
   }
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto' }}>
-      <Typography variant="h5" gutterBottom>
+    <Box>
+      <Typography variant="h4" sx={{ mb: 2 }}>
         {t('closing.accountClosing')}
       </Typography>
 
