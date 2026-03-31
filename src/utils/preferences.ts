@@ -19,7 +19,7 @@ export const PREFERENCE_KEYS = {
 } as const
 
 /**
- * Clear all UI preferences (e.g., on logout or tenant switch).
+ * Clear all UI preferences (e.g., on logout or workspace switch).
  */
 export function clearAllPreferences(): void {
   Object.values(PREFERENCE_KEYS).forEach((key) => {

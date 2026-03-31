@@ -49,7 +49,7 @@ const mockPreviewData = {
 }
 
 vi.mock('@/hooks/api/useClosingPreview', () => ({
-  useClosingPreview: vi.fn((tenantId, date, description, enabled) => {
+  useClosingPreview: vi.fn((workspaceId, date, description, enabled) => {
     if (!enabled) {
       return {
         data: undefined,
@@ -75,7 +75,7 @@ const renderComponent = (props = {}) => {
   })
 
   const defaultProps = {
-    tenantId: 'test-tenant',
+    workspaceId: 'test-workspace',
     open: true,
     onClose: vi.fn(),
     onSuccess: vi.fn(),
@@ -240,7 +240,7 @@ describe('ClosingDialog', () => {
         isRetryable: false,
         severity: 'error',
       }
-      vi.mocked(useClosingPreview).mockImplementation((_tenantId, _date, _desc, enabled) => {
+      vi.mocked(useClosingPreview).mockImplementation((_workspaceId, _date, _desc, enabled) => {
         if (!enabled) {
           return { data: undefined, isLoading: false, error: null } as ReturnType<typeof useClosingPreview>
         }

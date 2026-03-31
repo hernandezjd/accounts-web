@@ -39,11 +39,11 @@ describe('useAccounts', () => {
     vi.clearAllMocks()
   })
 
-  it('fetches accounts when tenantId is provided', async () => {
+  it('fetches accounts when workspaceId is provided', async () => {
     mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
 
     const { result } = renderHook(
-      () => useAccounts('tenant-1'),
+      () => useAccounts('workspace-1'),
       { wrapper: makeWrapper() }
     )
 
@@ -53,7 +53,7 @@ describe('useAccounts', () => {
     expect(mockGet).toHaveBeenCalled()
   })
 
-  it('does not fetch when tenantId is null', () => {
+  it('does not fetch when workspaceId is null', () => {
     const { result } = renderHook(
       () => useAccounts(null),
       { wrapper: makeWrapper() }
@@ -64,7 +64,7 @@ describe('useAccounts', () => {
     expect(mockGet).not.toHaveBeenCalled()
   })
 
-  it('does not fetch when tenantId is undefined', () => {
+  it('does not fetch when workspaceId is undefined', () => {
     const { result } = renderHook(
       () => useAccounts(undefined),
       { wrapper: makeWrapper() }
@@ -79,7 +79,7 @@ describe('useAccounts', () => {
     mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
 
     const { result } = renderHook(
-      () => useAccounts('tenant-1', true),
+      () => useAccounts('workspace-1', true),
       { wrapper: makeWrapper() }
     )
 
@@ -92,7 +92,7 @@ describe('useAccounts', () => {
     mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
 
     const { result } = renderHook(
-      () => useAccounts('tenant-1', false),
+      () => useAccounts('workspace-1', false),
       { wrapper: makeWrapper() }
     )
 
@@ -114,7 +114,7 @@ describe('useAccounts', () => {
     mockGet.mockRejectedValueOnce(mockError)
 
     const { result } = renderHook(
-      () => useAccounts('tenant-1'),
+      () => useAccounts('workspace-1'),
       { wrapper: makeWrapper() }
     )
 
@@ -122,12 +122,12 @@ describe('useAccounts', () => {
     expect(result.current.error).toBeDefined()
   })
 
-  it('caches results by tenantId and includeInactive', async () => {
+  it('caches results by workspaceId and includeInactive', async () => {
     mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
 
     const wrapper = makeWrapper()
     const { rerender } = renderHook(
-      () => useAccounts('tenant-1', false),
+      () => useAccounts('workspace-1', false),
       { wrapper }
     )
 
@@ -137,9 +137,9 @@ describe('useAccounts', () => {
     rerender()
     expect(mockGet).toHaveBeenCalledTimes(1)
 
-    // Different tenantId — should fetch again
+    // Different workspaceId — should fetch again
     mockGet.mockResolvedValueOnce({ data: sampleAccounts, response: new Response() })
     rerender()
-    // Note: This test uses the same hook, cache key is different for different tenantId
+    // Note: This test uses the same hook, cache key is different for different workspaceId
   })
 })

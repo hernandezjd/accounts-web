@@ -25,10 +25,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api\/query/, ''),
       },
-      '/api/tenant': {
+      '/api/workspace': {
         target: 'http://localhost:8083',
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api\/tenant/, ''),
+        rewrite: (p) => p.replace(/^\/api\/workspace/, ''),
       },
     },
   },

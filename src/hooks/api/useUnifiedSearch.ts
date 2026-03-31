@@ -6,7 +6,7 @@ import type { components } from '@/api/generated/reporting-api'
 export type UnifiedSearchResponse = components['schemas']['UnifiedSearchResponse']
 
 export function useUnifiedSearch(
-  tenantId: string | null | undefined,
+  workspaceId: string | null | undefined,
   query: string,
   fromDate?: string,
   toDate?: string,
@@ -16,14 +16,14 @@ export function useUnifiedSearch(
   if (toDate) queryParams.toDate = toDate
 
   return useApiQuery<UnifiedSearchResponse>(
-    [...queryKeys.search.all(), { tenantId, query, fromDate: fromDate ?? null, toDate: toDate ?? null }],
+    [...queryKeys.search.all(), { workspaceId, query, fromDate: fromDate ?? null, toDate: toDate ?? null }],
     () =>
       apiClient.query.GET('/reports/search', {
         params: {
           query: queryParams,
-          header: { 'X-Tenant-Id': tenantId! },
+          header: { 'X-Workspace-Id': workspaceId! },
         },
       }),
-    { enabled: Boolean(tenantId) && query.trim().length >= 1 },
+    { enabled: Boolean(workspaceId) && query.trim().length >= 1 },
   )
 }

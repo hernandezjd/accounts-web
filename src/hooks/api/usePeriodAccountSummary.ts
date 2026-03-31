@@ -48,7 +48,7 @@ function convertClosureNode(node: any): AccountPeriodNode {
 }
 
 export function usePeriodAccountSummary(
-  tenantId: string | null | undefined,
+  workspaceId: string | null | undefined,
   fromDate: string,
   toDate: string,
   simulateClosure?: boolean,
@@ -60,11 +60,11 @@ export function usePeriodAccountSummary(
   if (simulateClosure) query.simulateClosure = simulateClosure
 
   return useApiQuery<PeriodAccountSummary>(
-    queryKeys.reports.periodAccountSummary(tenantId!, { fromDate, toDate, simulateClosure }),
+    queryKeys.reports.periodAccountSummary(workspaceId!, { fromDate, toDate, simulateClosure }),
     async () => {
       const response = await apiClient.query.GET('/reports/period-account-summary', {
         params: { query },
-        headers: { 'X-Tenant-Id': tenantId! },
+        headers: { 'X-Workspace-Id': workspaceId! },
       })
       if (response.error) {
         throw response.error
@@ -86,6 +86,6 @@ export function usePeriodAccountSummary(
         response,
       }
     },
-    { enabled: Boolean(tenantId) && Boolean(fromDate) && Boolean(toDate) },
+    { enabled: Boolean(workspaceId) && Boolean(fromDate) && Boolean(toDate) },
   )
 }

@@ -8,7 +8,7 @@ import { ReportsPage } from './ReportsPage'
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
-  return { ...actual, useParams: vi.fn().mockReturnValue({ tenantId: 'tenant-test' }) }
+  return { ...actual, useParams: vi.fn().mockReturnValue({ workspaceId: 'workspace-test' }) }
 })
 
 vi.mock('@/hooks/api/usePeriodReport', () => ({
@@ -19,8 +19,8 @@ vi.mock('@/hooks/api/useBalanceAtLevel', () => ({
   useBalanceAtLevel: vi.fn(),
 }))
 
-vi.mock('@/hooks/api/useTenantConfig', () => ({
-  useTenantConfig: vi.fn(),
+vi.mock('@/hooks/api/useWorkspaceConfig', () => ({
+  useWorkspaceConfig: vi.fn(),
 }))
 
 vi.mock('@/hooks/useUserActions', () => ({
@@ -29,12 +29,12 @@ vi.mock('@/hooks/useUserActions', () => ({
 
 import { usePeriodReport } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useUserActions } from '@/hooks/useUserActions'
 
 const mockUsePeriodReport = vi.mocked(usePeriodReport)
 const mockUseBalanceAtLevel = vi.mocked(useBalanceAtLevel)
-const mockUseTenantConfig = vi.mocked(useTenantConfig)
+const mockUseWorkspaceConfig = vi.mocked(useWorkspaceConfig)
 const mockUseUserActions = vi.mocked(useUserActions)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
@@ -107,12 +107,12 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockUsePeriodReport.mockReturnValue(idlePeriodReport)
   mockUseBalanceAtLevel.mockReturnValue(idleBalanceAtLevel)
-  mockUseTenantConfig.mockReturnValue({
+  mockUseWorkspaceConfig.mockReturnValue({
     data: undefined,
     isLoading: false,
     isError: false,
     error: null,
-  } as unknown as ReturnType<typeof useTenantConfig>)
+  } as unknown as ReturnType<typeof useWorkspaceConfig>)
   mockUseUserActions.mockReturnValue({
     hasAction: vi.fn((action: string) => action === 'view_reports'),
   })
@@ -527,12 +527,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows warning when only nominal accounts are missing', async () => {
-      mockUseTenantConfig.mockReturnValue({
+      mockUseWorkspaceConfig.mockReturnValue({
         data: { nominalAccounts: [], profitLossAccountId: 'pnl-1' },
         isLoading: false,
         isError: false,
         error: null,
-      } as unknown as ReturnType<typeof useTenantConfig>)
+      } as unknown as ReturnType<typeof useWorkspaceConfig>)
 
       const user = userEvent.setup()
       renderWithProviders(<ReportsPage />)
@@ -545,12 +545,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows warning when only P&L account is missing', async () => {
-      mockUseTenantConfig.mockReturnValue({
+      mockUseWorkspaceConfig.mockReturnValue({
         data: { nominalAccounts: ['acc-1'], profitLossAccountId: null },
         isLoading: false,
         isError: false,
         error: null,
-      } as unknown as ReturnType<typeof useTenantConfig>)
+      } as unknown as ReturnType<typeof useWorkspaceConfig>)
 
       const user = userEvent.setup()
       renderWithProviders(<ReportsPage />)
@@ -563,12 +563,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows info banners when config is complete', async () => {
-      mockUseTenantConfig.mockReturnValue({
+      mockUseWorkspaceConfig.mockReturnValue({
         data: { nominalAccounts: ['acc-1'], profitLossAccountId: 'pnl-1' },
         isLoading: false,
         isError: false,
         error: null,
-      } as unknown as ReturnType<typeof useTenantConfig>)
+      } as unknown as ReturnType<typeof useWorkspaceConfig>)
 
       const user = userEvent.setup()
       renderWithProviders(<ReportsPage />)
@@ -581,12 +581,12 @@ describe('ReportsPage', () => {
     })
 
     it('calls usePeriodReport with simulateClosure=true when toggle is enabled', async () => {
-      mockUseTenantConfig.mockReturnValue({
+      mockUseWorkspaceConfig.mockReturnValue({
         data: { nominalAccounts: ['acc-1'], profitLossAccountId: 'pnl-1' },
         isLoading: false,
         isError: false,
         error: null,
-      } as unknown as ReturnType<typeof useTenantConfig>)
+      } as unknown as ReturnType<typeof useWorkspaceConfig>)
       const user = userEvent.setup()
       mockUsePeriodReport.mockReturnValue({
         data: samplePeriodReport,
@@ -614,12 +614,12 @@ describe('ReportsPage', () => {
     })
 
     it('calls useBalanceAtLevel with simulateClosure=true on balance at level tab', async () => {
-      mockUseTenantConfig.mockReturnValue({
+      mockUseWorkspaceConfig.mockReturnValue({
         data: { nominalAccounts: ['acc-1'], profitLossAccountId: 'pnl-1' },
         isLoading: false,
         isError: false,
         error: null,
-      } as unknown as ReturnType<typeof useTenantConfig>)
+      } as unknown as ReturnType<typeof useWorkspaceConfig>)
       const user = userEvent.setup()
       mockUseBalanceAtLevel.mockReturnValue({
         data: sampleBalanceAtLevel,

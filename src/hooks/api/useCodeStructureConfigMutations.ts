@@ -6,13 +6,13 @@ import type { components } from '@/api/generated/account-command-api'
 
 type CodeStructureConfigRequest = components['schemas']['CodeStructureConfigRequest']
 
-export function useCodeStructureConfigMutations(tenantId: string) {
+export function useCodeStructureConfigMutations(workspaceId: string) {
   const qc = useQueryClient()
 
   const configureCodeStructure = useApiMutation(
     (body: CodeStructureConfigRequest) =>
-      apiClient.command.PUT('/tenants/{tenantId}/code-structure-config', {
-        params: { path: { tenantId } },
+      apiClient.command.PUT('/workspaces/{workspaceId}/code-structure-config', {
+        params: { path: { workspaceId } },
         body,
       }),
     {

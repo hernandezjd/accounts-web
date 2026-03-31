@@ -24,7 +24,7 @@ import type { FormattedError } from '@/lib/error/useErrorHandler'
 type ClosingAccountLine = Reporting['schemas']['ClosingAccountLine']
 
 interface ClosingDialogProps {
-  tenantId: string
+  workspaceId: string
   open: boolean
   onClose: () => void
   onSuccess: () => void
@@ -37,9 +37,9 @@ function formatAmount(n: number | null | undefined): string {
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-export function ClosingDialog({ tenantId, open, onClose, onSuccess }: ClosingDialogProps) {
+export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: ClosingDialogProps) {
   const { t } = useTranslation()
-  const { executeClosing } = useExecuteClosingMutation(tenantId)
+  const { executeClosing } = useExecuteClosingMutation(workspaceId)
 
   const [stage, setStage] = useState<DialogStage>('input')
   const [closingDate, setClosingDate] = useState('')
@@ -49,7 +49,7 @@ export function ClosingDialog({ tenantId, open, onClose, onSuccess }: ClosingDia
 
   // Fetch closing preview when dates are available and preview is requested
   const { data: preview, isLoading: isLoadingPreview, error: previewError } = useClosingPreview(
-    tenantId,
+    workspaceId,
     showPreviewFetch ? closingDate : null,
     showPreviewFetch ? description : null,
     showPreviewFetch,

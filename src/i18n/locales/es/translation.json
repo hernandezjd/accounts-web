@@ -25,16 +25,16 @@
     "closing": "Cierre",
     "setup": "Configuración"
   },
-  "tenant": {
-    "select": "Seleccionar Tenant",
-    "switch": "Cambiar Tenant",
-    "active": "Tenant Activo",
-    "tenantPicker": "Seleccionar Tenant",
-    "autoSelecting": "Seleccionando tu tenant automáticamente...",
-    "noTenants": "No hay tenants disponibles",
-    "switchTenant": "Cambiar Tenant",
-    "createFirstTenant": "Crear tu primer tenant",
-    "insufficientPermissionsCreate": "No tienes permiso para crear tenants. Contacta a tu administrador del sistema."
+  "workspace": {
+    "select": "Seleccionar Workspace",
+    "switch": "Cambiar Workspace",
+    "active": "Workspace Activo",
+    "workspacePicker": "Seleccionar Workspace",
+    "autoSelecting": "Seleccionando tu workspace automáticamente...",
+    "noWorkspaces": "No hay workspaces disponibles",
+    "switchWorkspace": "Cambiar Workspace",
+    "createFirstWorkspace": "Crear tu primer workspace",
+    "insufficientPermissionsCreate": "No tienes permiso para crear workspaces. Contacta a tu administrador del sistema."
   },
   "shortcuts": {
     "title": "Atajos de Teclado",
@@ -307,16 +307,16 @@
   "setup": {
     "title": "Configuración",
     "tabs": {
-      "tenants": "Empresas",
+      "workspaces": "Empresas",
       "accountingConfig": "Config. Contable",
       "transactionTypes": "Tipos de Transacción",
       "theme": "Tema",
       "prefilledCharts": "Planes Predefinidos"
     },
-    "tenants": {
-      "newTenant": "Nueva Empresa",
-      "editTenant": "Editar Empresa",
-      "createTenant": "Crear Empresa",
+    "workspaces": {
+      "newWorkspace": "Nueva Empresa",
+      "editWorkspace": "Editar Empresa",
+      "createWorkspace": "Crear Empresa",
       "name": "Nombre",
       "contactName": "Nombre de Contacto",
       "contactEmail": "Correo de Contacto",
@@ -337,7 +337,7 @@
       "deleteConflict": "Esta empresa tiene datos contables y no puede ser eliminada.",
       "loading": "Cargando empresas...",
       "error": "Error al cargar empresas.",
-      "noTenants": "No se encontraron empresas."
+      "noWorkspaces": "No se encontraron empresas."
     },
     "config": {
       "systemInitialDate": "Fecha Inicial del Sistema",
@@ -499,11 +499,11 @@
     "title": "Ayuda",
     "gettingStarted": {
       "title": "Comenzar",
-      "description": "Aquí te mostramos cómo poner en funcionamiento tu sistema de contabilidad:\n\n1. Crear un Inquilino\nComienza creando tu primer inquilino. Esto aísla tus datos contables. Haz clic en \"Crear tu Primer Inquilino\" en la pantalla principal e ingresa los detalles de tu organización.\n\n2. Establecer la Fecha Inicial del Sistema\nUna vez en tu inquilino, ve a Configuración → Configuración Contable y establece tu fecha inicial del sistema. Esto marca el comienzo de tu período contable.\n\n3. Crear tu Catálogo de Cuentas\nVe a Cuentas y crea tu estructura de cuentas. Comienza con categorías principales (Activos, Pasivos, Patrimonio, Ingresos, Gastos) y añade subcuentas según sea necesario. Recuerda usar códigos de cuenta únicos.\n\n4. Crear Tipos de Transacciones\nVe a Tipos de Transacciones y crea los tipos de transacciones que utiliza tu negocio (por ejemplo, Factura, Pago, Transferencia, Asiento de Diario).\n\n5. Ingresar Saldos Iniciales (Opcional)\nSi estás comenzando con saldos de cuenta existentes, ve a Saldos Iniciales e ingresa el saldo de apertura para cada cuenta.\n\n6. Registrar Transacciones\nVe a Transacciones y comienza a registrar tus transacciones comerciales. Cada transacción debe estar balanceada (débitos totales = créditos totales).\n\n7. Revisar Saldos e Informes\nVe a la página de Contabilidad para ver tu árbol de cuentas con saldos actuales. Usa la sección Informes para ver reportes de período, saldo a fecha y saldo por nivel.\n\n¡Eso es todo! Ahora estás listo para administrar tus registros contables."
+      "description": "Aquí te mostramos cómo poner en funcionamiento tu sistema de contabilidad:\n\n1. Crear un Espacio de Trabajo\nComienza creando tu primer espacio de trabajo. Esto aísla tus datos contables. Haz clic en \"Crear tu Primer Espacio de Trabajo\" en la pantalla principal e ingresa los detalles de tu organización.\n\n2. Establecer la Fecha Inicial del Sistema\nUna vez en tu espacio de trabajo, ve a Configuración → Configuración Contable y establece tu fecha inicial del sistema. Esto marca el comienzo de tu período contable.\n\n3. Crear tu Catálogo de Cuentas\nVe a Cuentas y crea tu estructura de cuentas. Comienza con categorías principales (Activos, Pasivos, Patrimonio, Ingresos, Gastos) y añade subcuentas según sea necesario. Recuerda usar códigos de cuenta únicos.\n\n4. Crear Tipos de Transacciones\nVe a Tipos de Transacciones y crea los tipos de transacciones que utiliza tu negocio (por ejemplo, Factura, Pago, Transferencia, Asiento de Diario).\n\n5. Ingresar Saldos Iniciales (Opcional)\nSi estás comenzando con saldos de cuenta existentes, ve a Saldos Iniciales e ingresa el saldo de apertura para cada cuenta.\n\n6. Registrar Transacciones\nVe a Transacciones y comienza a registrar tus transacciones comerciales. Cada transacción debe estar balanceada (débitos totales = créditos totales).\n\n7. Revisar Saldos e Informes\nVe a la página de Contabilidad para ver tu árbol de cuentas con saldos actuales. Usa la sección Informes para ver reportes de período, saldo a fecha y saldo por nivel.\n\n¡Eso es todo! Ahora estás listo para administrar tus registros contables."
     },
-    "tenants": {
-      "title": "Inquilinos",
-      "description": "Un inquilino (tenant) es una instancia aislada de tus datos contables. El sistema está diseñado para soportar múltiples organizaciones o unidades de negocio, cada una con sus propias cuentas, transacciones y registros financieros. Cada inquilino opera de manera independiente sin compartir datos con otros inquilinos. Esto garantiza un aislamiento completo de datos y privacidad para cada unidad de negocio que administres."
+    "workspaces": {
+      "title": "Espacio de Trabajos",
+      "description": "Un espacio de trabajo (workspace) es una instancia aislada de tus datos contables. El sistema está diseñado para soportar múltiples organizaciones o unidades de negocio, cada una con sus propias cuentas, transacciones y registros financieros. Cada espacio de trabajo opera de manera independiente sin compartir datos con otros espacio de trabajos. Esto garantiza un aislamiento completo de datos y privacidad para cada unidad de negocio que administres."
     },
     "accounts": {
       "title": "Cuentas",

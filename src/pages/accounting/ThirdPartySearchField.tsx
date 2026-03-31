@@ -24,17 +24,17 @@ function isSentinel(opt: AutocompleteOption): opt is SentinelOption {
 }
 
 interface ThirdPartySearchFieldProps {
-  tenantId: string
+  workspaceId: string
   value: ThirdPartyOption | null
   onChange: (value: ThirdPartyOption | null) => void
 }
 
-export function ThirdPartySearchField({ tenantId, value, onChange }: ThirdPartySearchFieldProps) {
+export function ThirdPartySearchField({ workspaceId, value, onChange }: ThirdPartySearchFieldProps) {
   const { t } = useTranslation()
   const [inputValue, setInputValue] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const { data: results, isFetching } = useThirdParties(tenantId, inputValue)
+  const { data: results, isFetching } = useThirdParties(workspaceId, inputValue)
 
   const thirdPartyOptions: ThirdPartyOption[] = (results ?? []).map((tp) => ({
     id: tp.id!,

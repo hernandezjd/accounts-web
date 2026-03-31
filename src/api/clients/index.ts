@@ -1,23 +1,23 @@
 import createClient from 'openapi-fetch'
 
-const tenantBaseUrl = import.meta.env.VITE_TENANT_API_URL ?? 'http://localhost:8083'
+const workspaceBaseUrl = import.meta.env.VITE_WORKSPACE_API_URL ?? 'http://localhost:8083'
 const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost:8081'
 const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:8082'
 
 /**
- * Extract tenantId from current URL pathname.
- * Handles patterns like /tenants/tenant-1/accounting, /tenants/tenant-uuid/config, etc.
- * Returns undefined if not in a tenant context.
+ * Extract workspaceId from current URL pathname.
+ * Handles patterns like /workspaces/workspace-1/accounting, /workspaces/workspace-uuid/config, etc.
+ * Returns undefined if not in a workspace context.
  */
-function extractTenantIdFromUrl(): string | undefined {
-  const match = window.location.pathname.match(/^\/tenants\/([^/]+)/)
+function extractWorkspaceIdFromUrl(): string | undefined {
+  const match = window.location.pathname.match(/^\/workspaces\/([^/]+)/)
   return match?.[1]
 }
 
 /**
  * Custom fetch implementation that:
  * 1. Adds Bearer token to all requests
- * 2. Adds X-Tenant-Id header to all requests (extracted from URL)
+ * 2. Adds X-Workspace-Id header to all requests (extracted from URL)
  * 3. Handles 401 (session expired) by redirecting to login
  * 4. Handles 403 (permission denied) by letting error bubble up for display
  *
@@ -39,10 +39,10 @@ function createAuthenticatedFetch() {
       headers.set('Authorization', `Bearer ${token}`)
     }
 
-    // Add X-Tenant-Id header from current URL context
-    const tenantId = extractTenantIdFromUrl()
-    if (tenantId) {
-      headers.set('X-Tenant-Id', tenantId)
+    // Add X-Workspace-Id header from current URL context
+    const workspaceId = extractWorkspaceIdFromUrl()
+    if (workspaceId) {
+      headers.set('X-Workspace-Id', workspaceId)
     }
 
     // Make the request with the updated headers
@@ -58,9 +58,9 @@ function createAuthenticatedFetch() {
       localStorage.removeItem('id_token')
       localStorage.removeItem('refresh_token')
 
-      // Clear session storage to prevent TenantPickerPage from auto-redirecting
+      // Clear session storage to prevent WorkspacePickerPage from auto-redirecting
       // back to the same page before the user re-authenticates
-      sessionStorage.removeItem('lastTenantId')
+      sessionStorage.removeItem('lastWorkspaceId')
 
       // Redirect to login
       // Using window.location to force a page reload and auth flow restart
@@ -79,9 +79,9 @@ function createAuthenticatedFetch() {
   }
 }
 
-/** Client for the Tenant Service (port 8083) */
-export const tenantClient = createClient({
-  baseUrl: tenantBaseUrl,
+/** Client for the Workspace Service (port 8083) */
+export const workspaceClient = createClient({
+  baseUrl: workspaceBaseUrl,
   fetch: createAuthenticatedFetch(),
 })
 

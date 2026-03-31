@@ -148,11 +148,11 @@ describe('shouldRetryRequest', () => {
       expect(shouldRetryRequest(error)).toBe(false)
     })
 
-    it('should not retry when tenant access required (403)', () => {
+    it('should not retry when workspace access required (403)', () => {
       const error = {
         status: 403,
-        errorCode: 'TENANT_ACCESS_REQUIRED',
-        message: 'User not assigned to requested tenant',
+        errorCode: 'WORKSPACE_ACCESS_REQUIRED',
+        message: 'User not assigned to requested workspace',
       } as unknown
       expect(shouldRetryRequest(error)).toBe(false)
     })

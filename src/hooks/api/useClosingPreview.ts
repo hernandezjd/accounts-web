@@ -7,13 +7,13 @@ type ClosingPreviewRequest = Reporting['schemas']['ClosingPreviewRequest']
 type ClosingPreviewResponse = Reporting['schemas']['ClosingPreviewResponse']
 
 export function useClosingPreview(
-  tenantId: string | null | undefined,
+  workspaceId: string | null | undefined,
   date: string | null | undefined,
   description: string | null | undefined,
   enabled = false,
 ) {
   return useApiQuery<ClosingPreviewResponse>(
-    queryKeys.reports.closingPreview(tenantId!, { date: date!, description: description! }),
+    queryKeys.reports.closingPreview(workspaceId!, { date: date!, description: description! }),
     async () => {
       const response = await apiClient.query.POST('/reports/closing/preview', {
         body: {
@@ -26,6 +26,6 @@ export function useClosingPreview(
         response,
       }
     },
-    { enabled: Boolean(tenantId) && Boolean(date) && Boolean(description) && enabled },
+    { enabled: Boolean(workspaceId) && Boolean(date) && Boolean(description) && enabled },
   )
 }

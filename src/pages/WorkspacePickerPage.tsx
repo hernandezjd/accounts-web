@@ -14,23 +14,23 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import Alert from '@mui/material/Alert'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { useTenants } from '@/hooks/api/useTenants'
+import { useWorkspaces } from '@/hooks/api/useWorkspaces'
 import { useAppStore } from '@/store/appStore'
 import { useUserActions } from '@/hooks/useUserActions'
-import { TenantFormDialog } from './TenantFormDialog'
+import { WorkspaceFormDialog } from './WorkspaceFormDialog'
 
-function tenantAccountingPath(id: string): string {
-  return `/tenants/${id}/accounting`
+function workspaceAccountingPath(id: string): string {
+  return `/workspaces/${id}/accounting`
 }
 
-export function TenantPickerPage() {
+export function WorkspacePickerPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { data: tenants, isLoading, isError, error } = useTenants()
+  const { data: workspaces, isLoading, isError, error } = useWorkspaces()
   const [createOpen, setCreateOpen] = useState(false)
   const { language, setLanguage } = useAppStore()
   const { hasAction } = useUserActions()
-  const canManageTenants = hasAction('manage_tenants')
+  const canManageWorkspaces = hasAction('manage_workspaces')
 
   function handleLanguageChange(newLanguage: string) {
     setLanguage(newLanguage)
@@ -42,24 +42,24 @@ export function TenantPickerPage() {
 
   // Auto-redirect: check sessionStorage first
   useEffect(() => {
-    const lastTenantId = sessionStorage.getItem('lastTenantId')
-    if (lastTenantId) {
-      navigate(tenantAccountingPath(lastTenantId), { replace: true })
+    const lastWorkspaceId = sessionStorage.getItem('lastWorkspaceId')
+    if (lastWorkspaceId) {
+      navigate(workspaceAccountingPath(lastWorkspaceId), { replace: true })
     }
   }, [navigate])
 
-  // Auto-select when exactly one tenant
+  // Auto-select when exactly one workspace
   useEffect(() => {
-    if (tenants && tenants.length === 1) {
-      const id = tenants[0].id
-      sessionStorage.setItem('lastTenantId', id)
-      navigate(tenantAccountingPath(id), { replace: true })
+    if (workspaces && workspaces.length === 1) {
+      const id = workspaces[0].id
+      sessionStorage.setItem('lastWorkspaceId', id)
+      navigate(workspaceAccountingPath(id), { replace: true })
     }
-  }, [tenants, navigate])
+  }, [workspaces, navigate])
 
   function handleSelect(id: string) {
-    sessionStorage.setItem('lastTenantId', id)
-    navigate(tenantAccountingPath(id))
+    sessionStorage.setItem('lastWorkspaceId', id)
+    navigate(workspaceAccountingPath(id))
   }
 
   return (
@@ -76,7 +76,7 @@ export function TenantPickerPage() {
       <Paper elevation={3} sx={{ width: '100%', maxWidth: 480, p: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" sx={{ flex: 1 }}>
-            {t('tenant.tenantPicker')}
+            {t('workspace.workspacePicker')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Select
@@ -125,55 +125,55 @@ export function TenantPickerPage() {
 
         {isError && <ErrorMessage error={error ?? null} />}
 
-        {tenants && tenants.length === 0 && (
+        {workspaces && workspaces.length === 0 && (
           <>
             <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
-              {t('tenant.noTenants')}
+              {t('workspace.noWorkspaces')}
             </Typography>
-            {canManageTenants ? (
+            {canManageWorkspaces ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
                 <Button variant="contained" onClick={() => setCreateOpen(true)}>
-                  {t('tenant.createFirstTenant')}
+                  {t('workspace.createFirstWorkspace')}
                 </Button>
               </Box>
             ) : (
               <Alert severity="warning" sx={{ mt: 3 }}>
-                {t('tenant.insufficientPermissionsCreate')}
+                {t('workspace.insufficientPermissionsCreate')}
               </Alert>
             )}
-            <TenantFormDialog
+            <WorkspaceFormDialog
               open={createOpen}
               onClose={() => setCreateOpen(false)}
               onCreated={(id) => {
-                sessionStorage.setItem('lastTenantId', id)
-                navigate(tenantAccountingPath(id))
+                sessionStorage.setItem('lastWorkspaceId', id)
+                navigate(workspaceAccountingPath(id))
               }}
             />
           </>
         )}
 
-        {tenants && tenants.length > 1 && (
+        {workspaces && workspaces.length > 1 && (
           <List>
-            {tenants.map((tenant) => (
+            {workspaces.map((workspace) => (
               <ListItemButton
-                key={tenant.id}
-                onClick={() => handleSelect(tenant.id)}
-                disabled={tenant.status === 'inactive'}
+                key={workspace.id}
+                onClick={() => handleSelect(workspace.id)}
+                disabled={workspace.status === 'inactive'}
                 sx={{ borderRadius: 1, mb: 0.5 }}
               >
                 <ListItemText
-                  primary={tenant.name}
-                  secondary={tenant.status === 'inactive' ? '(inactive)' : undefined}
+                  primary={workspace.name}
+                  secondary={workspace.status === 'inactive' ? '(inactive)' : undefined}
                 />
               </ListItemButton>
             ))}
           </List>
         )}
 
-        {tenants && tenants.length === 1 && (
+        {workspaces && workspaces.length === 1 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={24} sx={{ mr: 2 }} />
-            <Typography>{t('tenant.autoSelecting')}</Typography>
+            <Typography>{t('workspace.autoSelecting')}</Typography>
           </Box>
         )}
       </Paper>

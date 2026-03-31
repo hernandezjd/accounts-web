@@ -9,8 +9,8 @@ import { TransactionForm } from './TransactionForm'
 vi.mock('@/hooks/api/useTransactionTypes', () => ({
   useTransactionTypes: vi.fn(),
 }))
-vi.mock('@/hooks/api/useTenantConfig', () => ({
-  useTenantConfig: vi.fn(),
+vi.mock('@/hooks/api/useWorkspaceConfig', () => ({
+  useWorkspaceConfig: vi.fn(),
 }))
 vi.mock('@/hooks/api/useTransactionMutations', () => ({
   useTransactionMutations: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock('@/hooks/api/useThirdPartyMutations', () => ({
 }))
 
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useThirdParties } from '@/hooks/api/useThirdParties'
@@ -37,7 +37,7 @@ import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
 
 const mockUseTransactionTypes = vi.mocked(useTransactionTypes)
-const mockUseTenantConfig = vi.mocked(useTenantConfig)
+const mockUseWorkspaceConfig = vi.mocked(useWorkspaceConfig)
 const mockUseTransactionMutations = vi.mocked(useTransactionMutations)
 const mockUseAccounts = vi.mocked(useAccounts)
 const mockUseThirdParties = vi.mocked(useThirdParties)
@@ -61,12 +61,12 @@ function setupDefaultMocks() {
     error: null,
   } as ReturnType<typeof useTransactionTypes>)
 
-  mockUseTenantConfig.mockReturnValue({
+  mockUseWorkspaceConfig.mockReturnValue({
     data: { systemInitialDate: '2025-01-01', lockedPeriodDate: null },
     isLoading: false,
     isError: false,
     error: null,
-  } as ReturnType<typeof useTenantConfig>)
+  } as ReturnType<typeof useWorkspaceConfig>)
 
   mockUseTransactionMutations.mockReturnValue({
     createTransaction: { ...noOpMutation },
@@ -113,7 +113,7 @@ function setupDefaultMocks() {
 }
 
 const defaultProps = {
-  tenantId: 'tenant-1',
+  workspaceId: 'workspace-1',
   mode: 'create' as const,
   onSuccess: vi.fn(),
   onCancel: vi.fn(),
@@ -310,7 +310,7 @@ describe('TransactionForm', () => {
     expect(screen.getByTestId('initial-balance-date')).toBeInTheDocument()
   })
 
-  it('initial balance mode shows date from tenant config', () => {
+  it('initial balance mode shows date from workspace config', () => {
     renderWithProviders(
       <TransactionForm {...defaultProps} mode="createInitialBalance" />,
     )
@@ -322,12 +322,12 @@ describe('TransactionForm', () => {
 
   // REQ-INIT-09: warning when initial date not configured (warning shown at page level, not in form — see FR-073)
   it('disables save button in create mode when systemInitialDate is null', () => {
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: { systemInitialDate: null, lockedPeriodDate: null },
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useTenantConfig>)
+    } as ReturnType<typeof useWorkspaceConfig>)
 
     renderWithProviders(<TransactionForm {...defaultProps} mode="create" />)
 
@@ -458,12 +458,12 @@ describe('TransactionForm', () => {
   // FR-086: pre-fill date with today's date
   it('prefills date with today when creating transaction and today >= systemInitialDate', () => {
     // Mock today as 2025-06-15, systemInitialDate as 2025-01-01 (before today)
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: { systemInitialDate: '2025-01-01', lockedPeriodDate: null },
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useTenantConfig>)
+    } as ReturnType<typeof useWorkspaceConfig>)
 
     // Temporarily set today's date for the test by mocking Date
     const mockDate = new Date(2025, 5, 15) // June 15, 2025
@@ -480,12 +480,12 @@ describe('TransactionForm', () => {
 
   it('leaves date empty when creating transaction and today < systemInitialDate', () => {
     // Mock today as 2024-12-15, systemInitialDate as 2025-01-01 (after today)
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: { systemInitialDate: '2025-01-01', lockedPeriodDate: null },
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useTenantConfig>)
+    } as ReturnType<typeof useWorkspaceConfig>)
 
     // Temporarily set today's date for the test
     const mockDate = new Date(2024, 11, 15) // December 15, 2024

@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
  *
  * Tests cover:
  * - Authorization header injection from localStorage
- * - X-Tenant-Id header injection from URL pathname
+ * - X-Workspace-Id header injection from URL pathname
  * - 401 response: token cleanup and redirect
  * - 403 response: pass-through without redirect
  * - Success responses: returned as-is
@@ -33,10 +33,10 @@ function createAuthenticatedFetch() {
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     }
-    const match = window.location.pathname.match(/^\/tenants\/([^/]+)/)
-    const tenantId = match?.[1]
-    if (tenantId) {
-      headers.set('X-Tenant-Id', tenantId)
+    const match = window.location.pathname.match(/^\/workspaces\/([^/]+)/)
+    const workspaceId = match?.[1]
+    if (workspaceId) {
+      headers.set('X-Workspace-Id', workspaceId)
     }
     const response = await fetch(input, { ...init, headers })
 
@@ -44,7 +44,7 @@ function createAuthenticatedFetch() {
       localStorage.removeItem('access_token')
       localStorage.removeItem('id_token')
       localStorage.removeItem('refresh_token')
-      sessionStorage.removeItem('lastTenantId')
+      sessionStorage.removeItem('lastWorkspaceId')
       window.location.href = '/'
     }
 
@@ -112,10 +112,10 @@ describe('createAuthenticatedFetch', () => {
     })
   })
 
-  describe('A3 — X-Tenant-Id extracted from pathname and added', () => {
-    it('should add X-Tenant-Id header from tenant URL pattern', async () => {
+  describe('A3 — X-Workspace-Id extracted from pathname and added', () => {
+    it('should add X-Workspace-Id header from workspace URL pattern', async () => {
       Object.defineProperty(window, 'location', {
-        value: { pathname: '/tenants/tenant-abc/accounting', href: '' },
+        value: { pathname: '/workspaces/workspace-abc/accounting', href: '' },
         writable: true,
         configurable: true,
       })
@@ -123,12 +123,12 @@ describe('createAuthenticatedFetch', () => {
       const authenticatedFetch = createAuthenticatedFetch()
       await authenticatedFetch('http://example.com/api/accounts')
 
-      expect(capturedHeaders.get('X-Tenant-Id')).toBe('tenant-abc')
+      expect(capturedHeaders.get('X-Workspace-Id')).toBe('workspace-abc')
     })
 
-    it('should extract UUID-based tenant ID', async () => {
+    it('should extract UUID-based workspace ID', async () => {
       Object.defineProperty(window, 'location', {
-        value: { pathname: '/tenants/550e8400-e29b-41d4-a716-446655440000/config', href: '' },
+        value: { pathname: '/workspaces/550e8400-e29b-41d4-a716-446655440000/config', href: '' },
         writable: true,
         configurable: true,
       })
@@ -136,12 +136,12 @@ describe('createAuthenticatedFetch', () => {
       const authenticatedFetch = createAuthenticatedFetch()
       await authenticatedFetch('http://example.com/api/config')
 
-      expect(capturedHeaders.get('X-Tenant-Id')).toBe('550e8400-e29b-41d4-a716-446655440000')
+      expect(capturedHeaders.get('X-Workspace-Id')).toBe('550e8400-e29b-41d4-a716-446655440000')
     })
   })
 
-  describe('A4 — X-Tenant-Id omitted outside tenant context', () => {
-    it('should not add X-Tenant-Id when on root path', async () => {
+  describe('A4 — X-Workspace-Id omitted outside workspace context', () => {
+    it('should not add X-Workspace-Id when on root path', async () => {
       Object.defineProperty(window, 'location', {
         value: { pathname: '/', href: '' },
         writable: true,
@@ -149,12 +149,12 @@ describe('createAuthenticatedFetch', () => {
       })
 
       const authenticatedFetch = createAuthenticatedFetch()
-      await authenticatedFetch('http://example.com/api/tenants')
+      await authenticatedFetch('http://example.com/api/workspaces')
 
-      expect(capturedHeaders.get('X-Tenant-Id')).toBeNull()
+      expect(capturedHeaders.get('X-Workspace-Id')).toBeNull()
     })
 
-    it('should not add X-Tenant-Id when path does not start with /tenants/', async () => {
+    it('should not add X-Workspace-Id when path does not start with /workspaces/', async () => {
       Object.defineProperty(window, 'location', {
         value: { pathname: '/login', href: '' },
         writable: true,
@@ -164,13 +164,13 @@ describe('createAuthenticatedFetch', () => {
       const authenticatedFetch = createAuthenticatedFetch()
       await authenticatedFetch('http://example.com/api/test')
 
-      expect(capturedHeaders.get('X-Tenant-Id')).toBeNull()
+      expect(capturedHeaders.get('X-Workspace-Id')).toBeNull()
     })
   })
 
   describe('A5 — 401 response clears tokens and redirects', () => {
     it('should clear tokens and redirect to / on 401', async () => {
-      const locationObj = { pathname: '/tenants/t1/accounting', href: '' }
+      const locationObj = { pathname: '/workspaces/t1/accounting', href: '' }
       Object.defineProperty(window, 'location', {
         value: locationObj,
         writable: true,
@@ -185,14 +185,14 @@ describe('createAuthenticatedFetch', () => {
       expect(localStorageRemoveItem).toHaveBeenCalledWith('access_token')
       expect(localStorageRemoveItem).toHaveBeenCalledWith('id_token')
       expect(localStorageRemoveItem).toHaveBeenCalledWith('refresh_token')
-      expect(sessionStorageRemoveItem).toHaveBeenCalledWith('lastTenantId')
+      expect(sessionStorageRemoveItem).toHaveBeenCalledWith('lastWorkspaceId')
       expect(locationObj.href).toBe('/')
     })
   })
 
   describe('A6 — 403 response is returned without redirect', () => {
     it('should return 403 response without redirecting', async () => {
-      const locationObj = { pathname: '/tenants/t1/accounting', href: '' }
+      const locationObj = { pathname: '/workspaces/t1/accounting', href: '' }
       Object.defineProperty(window, 'location', {
         value: locationObj,
         writable: true,
@@ -221,12 +221,12 @@ describe('createAuthenticatedFetch', () => {
     })
   })
 
-  describe('A8 — various pathname patterns extract tenant ID correctly', () => {
+  describe('A8 — various pathname patterns extract workspace ID correctly', () => {
     const cases = [
-      { pathname: '/tenants/uuid-123/config', expected: 'uuid-123' },
-      { pathname: '/tenants/t1/accounting/sub', expected: 't1' },
-      { pathname: '/tenants/slug', expected: 'slug' },
-      { pathname: '/tenants/my-tenant-name/reports/2024', expected: 'my-tenant-name' },
+      { pathname: '/workspaces/uuid-123/config', expected: 'uuid-123' },
+      { pathname: '/workspaces/t1/accounting/sub', expected: 't1' },
+      { pathname: '/workspaces/slug', expected: 'slug' },
+      { pathname: '/workspaces/my-workspace-name/reports/2024', expected: 'my-workspace-name' },
     ]
 
     cases.forEach(({ pathname, expected }) => {
@@ -240,7 +240,7 @@ describe('createAuthenticatedFetch', () => {
         const authenticatedFetch = createAuthenticatedFetch()
         await authenticatedFetch('http://example.com/api/test')
 
-        expect(capturedHeaders.get('X-Tenant-Id')).toBe(expected)
+        expect(capturedHeaders.get('X-Workspace-Id')).toBe(expected)
       })
     })
   })

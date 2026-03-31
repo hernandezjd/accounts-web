@@ -7,11 +7,11 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
-import { useTenantMutations } from '@/hooks/api/useTenantMutations'
+import { useWorkspaceMutations } from '@/hooks/api/useWorkspaceMutations'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { formatError, type FormattedError } from '@/lib/error/useErrorHandler'
 
-export interface TenantFormData {
+export interface WorkspaceFormData {
   id: string
   name: string
   contactName?: string
@@ -26,27 +26,27 @@ export interface TenantFormData {
   }
 }
 
-interface TenantFormDialogProps {
+interface WorkspaceFormDialogProps {
   open: boolean
   onClose: () => void
-  editTenant?: TenantFormData
+  editWorkspace?: WorkspaceFormData
   onCreated?: (id: string) => void
 }
 
-export function TenantFormDialog({ open, onClose, editTenant, onCreated }: TenantFormDialogProps) {
+export function WorkspaceFormDialog({ open, onClose, editWorkspace, onCreated }: WorkspaceFormDialogProps) {
   const { t } = useTranslation()
-  const { createTenant, updateTenant } = useTenantMutations()
-  const isEdit = Boolean(editTenant)
+  const { createWorkspace, updateWorkspace } = useWorkspaceMutations()
+  const isEdit = Boolean(editWorkspace)
 
-  const [name, setName] = useState(editTenant?.name ?? '')
-  const [contactName, setContactName] = useState(editTenant?.contactName ?? '')
-  const [contactEmail, setContactEmail] = useState(editTenant?.contactEmail ?? '')
-  const [contactPhone, setContactPhone] = useState(editTenant?.contactPhone ?? '')
-  const [street, setStreet] = useState(editTenant?.address?.street ?? '')
-  const [city, setCity] = useState(editTenant?.address?.city ?? '')
-  const [state, setState] = useState(editTenant?.address?.state ?? '')
-  const [postalCode, setPostalCode] = useState(editTenant?.address?.postalCode ?? '')
-  const [country, setCountry] = useState(editTenant?.address?.country ?? '')
+  const [name, setName] = useState(editWorkspace?.name ?? '')
+  const [contactName, setContactName] = useState(editWorkspace?.contactName ?? '')
+  const [contactEmail, setContactEmail] = useState(editWorkspace?.contactEmail ?? '')
+  const [contactPhone, setContactPhone] = useState(editWorkspace?.contactPhone ?? '')
+  const [street, setStreet] = useState(editWorkspace?.address?.street ?? '')
+  const [city, setCity] = useState(editWorkspace?.address?.city ?? '')
+  const [state, setState] = useState(editWorkspace?.address?.state ?? '')
+  const [postalCode, setPostalCode] = useState(editWorkspace?.address?.postalCode ?? '')
+  const [country, setCountry] = useState(editWorkspace?.address?.country ?? '')
   const [error, setError] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
@@ -71,12 +71,12 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
     }
 
     if (isEdit) {
-      updateTenant.mutate(
-        { id: editTenant!.id, body },
+      updateWorkspace.mutate(
+        { id: editWorkspace!.id, body },
         { onSuccess: handleClose, onError: (err) => setError(formatError(err)) },
       )
     } else {
-      createTenant.mutate(body, {
+      createWorkspace.mutate(body, {
         onSuccess: (data) => {
           if (data?.id) {
             onCreated?.(data.id)
@@ -90,86 +90,86 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
 
   const canSave = name.trim()
 
-  const isPending = createTenant.isPending || updateTenant.isPending
+  const isPending = createWorkspace.isPending || updateWorkspace.isPending
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth data-testid="tenant-form-dialog">
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth data-testid="workspace-form-dialog">
       <DialogTitle>
-        {isEdit ? t('setup.tenants.editTenant') : t('setup.tenants.createTenant')}
+        {isEdit ? t('setup.workspaces.editWorkspace') : t('setup.workspaces.createWorkspace')}
       </DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {error && <ErrorMessage error={error} onDismiss={() => setError(null)} />}
         <TextField
-          label={t('setup.tenants.name')}
+          label={t('setup.workspaces.name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
           size="small"
-          inputProps={{ 'data-testid': 'tenant-name-input' }}
+          inputProps={{ 'data-testid': 'workspace-name-input' }}
         />
         <TextField
-          label={t('setup.tenants.contactName')}
+          label={t('setup.workspaces.contactName')}
           value={contactName}
           onChange={(e) => setContactName(e.target.value)}
           size="small"
-          inputProps={{ 'data-testid': 'tenant-contact-name-input' }}
+          inputProps={{ 'data-testid': 'workspace-contact-name-input' }}
         />
         <TextField
-          label={t('setup.tenants.contactEmail')}
+          label={t('setup.workspaces.contactEmail')}
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
           type="email"
           size="small"
-          inputProps={{ 'data-testid': 'tenant-contact-email-input' }}
+          inputProps={{ 'data-testid': 'workspace-contact-email-input' }}
         />
         <TextField
-          label={t('setup.tenants.contactPhone')}
+          label={t('setup.workspaces.contactPhone')}
           value={contactPhone}
           onChange={(e) => setContactPhone(e.target.value)}
           size="small"
-          inputProps={{ 'data-testid': 'tenant-contact-phone-input' }}
+          inputProps={{ 'data-testid': 'workspace-contact-phone-input' }}
         />
         <TextField
-          label={t('setup.tenants.street')}
+          label={t('setup.workspaces.street')}
           value={street}
           onChange={(e) => setStreet(e.target.value)}
           size="small"
-          inputProps={{ 'data-testid': 'tenant-street-input' }}
+          inputProps={{ 'data-testid': 'workspace-street-input' }}
         />
         <Box sx={{ display: 'flex', gap: 1 }}>
           <TextField
-            label={t('setup.tenants.city')}
+            label={t('setup.workspaces.city')}
             value={city}
             onChange={(e) => setCity(e.target.value)}
             size="small"
             sx={{ flex: 2 }}
-            inputProps={{ 'data-testid': 'tenant-city-input' }}
+            inputProps={{ 'data-testid': 'workspace-city-input' }}
           />
           <TextField
-            label={t('setup.tenants.state')}
+            label={t('setup.workspaces.state')}
             value={state}
             onChange={(e) => setState(e.target.value)}
             size="small"
             sx={{ flex: 1 }}
-            inputProps={{ 'data-testid': 'tenant-state-input' }}
+            inputProps={{ 'data-testid': 'workspace-state-input' }}
           />
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <TextField
-            label={t('setup.tenants.postalCode')}
+            label={t('setup.workspaces.postalCode')}
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
             size="small"
             sx={{ flex: 1 }}
-            inputProps={{ 'data-testid': 'tenant-postal-input' }}
+            inputProps={{ 'data-testid': 'workspace-postal-input' }}
           />
           <TextField
-            label={t('setup.tenants.country')}
+            label={t('setup.workspaces.country')}
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             size="small"
             sx={{ flex: 2 }}
-            inputProps={{ 'data-testid': 'tenant-country-input' }}
+            inputProps={{ 'data-testid': 'workspace-country-input' }}
           />
         </Box>
       </DialogContent>
@@ -179,7 +179,7 @@ export function TenantFormDialog({ open, onClose, editTenant, onCreated }: Tenan
           onClick={handleSubmit}
           variant="contained"
           disabled={!canSave || isPending}
-          data-testid="tenant-form-save"
+          data-testid="workspace-form-save"
         >
           {t('common.save')}
         </Button>

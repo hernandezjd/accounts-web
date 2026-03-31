@@ -222,12 +222,12 @@ function LivePreview({ draft }: LivePreviewProps) {
 
 export function ThemeEditorTab() {
   const { t } = useTranslation()
-  const { tenantId = '' } = useParams<{ tenantId: string }>()
-  const getThemeForTenant = useThemeStore((s) => s.getThemeForTenant)
-  const setThemeForTenant = useThemeStore((s) => s.setThemeForTenant)
-  const resetThemeForTenant = useThemeStore((s) => s.resetThemeForTenant)
+  const { workspaceId = '' } = useParams<{ workspaceId: string }>()
+  const getThemeForWorkspace = useThemeStore((s) => s.getThemeForWorkspace)
+  const setThemeForWorkspace = useThemeStore((s) => s.setThemeForWorkspace)
+  const resetThemeForWorkspace = useThemeStore((s) => s.resetThemeForWorkspace)
 
-  const [draft, setDraft] = useState<ThemeSettings>(() => getThemeForTenant(tenantId))
+  const [draft, setDraft] = useState<ThemeSettings>(() => getThemeForWorkspace(workspaceId))
   const [savedMsg, setSavedMsg] = useState<string | null>(null)
 
   function updatePalette(key: keyof ThemeSettings['palette'], value: string) {
@@ -251,12 +251,12 @@ export function ThemeEditorTab() {
   }
 
   function handleSave() {
-    setThemeForTenant(tenantId, draft)
+    setThemeForWorkspace(workspaceId, draft)
     setSavedMsg(t('setup.theme.saveSuccess'))
   }
 
   function handleReset() {
-    resetThemeForTenant(tenantId)
+    resetThemeForWorkspace(workspaceId)
     setDraft(DEFAULT_THEME_SETTINGS)
     setSavedMsg(t('setup.theme.resetSuccess'))
   }

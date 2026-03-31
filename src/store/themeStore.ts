@@ -3,38 +3,38 @@ import { persist } from 'zustand/middleware'
 import { type ThemeSettings, DEFAULT_THEME_SETTINGS } from '@/theme'
 
 interface ThemeStoreState {
-  themesByTenant: Record<string, ThemeSettings>
-  getThemeForTenant: (tenantId: string) => ThemeSettings
-  setThemeForTenant: (tenantId: string, settings: ThemeSettings) => void
-  resetThemeForTenant: (tenantId: string) => void
+  themesByWorkspace: Record<string, ThemeSettings>
+  getThemeForWorkspace: (workspaceId: string) => ThemeSettings
+  setThemeForWorkspace: (workspaceId: string, settings: ThemeSettings) => void
+  resetThemeForWorkspace: (workspaceId: string) => void
 }
 
 export const useThemeStore = create<ThemeStoreState>()(
   persist(
     (set, get) => ({
-      themesByTenant: {},
+      themesByWorkspace: {},
 
-      getThemeForTenant: (tenantId: string): ThemeSettings => {
-        return get().themesByTenant[tenantId] ?? DEFAULT_THEME_SETTINGS
+      getThemeForWorkspace: (workspaceId: string): ThemeSettings => {
+        return get().themesByWorkspace[workspaceId] ?? DEFAULT_THEME_SETTINGS
       },
 
-      setThemeForTenant: (tenantId: string, settings: ThemeSettings) => {
+      setThemeForWorkspace: (workspaceId: string, settings: ThemeSettings) => {
         set((state) => ({
-          themesByTenant: { ...state.themesByTenant, [tenantId]: settings },
+          themesByWorkspace: { ...state.themesByWorkspace, [workspaceId]: settings },
         }))
       },
 
-      resetThemeForTenant: (tenantId: string) => {
+      resetThemeForWorkspace: (workspaceId: string) => {
         set((state) => {
-          const next = { ...state.themesByTenant }
-          delete next[tenantId]
-          return { themesByTenant: next }
+          const next = { ...state.themesByWorkspace }
+          delete next[workspaceId]
+          return { themesByWorkspace: next }
         })
       },
     }),
     {
       name: 'theme-store',
-      partialize: (state) => ({ themesByTenant: state.themesByTenant }),
+      partialize: (state) => ({ themesByWorkspace: state.themesByWorkspace }),
     },
   ),
 )

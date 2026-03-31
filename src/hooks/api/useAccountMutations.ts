@@ -10,7 +10,7 @@ type UpdateAccountRequest = components['schemas']['UpdateAccountRequest']
 type ToggleHasThirdPartiesRequest = { enabled: boolean; thirdPartyId?: string }
 type AccountCommandResponse = components['schemas']['AccountCommandResponse']
 
-export function useAccountMutations(tenantId: string) {
+export function useAccountMutations(workspaceId: string) {
   const qc = useQueryClient()
 
   /**
@@ -36,8 +36,8 @@ export function useAccountMutations(tenantId: string) {
         // Optimistically add the new account to the cache so it appears immediately,
         // before the event processor has had time to project it to the read side.
         const cachedAccounts =
-          qc.getQueryData<Account[]>(queryKeys.accounts.list(tenantId, true)) ??
-          qc.getQueryData<Account[]>(queryKeys.accounts.list(tenantId, false)) ??
+          qc.getQueryData<Account[]>(queryKeys.accounts.list(workspaceId, true)) ??
+          qc.getQueryData<Account[]>(queryKeys.accounts.list(workspaceId, false)) ??
           []
         const parent = variables.parentId
           ? cachedAccounts.find((a) => a.id === variables.parentId)
@@ -53,7 +53,7 @@ export function useAccountMutations(tenantId: string) {
         }
         // Update both includeInactive variants if they exist
         for (const includeInactive of [true, false]) {
-          const key = queryKeys.accounts.list(tenantId, includeInactive)
+          const key = queryKeys.accounts.list(workspaceId, includeInactive)
           const existing = qc.getQueryData<Account[]>(key)
           if (existing !== undefined) {
             qc.setQueryData(key, [...existing, newAccount])

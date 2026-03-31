@@ -20,7 +20,7 @@ import Switch from '@mui/material/Switch'
 import Tooltip from '@mui/material/Tooltip'
 import { usePeriodReport, type PeriodReportWithClosureResponse, type PeriodReportResponse } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useUserActions } from '@/hooks/useUserActions'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 
@@ -67,14 +67,14 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 // ─── Period Report Tab ───────────────────────────────────────────────────────
 
 interface PeriodReportTabProps {
-  tenantId: string
+  workspaceId: string
   systemInitialDate?: string | null
   simulateClosure?: boolean
   nominalAccountIds?: string[]
   plAccountId?: string
 }
 
-function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: PeriodReportTabProps) {
+function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: PeriodReportTabProps) {
   const { t } = useTranslation()
   const { hasAction } = useUserActions()
   const canViewReports = hasAction('view_reports')
@@ -91,7 +91,7 @@ function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false,
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
   const { data, isLoading, isError, error: apiError, refetch } = usePeriodReport(
-    tenantId,
+    workspaceId,
     appliedParams.fromDate,
     appliedParams.toDate,
     appliedParams.level,
@@ -275,14 +275,14 @@ function PeriodReportTab({ tenantId, systemInitialDate, simulateClosure = false,
 // ─── Balance at Date Tab ─────────────────────────────────────────────────────
 
 interface BalanceAtDateTabProps {
-  tenantId: string
+  workspaceId: string
   systemInitialDate?: string | null
   simulateClosure?: boolean
   nominalAccountIds?: string[]
   plAccountId?: string
 }
 
-function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: BalanceAtDateTabProps) {
+function BalanceAtDateTab({ workspaceId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: BalanceAtDateTabProps) {
   const { t } = useTranslation()
   const { hasAction } = useUserActions()
   const canViewReports = hasAction('view_reports')
@@ -291,7 +291,7 @@ function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false
   const [enabled, setEnabled] = useState(false)
 
   const { data, isLoading, isError, error: apiError, refetch } = usePeriodReport(
-    tenantId,
+    workspaceId,
     appliedDate,
     appliedDate,
     undefined,
@@ -410,14 +410,14 @@ function BalanceAtDateTab({ tenantId, systemInitialDate, simulateClosure = false
 // ─── Balance at Level Tab ────────────────────────────────────────────────────
 
 interface BalanceAtLevelTabProps {
-  tenantId: string
+  workspaceId: string
   systemInitialDate?: string | null
   simulateClosure?: boolean
   nominalAccountIds?: string[]
   plAccountId?: string
 }
 
-function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: BalanceAtLevelTabProps) {
+function BalanceAtLevelTab({ workspaceId, systemInitialDate, simulateClosure = false, nominalAccountIds, plAccountId }: BalanceAtLevelTabProps) {
   const { t } = useTranslation()
   const { hasAction } = useUserActions()
   const canViewReports = hasAction('view_reports')
@@ -430,7 +430,7 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = fals
   }>({ date: '', level: undefined, enabled: false })
 
   const { data, isLoading, isError, error: apiError, refetch } = useBalanceAtLevel(
-    tenantId,
+    workspaceId,
     appliedParams.date,
     appliedParams.level,
     simulateClosure,
@@ -561,15 +561,15 @@ function BalanceAtLevelTab({ tenantId, systemInitialDate, simulateClosure = fals
 
 export function ReportsPage() {
   const { t } = useTranslation()
-  const { tenantId = '' } = useParams<{ tenantId: string }>()
+  const { workspaceId = '' } = useParams<{ workspaceId: string }>()
   const [activeTab, setActiveTab] = useState(0)
   const [simulateClosure, setSimulateClosure] = useState(false)
   const [showMissingConfigWarning, setShowMissingConfigWarning] = useState(false)
-  const { data: tenantConfig } = useTenantConfig(tenantId)
+  const { data: workspaceConfig } = useWorkspaceConfig(workspaceId)
 
   // Extract nominal accounts and P&L account from config
-  const nominalAccountIds = tenantConfig?.nominalAccounts ?? undefined
-  const plAccountId = tenantConfig?.profitLossAccountId ?? undefined
+  const nominalAccountIds = workspaceConfig?.nominalAccounts ?? undefined
+  const plAccountId = workspaceConfig?.profitLossAccountId ?? undefined
 
   return (
     <Box>
@@ -638,13 +638,13 @@ export function ReportsPage() {
       </Box>
 
       <TabPanel value={activeTab} index={0}>
-        <PeriodReportTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
+        <PeriodReportTab workspaceId={workspaceId} systemInitialDate={workspaceConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
       </TabPanel>
       <TabPanel value={activeTab} index={1}>
-        <BalanceAtDateTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
+        <BalanceAtDateTab workspaceId={workspaceId} systemInitialDate={workspaceConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
       </TabPanel>
       <TabPanel value={activeTab} index={2}>
-        <BalanceAtLevelTab tenantId={tenantId} systemInitialDate={tenantConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
+        <BalanceAtLevelTab workspaceId={workspaceId} systemInitialDate={workspaceConfig?.systemInitialDate} simulateClosure={simulateClosure} nominalAccountIds={nominalAccountIds} plAccountId={plAccountId} />
       </TabPanel>
     </Box>
   )

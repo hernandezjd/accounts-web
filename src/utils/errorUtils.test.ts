@@ -36,7 +36,7 @@ describe('translateApiError', () => {
   })
 
   it('returns duplicateCode for duplicate account code error', () => {
-    const err = new Error('Account code already exists in this tenant')
+    const err = new Error('Account code already exists in this workspace')
     expect(translateApiError(err, t)).toBe(t('errors.duplicateCode'))
   })
 

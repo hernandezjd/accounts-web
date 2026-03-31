@@ -19,7 +19,7 @@ import {
 import { PREFERENCE_KEYS } from '@/utils/preferences'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { PeriodControls } from './PeriodControls'
 import { AccountTree } from './AccountTree'
@@ -72,7 +72,7 @@ function collectAncestorIds(
 
 export function AccountingPage() {
   const { t } = useTranslation()
-  const { tenantId } = useParams<{ tenantId: string }>()
+  const { workspaceId } = useParams<{ workspaceId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
 
   // ── UI Preferences persistence (localStorage) ──────────────────────────────
@@ -163,8 +163,8 @@ export function AccountingPage() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
 
   // ── Data ──────────────────────────────────────────────────────────────────
-  const { data: tenantConfig, isLoading: isConfigLoading } = useTenantConfig(tenantId)
-  const systemInitialDate = tenantConfig?.systemInitialDate
+  const { data: workspaceConfig, isLoading: isConfigLoading } = useWorkspaceConfig(workspaceId)
+  const systemInitialDate = workspaceConfig?.systemInitialDate
 
   // Clamp `from` so we never request data before systemInitialDate.
   // This matters when systemInitialDate falls mid-period (e.g. initial=Apr 8,
@@ -172,7 +172,7 @@ export function AccountingPage() {
   const effectiveFrom =
     systemInitialDate && from < systemInitialDate ? systemInitialDate : from
 
-  const { data, isLoading, isError, error: apiError, refetch } = usePeriodAccountSummary(tenantId, effectiveFrom, to, simulateClosure)
+  const { data, isLoading, isError, error: apiError, refetch } = usePeriodAccountSummary(workspaceId, effectiveFrom, to, simulateClosure)
 
   // Format error for display with classification
   const formattedError = apiError ?? null
@@ -441,7 +441,7 @@ export function AccountingPage() {
 
       {viewMode === 'transactions' && selectedAccountId ? (
         <TransactionView
-          tenantId={tenantId ?? ''}
+          workspaceId={workspaceId ?? ''}
           accountId={selectedAccountId}
           accountName={selectedAccount?.accountName ?? selectedAccountId}
           accountCode={selectedAccount?.accountCode ?? ''}
@@ -478,8 +478,8 @@ export function AccountingPage() {
                   onChange={(e) => {
                     const wantOn = e.target.checked
                     if (wantOn) {
-                      const hasNominal = tenantConfig?.nominalAccounts && tenantConfig.nominalAccounts.length > 0
-                      const hasPnl = !!tenantConfig?.profitLossAccountId
+                      const hasNominal = workspaceConfig?.nominalAccounts && workspaceConfig.nominalAccounts.length > 0
+                      const hasPnl = !!workspaceConfig?.profitLossAccountId
                       if (!hasNominal || !hasPnl) {
                         setShowMissingConfigWarning(true)
                         return
@@ -502,8 +502,8 @@ export function AccountingPage() {
           )}
 
           {showMissingConfigWarning && !simulateClosure && (() => {
-            const hasNominal = tenantConfig?.nominalAccounts && tenantConfig.nominalAccounts.length > 0
-            const hasPnl = !!tenantConfig?.profitLossAccountId
+            const hasNominal = workspaceConfig?.nominalAccounts && workspaceConfig.nominalAccounts.length > 0
+            const hasPnl = !!workspaceConfig?.profitLossAccountId
             const messageKey = !hasNominal && !hasPnl
               ? 'accounting.closureMissingBoth'
               : !hasNominal
@@ -521,7 +521,7 @@ export function AccountingPage() {
 
           <SearchBar
             ref={searchBarRef}
-            tenantId={tenantId ?? ''}
+            workspaceId={workspaceId ?? ''}
             from={from}
             to={to}
             onAccountSelect={handleAccountSelect}

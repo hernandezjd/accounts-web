@@ -74,7 +74,7 @@ const noOpMutation = {
 }
 
 const defaultProps = {
-  tenantId: 'tenant-1',
+  workspaceId: 'workspace-1',
   accountId: 'acc-1',
   accountName: 'Cash',
   accountCode: '1000',

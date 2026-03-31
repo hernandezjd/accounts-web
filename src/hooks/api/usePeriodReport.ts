@@ -10,7 +10,7 @@ export type PeriodReportEntryWithClosure = components['schemas']['PeriodReportEn
 export type PeriodTransactionEntry = components['schemas']['PeriodTransactionEntry']
 
 export function usePeriodReport(
-  tenantId: string | null | undefined,
+  workspaceId: string | null | undefined,
   fromDate: string,
   toDate: string,
   level?: number,
@@ -25,14 +25,14 @@ export function usePeriodReport(
   if (simulateClosure) query.simulateClosure = simulateClosure
 
   return useApiQuery<PeriodReportResponse | PeriodReportWithClosureResponse>(
-    queryKeys.reports.periodReport(tenantId!, { fromDate, toDate, level, simulateClosure }),
+    queryKeys.reports.periodReport(workspaceId!, { fromDate, toDate, level, simulateClosure }),
     () =>
       apiClient.query.GET('/reports/period', {
         params: {
           query,
-          header: { 'X-Tenant-Id': tenantId! },
+          header: { 'X-Workspace-Id': workspaceId! },
         },
       }),
-    { enabled: Boolean(tenantId) && enabled },
+    { enabled: Boolean(workspaceId) && enabled },
   )
 }

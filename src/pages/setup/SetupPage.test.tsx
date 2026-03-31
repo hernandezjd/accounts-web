@@ -6,10 +6,10 @@ import { SetupPage } from './SetupPage'
 
 // ─── Mock all hooks ──────────────────────────────────────────────────────────
 
-vi.mock('@/hooks/api/useTenants', () => ({ useTenants: vi.fn() }))
-vi.mock('@/hooks/api/useTenantMutations', () => ({ useTenantMutations: vi.fn() }))
-vi.mock('@/hooks/api/useTenantConfig', () => ({ useTenantConfig: vi.fn() }))
-vi.mock('@/hooks/api/useTenantConfigMutations', () => ({ useTenantConfigMutations: vi.fn() }))
+vi.mock('@/hooks/api/useWorkspaces', () => ({ useWorkspaces: vi.fn() }))
+vi.mock('@/hooks/api/useWorkspaceMutations', () => ({ useWorkspaceMutations: vi.fn() }))
+vi.mock('@/hooks/api/useWorkspaceConfig', () => ({ useWorkspaceConfig: vi.fn() }))
+vi.mock('@/hooks/api/useWorkspaceConfigMutations', () => ({ useWorkspaceConfigMutations: vi.fn() }))
 vi.mock('@/hooks/api/useCodeStructureConfig', () => ({ useCodeStructureConfig: vi.fn() }))
 vi.mock('@/hooks/api/useCodeStructureConfigMutations', () => ({ useCodeStructureConfigMutations: vi.fn() }))
 vi.mock('@/hooks/api/useTransactionTypes', () => ({ useTransactionTypes: vi.fn() }))
@@ -25,10 +25,10 @@ vi.mock('@/hooks/useAuthContext', () => ({
   useAuthContext: vi.fn(),
 }))
 
-import { useTenants } from '@/hooks/api/useTenants'
-import { useTenantMutations } from '@/hooks/api/useTenantMutations'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
-import { useTenantConfigMutations } from '@/hooks/api/useTenantConfigMutations'
+import { useWorkspaces } from '@/hooks/api/useWorkspaces'
+import { useWorkspaceMutations } from '@/hooks/api/useWorkspaceMutations'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
+import { useWorkspaceConfigMutations } from '@/hooks/api/useWorkspaceConfigMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureConfigMutations'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
@@ -36,10 +36,10 @@ import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutat
 import { useAccounts } from '@/hooks/api/useAccounts'
 import * as useAuthContextModule from '@/hooks/useAuthContext'
 
-const mockUseTenants = vi.mocked(useTenants)
-const mockUseTenantMutations = vi.mocked(useTenantMutations)
-const mockUseTenantConfig = vi.mocked(useTenantConfig)
-const mockUseTenantConfigMutations = vi.mocked(useTenantConfigMutations)
+const mockUseWorkspaces = vi.mocked(useWorkspaces)
+const mockUseWorkspaceMutations = vi.mocked(useWorkspaceMutations)
+const mockUseWorkspaceConfig = vi.mocked(useWorkspaceConfig)
+const mockUseWorkspaceConfigMutations = vi.mocked(useWorkspaceConfigMutations)
 const mockUseCodeStructureConfig = vi.mocked(useCodeStructureConfig)
 const mockUseCodeStructureConfigMutations = vi.mocked(useCodeStructureConfigMutations)
 const mockUseTransactionTypes = vi.mocked(useTransactionTypes)
@@ -48,7 +48,7 @@ const mockUseAccounts = vi.mocked(useAccounts)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
-const sampleTenants = [
+const sampleWorkspaces = [
   { id: 't-1', name: 'Acme Corp', status: 'active', contactName: 'Jane', contactEmail: 'j@acme.com', contactPhone: '' },
   { id: 't-2', name: 'Beta LLC', status: 'inactive', contactName: 'Bob', contactEmail: 'b@beta.com', contactPhone: '' },
 ]
@@ -70,7 +70,7 @@ const sampleAccounts = [
 ]
 
 const sampleCodeStructure = {
-  tenantId: 't-1',
+  workspaceId: 't-1',
   enabled: true,
   rootCodeLength: 3,
   segmentLengthByLevel: { '2': 2, '3': 2 },
@@ -82,9 +82,9 @@ const sampleTransactionTypes = [
 
 const noOpMutation = { mutate: vi.fn(), isPending: false }
 
-// Default auth mock: user has manage_tenants permission
+// Default auth mock: user has manage_workspaces permission
 const defaultAuthMock = {
-  user: { profile: { actions: ['manage_tenants'], tenants: ['t-1', 't-2'] } },
+  user: { profile: { actions: ['manage_workspaces'], workspaces: ['t-1', 't-2'] } },
   isAuthenticated: true,
   isLoading: false,
 }
@@ -92,27 +92,27 @@ const defaultAuthMock = {
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
 function setupMocks() {
-  mockUseTenants.mockReturnValue({
-    data: sampleTenants,
+  mockUseWorkspaces.mockReturnValue({
+    data: sampleWorkspaces,
     isLoading: false,
     isError: false,
-  } as ReturnType<typeof useTenants>)
+  } as ReturnType<typeof useWorkspaces>)
 
-  mockUseTenantMutations.mockReturnValue({
-    createTenant: { ...noOpMutation },
-    updateTenant: { ...noOpMutation },
-    deactivateTenant: { ...noOpMutation },
-    reactivateTenant: { ...noOpMutation },
-    deleteTenant: { ...noOpMutation },
+  mockUseWorkspaceMutations.mockReturnValue({
+    createWorkspace: { ...noOpMutation },
+    updateWorkspace: { ...noOpMutation },
+    deactivateWorkspace: { ...noOpMutation },
+    reactivateWorkspace: { ...noOpMutation },
+    deleteWorkspace: { ...noOpMutation },
   })
 
-  mockUseTenantConfig.mockReturnValue({
+  mockUseWorkspaceConfig.mockReturnValue({
     data: sampleConfig,
     isLoading: false,
     isError: false,
-  } as ReturnType<typeof useTenantConfig>)
+  } as ReturnType<typeof useWorkspaceConfig>)
 
-  mockUseTenantConfigMutations.mockReturnValue({
+  mockUseWorkspaceConfigMutations.mockReturnValue({
     setInitialDate: { ...noOpMutation },
     setLockedPeriodDate: { ...noOpMutation },
     setMinimumAccountLevel: { ...noOpMutation },
@@ -153,13 +153,13 @@ function setupMocks() {
 beforeEach(() => {
   vi.clearAllMocks()
   setupMocks()
-  // Mock auth context with manage_tenants permission by default
+  // Mock auth context with manage_workspaces permission by default
   vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
 })
 
 function render() {
   return renderWithProviders(<SetupPage />, {
-    routerProps: { initialEntries: ['/tenants/t-1/setup'] },
+    routerProps: { initialEntries: ['/workspaces/t-1/setup'] },
   })
 }
 
@@ -168,15 +168,15 @@ function render() {
 describe('SetupPage — tab navigation', () => {
   it('renders four tabs including Theme', () => {
     render()
-    expect(screen.getByTestId('tab-tenants')).toBeInTheDocument()
+    expect(screen.getByTestId('tab-workspaces')).toBeInTheDocument()
     expect(screen.getByTestId('tab-accounting-config')).toBeInTheDocument()
     expect(screen.getByTestId('tab-transaction-types')).toBeInTheDocument()
     expect(screen.getByTestId('tab-theme')).toBeInTheDocument()
   })
 
-  it('shows Tenants tab content by default', () => {
+  it('shows Workspaces tab content by default', () => {
     render()
-    expect(screen.getByTestId('tenants-table')).toBeInTheDocument()
+    expect(screen.getByTestId('workspaces-table')).toBeInTheDocument()
   })
 
   it('switches to Accounting Config tab', async () => {
@@ -201,113 +201,113 @@ describe('SetupPage — tab navigation', () => {
   })
 })
 
-describe('SetupPage — Tenants tab', () => {
-  it('displays tenant list with status chips', () => {
+describe('SetupPage — Workspaces tab', () => {
+  it('displays workspace list with status chips', () => {
     render()
     expect(screen.getByText('Acme Corp')).toBeInTheDocument()
     expect(screen.getByText('Beta LLC')).toBeInTheDocument()
-    expect(screen.getByTestId('tenant-status-t-1')).toHaveTextContent('Active')
-    expect(screen.getByTestId('tenant-status-t-2')).toHaveTextContent('Inactive')
+    expect(screen.getByTestId('workspace-status-t-1')).toHaveTextContent('Active')
+    expect(screen.getByTestId('workspace-status-t-2')).toHaveTextContent('Inactive')
   })
 
-  it('shows New Tenant button', () => {
+  it('shows New Workspace button', () => {
     render()
-    expect(screen.getByTestId('new-tenant-btn')).toBeInTheDocument()
+    expect(screen.getByTestId('new-workspace-btn')).toBeInTheDocument()
   })
 
-  it('opens create dialog when New Tenant is clicked', async () => {
+  it('opens create dialog when New Workspace is clicked', async () => {
     const user = userEvent.setup()
     render()
-    await user.click(screen.getByTestId('new-tenant-btn'))
-    expect(screen.getByTestId('tenant-form-dialog')).toBeInTheDocument()
+    await user.click(screen.getByTestId('new-workspace-btn'))
+    expect(screen.getByTestId('workspace-form-dialog')).toBeInTheDocument()
   })
 
   it('opens edit dialog with pre-filled data when Edit is clicked', async () => {
     const user = userEvent.setup()
     render()
-    await user.click(screen.getByTestId('edit-tenant-t-1'))
-    expect(screen.getByTestId('tenant-form-dialog')).toBeInTheDocument()
-    expect(screen.getByTestId('tenant-name-input')).toHaveValue('Acme Corp')
+    await user.click(screen.getByTestId('edit-workspace-t-1'))
+    expect(screen.getByTestId('workspace-form-dialog')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-name-input')).toHaveValue('Acme Corp')
   })
 
-  it('calls deactivateTenant when Deactivate is clicked on active tenant', async () => {
+  it('calls deactivateWorkspace when Deactivate is clicked on active workspace', async () => {
     const deactivate = vi.fn()
-    mockUseTenantMutations.mockReturnValue({
-      createTenant: { ...noOpMutation },
-      updateTenant: { ...noOpMutation },
-      deactivateTenant: { mutate: deactivate, isPending: false },
-      reactivateTenant: { ...noOpMutation },
-      deleteTenant: { ...noOpMutation },
+    mockUseWorkspaceMutations.mockReturnValue({
+      createWorkspace: { ...noOpMutation },
+      updateWorkspace: { ...noOpMutation },
+      deactivateWorkspace: { mutate: deactivate, isPending: false },
+      reactivateWorkspace: { ...noOpMutation },
+      deleteWorkspace: { ...noOpMutation },
     })
 
     const user = userEvent.setup()
     render()
-    await user.click(screen.getByTestId('deactivate-tenant-t-1'))
+    await user.click(screen.getByTestId('deactivate-workspace-t-1'))
     expect(deactivate).toHaveBeenCalledWith('t-1', expect.anything())
   })
 
-  it('calls reactivateTenant when Reactivate is clicked on inactive tenant', async () => {
+  it('calls reactivateWorkspace when Reactivate is clicked on inactive workspace', async () => {
     const reactivate = vi.fn()
-    mockUseTenantMutations.mockReturnValue({
-      createTenant: { ...noOpMutation },
-      updateTenant: { ...noOpMutation },
-      deactivateTenant: { ...noOpMutation },
-      reactivateTenant: { mutate: reactivate, isPending: false },
-      deleteTenant: { ...noOpMutation },
+    mockUseWorkspaceMutations.mockReturnValue({
+      createWorkspace: { ...noOpMutation },
+      updateWorkspace: { ...noOpMutation },
+      deactivateWorkspace: { ...noOpMutation },
+      reactivateWorkspace: { mutate: reactivate, isPending: false },
+      deleteWorkspace: { ...noOpMutation },
     })
 
     const user = userEvent.setup()
     render()
-    await user.click(screen.getByTestId('reactivate-tenant-t-2'))
+    await user.click(screen.getByTestId('reactivate-workspace-t-2'))
     expect(reactivate).toHaveBeenCalledWith('t-2', expect.anything())
   })
 
   it('opens delete confirm dialog when Delete is clicked', async () => {
     const user = userEvent.setup()
     render()
-    await user.click(screen.getByTestId('delete-tenant-t-1'))
-    expect(screen.getByTestId('delete-tenant-dialog')).toBeInTheDocument()
+    await user.click(screen.getByTestId('delete-workspace-t-1'))
+    expect(screen.getByTestId('delete-workspace-dialog')).toBeInTheDocument()
   })
 
-  it('calls deleteTenant when confirm delete is submitted', async () => {
+  it('calls deleteWorkspace when confirm delete is submitted', async () => {
     const deleteFn = vi.fn()
-    mockUseTenantMutations.mockReturnValue({
-      createTenant: { ...noOpMutation },
-      updateTenant: { ...noOpMutation },
-      deactivateTenant: { ...noOpMutation },
-      reactivateTenant: { ...noOpMutation },
-      deleteTenant: { mutate: deleteFn, isPending: false },
+    mockUseWorkspaceMutations.mockReturnValue({
+      createWorkspace: { ...noOpMutation },
+      updateWorkspace: { ...noOpMutation },
+      deactivateWorkspace: { ...noOpMutation },
+      reactivateWorkspace: { ...noOpMutation },
+      deleteWorkspace: { mutate: deleteFn, isPending: false },
     })
 
     const user = userEvent.setup()
     render()
-    await user.click(screen.getByTestId('delete-tenant-t-1'))
-    await user.click(screen.getByTestId('confirm-delete-tenant'))
+    await user.click(screen.getByTestId('delete-workspace-t-1'))
+    await user.click(screen.getByTestId('confirm-delete-workspace'))
     expect(deleteFn).toHaveBeenCalledWith('t-1', expect.anything())
   })
 
-  it('submits create tenant form', async () => {
+  it('submits create workspace form', async () => {
     const createFn = vi.fn()
-    mockUseTenantMutations.mockReturnValue({
-      createTenant: { mutate: createFn, isPending: false },
-      updateTenant: { ...noOpMutation },
-      deactivateTenant: { ...noOpMutation },
-      reactivateTenant: { ...noOpMutation },
-      deleteTenant: { ...noOpMutation },
+    mockUseWorkspaceMutations.mockReturnValue({
+      createWorkspace: { mutate: createFn, isPending: false },
+      updateWorkspace: { ...noOpMutation },
+      deactivateWorkspace: { ...noOpMutation },
+      reactivateWorkspace: { ...noOpMutation },
+      deleteWorkspace: { ...noOpMutation },
     })
 
     const user = userEvent.setup()
     render()
-    await user.click(screen.getByTestId('new-tenant-btn'))
-    await user.type(screen.getByTestId('tenant-name-input'), 'New Corp')
-    await user.type(screen.getByTestId('tenant-contact-name-input'), 'Alice')
-    await user.type(screen.getByTestId('tenant-contact-email-input'), 'alice@new.com')
-    await user.type(screen.getByTestId('tenant-street-input'), '1 Main St')
-    await user.type(screen.getByTestId('tenant-city-input'), 'Springfield')
-    await user.type(screen.getByTestId('tenant-state-input'), 'IL')
-    await user.type(screen.getByTestId('tenant-postal-input'), '62701')
-    await user.type(screen.getByTestId('tenant-country-input'), 'US')
-    await user.click(screen.getByTestId('tenant-form-save'))
+    await user.click(screen.getByTestId('new-workspace-btn'))
+    await user.type(screen.getByTestId('workspace-name-input'), 'New Corp')
+    await user.type(screen.getByTestId('workspace-contact-name-input'), 'Alice')
+    await user.type(screen.getByTestId('workspace-contact-email-input'), 'alice@new.com')
+    await user.type(screen.getByTestId('workspace-street-input'), '1 Main St')
+    await user.type(screen.getByTestId('workspace-city-input'), 'Springfield')
+    await user.type(screen.getByTestId('workspace-state-input'), 'IL')
+    await user.type(screen.getByTestId('workspace-postal-input'), '62701')
+    await user.type(screen.getByTestId('workspace-country-input'), 'US')
+    await user.click(screen.getByTestId('workspace-form-save'))
     expect(createFn).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'New Corp', contactName: 'Alice', contactEmail: 'alice@new.com' }),
       expect.anything(),
@@ -339,7 +339,7 @@ describe('SetupPage — Accounting Config tab', () => {
 
   it('calls setInitialDate mutation on submit', async () => {
     const setDateFn = vi.fn()
-    mockUseTenantConfigMutations.mockReturnValue({
+    mockUseWorkspaceConfigMutations.mockReturnValue({
       setInitialDate: { mutate: setDateFn, isPending: false },
       setLockedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },
@@ -385,20 +385,20 @@ describe('SetupPage — Transaction Types tab', () => {
 })
 
 describe('SetupPage — loading / error states', () => {
-  it('shows loading in Tenants tab', () => {
-    mockUseTenants.mockReturnValue({ data: undefined, isLoading: true, isError: false } as ReturnType<typeof useTenants>)
+  it('shows loading in Workspaces tab', () => {
+    mockUseWorkspaces.mockReturnValue({ data: undefined, isLoading: true, isError: false } as ReturnType<typeof useWorkspaces>)
     render()
     expect(screen.getByText(/loading/i)).toBeInTheDocument()
   })
 
-  it('shows error in Tenants tab', () => {
-    mockUseTenants.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error('load failed') } as ReturnType<typeof useTenants>)
+  it('shows error in Workspaces tab', () => {
+    mockUseWorkspaces.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error('load failed') } as ReturnType<typeof useWorkspaces>)
     render()
     expect(screen.getByRole('alert')).toBeInTheDocument()
   })
 
   it('shows loading in Accounting Config tab', async () => {
-    mockUseTenantConfig.mockReturnValue({ data: undefined, isLoading: true, isError: false } as ReturnType<typeof useTenantConfig>)
+    mockUseWorkspaceConfig.mockReturnValue({ data: undefined, isLoading: true, isError: false } as ReturnType<typeof useWorkspaceConfig>)
     const user = userEvent.setup()
     render()
     await user.click(screen.getByTestId('tab-accounting-config'))
@@ -415,7 +415,7 @@ describe('SetupPage — loading / error states', () => {
       showSupportContact: false,
       classification: 'transient' as const,
     }
-    mockUseTenantConfig.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: mockError } as ReturnType<typeof useTenantConfig>)
+    mockUseWorkspaceConfig.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: mockError } as ReturnType<typeof useWorkspaceConfig>)
     const user = userEvent.setup()
     render()
     await user.click(screen.getByTestId('tab-accounting-config'))
@@ -475,11 +475,11 @@ describe('SetupPage — nominal accounts configuration', () => {
   })
 
   it('displays "Not set" when nominal accounts not configured', async () => {
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: { systemInitialDate: '2025-01-01', nominalAccounts: null, profitLossAccountId: null },
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useTenantConfig>)
+    } as ReturnType<typeof useWorkspaceConfig>)
 
     const user = userEvent.setup()
     render()
@@ -498,7 +498,7 @@ describe('SetupPage — nominal accounts configuration', () => {
 
   it('calls setNominalAccountsConfig on save', async () => {
     const saveFn = vi.fn()
-    mockUseTenantConfigMutations.mockReturnValue({
+    mockUseWorkspaceConfigMutations.mockReturnValue({
       setInitialDate: { ...noOpMutation },
       setLockedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },
@@ -544,7 +544,7 @@ describe('SetupPage — closing transaction type configuration', () => {
 
   it('calls setClosingTransactionType mutation when selection changes', async () => {
     const setClosingFn = vi.fn()
-    mockUseTenantConfigMutations.mockReturnValue({
+    mockUseWorkspaceConfigMutations.mockReturnValue({
       setInitialDate: { ...noOpMutation },
       setLockedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },

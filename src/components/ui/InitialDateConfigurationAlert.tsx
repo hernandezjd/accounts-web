@@ -5,13 +5,13 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 
 interface InitialDateConfigurationAlertProps {
-  tenantId: string
+  workspaceId: string
   messageKey: string
   testId?: string
 }
 
 export function InitialDateConfigurationAlert({
-  tenantId,
+  workspaceId,
   messageKey,
   testId = 'initial-date-configuration-alert',
 }: InitialDateConfigurationAlertProps) {
@@ -19,7 +19,7 @@ export function InitialDateConfigurationAlert({
   const navigate = useNavigate()
 
   const handleNavigateToSetup = () => {
-    navigate(`/tenants/${tenantId}/setup`, {
+    navigate(`/workspaces/${workspaceId}/setup`, {
       state: {
         initialTab: 1, // Accounting Config tab
         initialEditMode: 'initialDate', // Open system initial date dialog

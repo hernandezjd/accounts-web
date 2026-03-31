@@ -7,7 +7,7 @@ export type AccountBalanceResponse = components['schemas']['AccountBalanceRespon
 export type AccountBalanceWithClosureResponse = components['schemas']['AccountBalanceWithClosureResponse']
 
 export function useBalanceAtLevel(
-  tenantId: string | null | undefined,
+  workspaceId: string | null | undefined,
   date: string,
   level: number | undefined,
   simulateClosure?: boolean,
@@ -20,14 +20,14 @@ export function useBalanceAtLevel(
   if (simulateClosure) query.simulateClosure = simulateClosure
 
   return useApiQuery<(AccountBalanceResponse | AccountBalanceWithClosureResponse)[]>(
-    queryKeys.reports.balanceAtLevel(tenantId!, level ?? 0, date, { simulateClosure }),
+    queryKeys.reports.balanceAtLevel(workspaceId!, level ?? 0, date, { simulateClosure }),
     () =>
       apiClient.query.GET('/reports/balance-at-level', {
         params: {
           query,
-          header: { 'X-Tenant-Id': tenantId! },
+          header: { 'X-Workspace-Id': workspaceId! },
         },
       }),
-    { enabled: Boolean(tenantId) && level !== undefined && level >= 1 && enabled },
+    { enabled: Boolean(workspaceId) && level !== undefined && level >= 1 && enabled },
   )
 }

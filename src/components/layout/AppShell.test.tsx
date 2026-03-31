@@ -14,7 +14,7 @@ import { AppShell } from './AppShell'
 
 vi.mock('@/api/apiClient', () => ({
   apiClient: {
-    tenant: {
+    workspace: {
       GET: vi.fn(),
     },
   },
@@ -22,13 +22,13 @@ vi.mock('@/api/apiClient', () => ({
 
 import { apiClient } from '@/api/apiClient'
 
-const mockTenant = { id: 'tenant-1', name: 'Acme Corp', status: 'active' as const }
-const mockTenant2 = { id: 'tenant-2', name: 'Other Corp', status: 'active' as const }
+const mockWorkspace = { id: 'workspace-1', name: 'Acme Corp', status: 'active' as const }
+const mockWorkspace2 = { id: 'workspace-2', name: 'Other Corp', status: 'active' as const }
 
 /**
- * Render AppShell inside a real Route so that useParams() gets :tenantId.
+ * Render AppShell inside a real Route so that useParams() gets :workspaceId.
  */
-function renderAppShell(initialPath = '/tenants/tenant-1/accounting') {
+function renderAppShell(initialPath = '/workspaces/workspace-1/accounting') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
@@ -39,7 +39,7 @@ function renderAppShell(initialPath = '/tenants/tenant-1/accounting') {
           <MemoryRouter initialEntries={[initialPath]}>
             <KeyboardShortcutsProvider>
               <Routes>
-                <Route path="/tenants/:tenantId/*" element={<AppShell />}>
+                <Route path="/workspaces/:workspaceId/*" element={<AppShell />}>
                   <Route path="*" element={<div>page content</div>} />
                 </Route>
               </Routes>
@@ -54,10 +54,10 @@ function renderAppShell(initialPath = '/tenants/tenant-1/accounting') {
 beforeEach(() => {
   sessionStorage.clear()
   vi.clearAllMocks()
-  vi.mocked((apiClient.tenant as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
+  vi.mocked((apiClient.workspace as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
     (url: string) => {
-      if (url === '/tenants') return Promise.resolve({ data: [mockTenant], response: new Response() })
-      return Promise.resolve({ data: mockTenant, response: new Response() })
+      if (url === '/workspaces') return Promise.resolve({ data: [mockWorkspace], response: new Response() })
+      return Promise.resolve({ data: mockWorkspace, response: new Response() })
     },
   )
 })
@@ -82,42 +82,42 @@ describe('AppShell', () => {
     expect(nav).toHaveTextContent('Setup')
   })
 
-  it('shows active tenant name in header', async () => {
+  it('shows active workspace name in header', async () => {
     renderAppShell()
     await waitFor(() => {
-      expect(screen.getByTestId('active-tenant-name')).toHaveTextContent('Acme Corp')
+      expect(screen.getByTestId('active-workspace-name')).toHaveTextContent('Acme Corp')
     })
   })
 
-  it('Switch Tenant button clears sessionStorage and is rendered when multiple tenants exist', async () => {
-    vi.mocked((apiClient.tenant as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
+  it('Switch Workspace button clears sessionStorage and is rendered when multiple workspaces exist', async () => {
+    vi.mocked((apiClient.workspace as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
       (url: string) => {
-        if (url === '/tenants')
-          return Promise.resolve({ data: [mockTenant, mockTenant2], response: new Response() })
-        return Promise.resolve({ data: mockTenant, response: new Response() })
+        if (url === '/workspaces')
+          return Promise.resolve({ data: [mockWorkspace, mockWorkspace2], response: new Response() })
+        return Promise.resolve({ data: mockWorkspace, response: new Response() })
       },
     )
-    sessionStorage.setItem('lastTenantId', 'tenant-1')
+    sessionStorage.setItem('lastWorkspaceId', 'workspace-1')
     renderAppShell()
     await waitFor(() => {
-      expect(screen.getByTestId('switch-tenant-button')).toBeInTheDocument()
+      expect(screen.getByTestId('switch-workspace-button')).toBeInTheDocument()
     })
-    await userEvent.click(screen.getByTestId('switch-tenant-button'))
-    expect(sessionStorage.getItem('lastTenantId')).toBeNull()
+    await userEvent.click(screen.getByTestId('switch-workspace-button'))
+    expect(sessionStorage.getItem('lastWorkspaceId')).toBeNull()
   })
 
-  it('hides Switch Tenant button when only one tenant exists', async () => {
+  it('hides Switch Workspace button when only one workspace exists', async () => {
     renderAppShell()
     await waitFor(() => {
-      expect(screen.getByTestId('active-tenant-name')).toBeInTheDocument()
+      expect(screen.getByTestId('active-workspace-name')).toBeInTheDocument()
     })
-    expect(screen.queryByTestId('switch-tenant-button')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('switch-workspace-button')).not.toBeInTheDocument()
   })
 
-  it('syncs tenantId to sessionStorage on mount', async () => {
+  it('syncs workspaceId to sessionStorage on mount', async () => {
     renderAppShell()
     await waitFor(() => {
-      expect(sessionStorage.getItem('lastTenantId')).toBe('tenant-1')
+      expect(sessionStorage.getItem('lastWorkspaceId')).toBe('workspace-1')
     })
   })
 })

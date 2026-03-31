@@ -6,7 +6,7 @@ import type { components } from '@/api/generated/transaction-query-api'
 export type Transaction = components['schemas']['Transaction']
 
 export function useTransactionById(
-  tenantId: string | null | undefined,
+  workspaceId: string | null | undefined,
   id: string | null | undefined,
 ) {
   return useApiQuery<Transaction>(
@@ -15,9 +15,9 @@ export function useTransactionById(
       apiClient.query.GET('/transactions/{id}', {
         params: {
           path: { id: id! },
-          header: { 'X-Tenant-Id': tenantId! },
+          header: { 'X-Workspace-Id': workspaceId! },
         },
       }),
-    { enabled: Boolean(tenantId) && Boolean(id) },
+    { enabled: Boolean(workspaceId) && Boolean(id) },
   )
 }

@@ -9,7 +9,7 @@ export interface AccountPickerOption {
 }
 
 interface AccountPickerProps {
-  tenantId: string | null | undefined
+  workspaceId: string | null | undefined
   value: AccountPickerOption | null
   onChange: (account: AccountPickerOption | null) => void
   label?: string
@@ -25,7 +25,7 @@ const filterOptions = createFilterOptions<AccountPickerOption>({
 })
 
 export function AccountPicker({
-  tenantId,
+  workspaceId,
   value,
   onChange,
   label,
@@ -34,7 +34,7 @@ export function AccountPicker({
   excludeAccountId,
   leafOnly,
 }: AccountPickerProps) {
-  const { data: accounts } = useAccounts(tenantId)
+  const { data: accounts } = useAccounts(workspaceId)
 
   const options: AccountPickerOption[] = (accounts ?? [])
     .filter((a) => a.id !== excludeAccountId)

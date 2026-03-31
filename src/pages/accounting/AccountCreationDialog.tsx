@@ -22,20 +22,20 @@ interface CreatedAccount {
 }
 
 interface AccountCreationDialogProps {
-  tenantId: string
+  workspaceId: string
   open: boolean
   onClose: () => void
   onCreated: (account: CreatedAccount) => void
 }
 
 export function AccountCreationDialog({
-  tenantId,
+  workspaceId,
   open,
   onClose,
   onCreated,
 }: AccountCreationDialogProps) {
   const { t } = useTranslation()
-  const { createAccount } = useAccountMutations(tenantId)
+  const { createAccount } = useAccountMutations(workspaceId)
 
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
@@ -93,7 +93,7 @@ export function AccountCreationDialog({
             inputProps={{ 'data-testid': 'account-name-input' }}
           />
           <AccountPicker
-            tenantId={tenantId}
+            workspaceId={workspaceId}
             value={parentAccount}
             onChange={setParentAccount}
             label={t('transactionForm.parentAccount')}

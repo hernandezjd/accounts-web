@@ -11,8 +11,8 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useTenant } from '@/hooks/api/useTenant'
-import { useTenants } from '@/hooks/api/useTenants'
+import { useWorkspace } from '@/hooks/api/useWorkspace'
+import { useWorkspaces } from '@/hooks/api/useWorkspaces'
 import { useAppStore } from '@/store/appStore'
 import { clearAllPreferences } from '@/utils/preferences'
 
@@ -23,14 +23,14 @@ interface AppHeaderProps {
 export function AppHeader({ onMenuToggle }: AppHeaderProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { tenantId } = useParams<{ tenantId: string }>()
-  const { data: tenant } = useTenant(tenantId)
-  const { data: tenants } = useTenants()
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const { data: workspace } = useWorkspace(workspaceId)
+  const { data: workspaces } = useWorkspaces()
   const { language, setLanguage } = useAppStore()
 
-  function handleSwitchTenant() {
-    sessionStorage.removeItem('lastTenantId')
-    // Clear UI preferences to avoid cross-tenant leakage
+  function handleSwitchWorkspace() {
+    sessionStorage.removeItem('lastWorkspaceId')
+    // Clear UI preferences to avoid cross-workspace leakage
     clearAllPreferences()
     navigate('/')
   }
@@ -56,14 +56,14 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
           Accounts
         </Typography>
 
-        {tenant && (
+        {workspace && (
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <Typography variant="body1" fontWeight="medium" data-testid="active-tenant-name">
-              {tenant.name}
+            <Typography variant="body1" fontWeight="medium" data-testid="active-workspace-name">
+              {workspace.name}
             </Typography>
           </Box>
         )}
-        {!tenant && <Box sx={{ flexGrow: 1 }} />}
+        {!workspace && <Box sx={{ flexGrow: 1 }} />}
 
         <Button
           color="inherit"
@@ -104,15 +104,15 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
           <MenuItem value="fr">{t('language.french')}</MenuItem>
         </Select>
 
-        {tenants && tenants.length > 1 && (
+        {workspaces && workspaces.length > 1 && (
           <Button
             color="inherit"
             size="small"
             startIcon={<SwapHorizIcon />}
-            onClick={handleSwitchTenant}
-            data-testid="switch-tenant-button"
+            onClick={handleSwitchWorkspace}
+            data-testid="switch-workspace-button"
           >
-            {t('tenant.switchTenant')}
+            {t('workspace.switchWorkspace')}
           </Button>
         )}
       </Toolbar>

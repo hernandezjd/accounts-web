@@ -25,15 +25,15 @@
     "closing": "Clôture",
     "setup": "Paramétrage"
   },
-  "tenant": {
+  "workspace": {
     "select": "Sélectionner le client",
     "switch": "Changer de client",
     "active": "Client actif",
-    "tenantPicker": "Sélectionnez votre client",
+    "workspacePicker": "Sélectionnez votre client",
     "autoSelecting": "Sélection automatique de votre client...",
-    "noTenants": "Aucun client disponible",
-    "switchTenant": "Changer de client",
-    "createFirstTenant": "Créez votre premier client",
+    "noWorkspaces": "Aucun client disponible",
+    "switchWorkspace": "Changer de client",
+    "createFirstWorkspace": "Créez votre premier client",
     "insufficientPermissionsCreate": "Vous n'avez pas la permission de créer des clients. Contactez votre administrateur système."
   },
   "shortcuts": {
@@ -307,16 +307,16 @@
   "setup": {
     "title": "Paramétrage",
     "tabs": {
-      "tenants": "Clients",
+      "workspaces": "Clients",
       "accountingConfig": "Config. comptabilité",
       "transactionTypes": "Types de transactions",
       "theme": "Thème",
       "prefilledCharts": "Plans pré-remplis"
     },
-    "tenants": {
-      "newTenant": "Nouveau client",
-      "editTenant": "Modifier le client",
-      "createTenant": "Créer un client",
+    "workspaces": {
+      "newWorkspace": "Nouveau client",
+      "editWorkspace": "Modifier le client",
+      "createWorkspace": "Créer un client",
       "name": "Nom",
       "contactName": "Nom du contact",
       "contactEmail": "Email du contact",
@@ -337,7 +337,7 @@
       "deleteConflict": "Ce client a des données comptables et ne peut pas être supprimé.",
       "loading": "Chargement des clients...",
       "error": "Échec du chargement des clients.",
-      "noTenants": "Aucun client trouvé."
+      "noWorkspaces": "Aucun client trouvé."
     },
     "config": {
       "systemInitialDate": "Date initiale du système",
@@ -502,7 +502,7 @@
       "title": "Mise en route",
       "description": "Voici comment mettre en place votre système comptable:\n\n1. Créer un client\nCommencez par créer votre premier client. Cela isole vos données comptables. Cliquez sur \"Créez votre premier client\" sur l'écran principal et remplissez les détails de votre organisation.\n\n2. Définir la date initiale du système\nUne fois dans votre client, allez à Paramétrage → Configuration comptable et définissez votre date initiale du système. Cela marque le début de votre période comptable.\n\n3. Créer votre plan comptable\nAllez à Comptes et créez votre structure de comptes. Commencez par les catégories principales (Actif, Passif, Capitaux propres, Revenus, Dépenses) et ajoutez des sous-comptes au besoin. N'oubliez pas d'utiliser des codes de compte uniques.\n\n4. Créer des types de transactions\nAllez à Types de transactions et créez les types de transactions que votre entreprise utilise (par exemple, Facture, Paiement, Transfert, Écriture de journal).\n\n5. Entrer les soldes initiaux (optionnel)\nSi vous commencez avec des soldes de compte existants, allez à Soldes initiaux et enregistrez le solde d'ouverture pour chaque compte.\n\n6. Enregistrer les transactions\nAllez à Transactions et commencez à enregistrer vos transactions commerciales. Chaque transaction doit être équilibrée (total débits = total crédits).\n\n7. Consulter les soldes et les rapports\nAllez à la page Comptabilité pour voir votre arborescence de comptes avec les soldes actuels. Utilisez la section Rapports pour afficher les rapports de période, les soldes à une date et les soldes par niveau.\n\nVoilà! Vous êtes maintenant prêt à gérer vos enregistrements comptables."
     },
-    "tenants": {
+    "workspaces": {
       "title": "Clients",
       "description": "Un client est une instance isolée de vos données comptables. Le système est conçu pour supporter plusieurs organisations ou unités commerciales, chacune ayant ses propres comptes, transactions et enregistrements financiers séparés. Chaque client fonctionne indépendamment sans partage de données entre les clients. Cela garantit une isolation complète des données et une confidentialité pour chaque unité commerciale que vous gérez."
     },

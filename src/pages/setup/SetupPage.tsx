@@ -28,10 +28,10 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PauseIcon from '@mui/icons-material/Pause'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import { useTenants } from '@/hooks/api/useTenants'
-import { useTenantMutations } from '@/hooks/api/useTenantMutations'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
-import { useTenantConfigMutations } from '@/hooks/api/useTenantConfigMutations'
+import { useWorkspaces } from '@/hooks/api/useWorkspaces'
+import { useWorkspaceMutations } from '@/hooks/api/useWorkspaceMutations'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
+import { useWorkspaceConfigMutations } from '@/hooks/api/useWorkspaceConfigMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureConfigMutations'
 import { useUserActions } from '@/hooks/useUserActions'
@@ -41,8 +41,8 @@ import { PrefilledChartsTab } from './PrefilledChartsTab'
 import { useErrorHandler } from '@/lib/error/useErrorHandler'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { FormattedError } from '@/lib/error/useErrorHandler'
-import { TenantFormDialog } from '@/pages/TenantFormDialog'
-import type { TenantFormData } from '@/pages/TenantFormDialog'
+import { WorkspaceFormDialog } from '@/pages/WorkspaceFormDialog'
+import type { WorkspaceFormData } from '@/pages/WorkspaceFormDialog'
 import { AccountPicker } from '@/components/AccountPicker'
 import { AccountMultiPicker } from '@/components/AccountMultiPicker'
 import { useAccounts } from '@/hooks/api/useAccounts'
@@ -55,7 +55,7 @@ import InputLabel from '@mui/material/InputLabel'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface TenantRow extends TenantFormData {
+interface WorkspaceRow extends WorkspaceFormData {
   status: 'active' | 'inactive'
 }
 
@@ -76,17 +76,17 @@ function TabPanel({ children, value, index, testId }: TabPanelProps) {
   )
 }
 
-// ─── DeleteTenantDialog ───────────────────────────────────────────────────────
+// ─── DeleteWorkspaceDialog ───────────────────────────────────────────────────────
 
-interface DeleteTenantDialogProps {
+interface DeleteWorkspaceDialogProps {
   open: boolean
   onClose: () => void
-  tenant: TenantRow | null
+  workspace: WorkspaceRow | null
 }
 
-function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) {
+function DeleteWorkspaceDialog({ open, onClose, workspace }: DeleteWorkspaceDialogProps) {
   const { t } = useTranslation()
-  const { deleteTenant } = useTenantMutations()
+  const { deleteWorkspace } = useWorkspaceMutations()
   const [error, setError] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
@@ -95,22 +95,22 @@ function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) 
   }
 
   const handleConfirm = () => {
-    if (!tenant) return
+    if (!workspace) return
     setError(null)
-    deleteTenant.mutate(tenant.id, {
+    deleteWorkspace.mutate(workspace.id, {
       onSuccess: handleClose,
       onError: (err) => setError(err as FormattedError),
     })
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} data-testid="delete-tenant-dialog">
-      <DialogTitle>{t('setup.tenants.deleteTitle')}</DialogTitle>
+    <Dialog open={open} onClose={handleClose} data-testid="delete-workspace-dialog">
+      <DialogTitle>{t('setup.workspaces.deleteTitle')}</DialogTitle>
       <DialogContent>
         {error ? (
           <ErrorMessage error={error} onDismiss={() => setError(null)} />
         ) : (
-          <DialogContentText>{t('setup.tenants.deleteConfirm')}</DialogContentText>
+          <DialogContentText>{t('setup.workspaces.deleteConfirm')}</DialogContentText>
         )}
       </DialogContent>
       <DialogActions>
@@ -119,8 +119,8 @@ function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) 
           <Button
             color="error"
             onClick={handleConfirm}
-            disabled={deleteTenant.isPending}
-            data-testid="confirm-delete-tenant"
+            disabled={deleteWorkspace.isPending}
+            data-testid="confirm-delete-workspace"
           >
             {t('common.delete')}
           </Button>
@@ -130,107 +130,107 @@ function DeleteTenantDialog({ open, onClose, tenant }: DeleteTenantDialogProps) 
   )
 }
 
-// ─── TenantsTab ───────────────────────────────────────────────────────────────
+// ─── WorkspacesTab ───────────────────────────────────────────────────────────────
 
-function TenantsTab() {
+function WorkspacesTab() {
   const { t } = useTranslation()
-  const { data: tenants, isLoading, isError, error: apiError, refetch } = useTenants()
-  const { deactivateTenant, reactivateTenant } = useTenantMutations()
+  const { data: workspaces, isLoading, isError, error: apiError, refetch } = useWorkspaces()
+  const { deactivateWorkspace, reactivateWorkspace } = useWorkspaceMutations()
   const { hasAction } = useUserActions()
-  const canManageTenants = hasAction('manage_tenants')
+  const canManageWorkspaces = hasAction('manage_workspaces')
 
   // Format error for display with classification
   const formattedError = apiError ?? null
 
   const [formOpen, setFormOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<TenantRow | undefined>(undefined)
-  const [deleteTarget, setDeleteTarget] = useState<TenantRow | null>(null)
+  const [editTarget, setEditTarget] = useState<WorkspaceRow | undefined>(undefined)
+  const [deleteTarget, setDeleteTarget] = useState<WorkspaceRow | null>(null)
 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Box sx={{ flexGrow: 1 }} />
-        {canManageTenants && (
+        {canManageWorkspaces && (
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => { setEditTarget(undefined); setFormOpen(true) }}
-            data-testid="new-tenant-btn"
+            data-testid="new-workspace-btn"
           >
-            {t('setup.tenants.newTenant')}
+            {t('setup.workspaces.newWorkspace')}
           </Button>
         )}
       </Box>
 
-      {isLoading && <Typography>{t('setup.tenants.loading')}</Typography>}
+      {isLoading && <Typography>{t('setup.workspaces.loading')}</Typography>}
       {isError && <ErrorMessage error={formattedError} onRetry={() => void refetch()} />}
 
       {!isLoading && !isError && (
         <Box sx={{ overflowX: 'auto' }}>
-        <Table size="small" data-testid="tenants-table">
+        <Table size="small" data-testid="workspaces-table">
           <TableHead>
             <TableRow>
-              <TableCell>{t('setup.tenants.name')}</TableCell>
-              <TableCell>{t('setup.tenants.contactName')}</TableCell>
-              <TableCell>{t('setup.tenants.contactEmail')}</TableCell>
-              <TableCell>{t('setup.tenants.status')}</TableCell>
-              <TableCell>{t('setup.tenants.actions')}</TableCell>
+              <TableCell>{t('setup.workspaces.name')}</TableCell>
+              <TableCell>{t('setup.workspaces.contactName')}</TableCell>
+              <TableCell>{t('setup.workspaces.contactEmail')}</TableCell>
+              <TableCell>{t('setup.workspaces.status')}</TableCell>
+              <TableCell>{t('setup.workspaces.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {(tenants ?? []).length === 0 && (
+            {(workspaces ?? []).length === 0 && (
               <TableRow>
-                <TableCell colSpan={5}>{t('setup.tenants.noTenants')}</TableCell>
+                <TableCell colSpan={5}>{t('setup.workspaces.noWorkspaces')}</TableCell>
               </TableRow>
             )}
-            {(tenants as TenantRow[] ?? []).map((tenant) => (
-              <TableRow key={tenant.id} data-testid={`tenant-row-${tenant.id}`}>
-                <TableCell>{tenant.name}</TableCell>
-                <TableCell>{tenant.contactName}</TableCell>
-                <TableCell>{tenant.contactEmail}</TableCell>
+            {(workspaces as WorkspaceRow[] ?? []).map((workspace) => (
+              <TableRow key={workspace.id} data-testid={`workspace-row-${workspace.id}`}>
+                <TableCell>{workspace.name}</TableCell>
+                <TableCell>{workspace.contactName}</TableCell>
+                <TableCell>{workspace.contactEmail}</TableCell>
                 <TableCell>
                   <Chip
-                    label={tenant.status === 'active' ? t('setup.tenants.active') : t('setup.tenants.inactive')}
-                    color={tenant.status === 'active' ? 'success' : 'default'}
+                    label={workspace.status === 'active' ? t('setup.workspaces.active') : t('setup.workspaces.inactive')}
+                    color={workspace.status === 'active' ? 'success' : 'default'}
                     size="small"
-                    data-testid={`tenant-status-${tenant.id}`}
+                    data-testid={`workspace-status-${workspace.id}`}
                   />
                 </TableCell>
                 <TableCell>
-                  {canManageTenants && (
+                  {canManageWorkspaces && (
                     <>
                       <IconButton
                         size="small"
-                        onClick={() => { setEditTarget(tenant); setFormOpen(true) }}
+                        onClick={() => { setEditTarget(workspace); setFormOpen(true) }}
                         aria-label={t('common.edit')}
-                        data-testid={`edit-tenant-${tenant.id}`}
+                        data-testid={`edit-workspace-${workspace.id}`}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      {tenant.status === 'active' ? (
+                      {workspace.status === 'active' ? (
                         <IconButton
                           size="small"
-                          onClick={() => deactivateTenant.mutate(tenant.id, {})}
-                          aria-label={t('setup.tenants.deactivate')}
-                          data-testid={`deactivate-tenant-${tenant.id}`}
+                          onClick={() => deactivateWorkspace.mutate(workspace.id, {})}
+                          aria-label={t('setup.workspaces.deactivate')}
+                          data-testid={`deactivate-workspace-${workspace.id}`}
                         >
                           <PauseIcon fontSize="small" />
                         </IconButton>
                       ) : (
                         <IconButton
                           size="small"
-                          onClick={() => reactivateTenant.mutate(tenant.id, {})}
-                          aria-label={t('setup.tenants.reactivate')}
-                          data-testid={`reactivate-tenant-${tenant.id}`}
+                          onClick={() => reactivateWorkspace.mutate(workspace.id, {})}
+                          aria-label={t('setup.workspaces.reactivate')}
+                          data-testid={`reactivate-workspace-${workspace.id}`}
                         >
                           <PlayArrowIcon fontSize="small" />
                         </IconButton>
                       )}
                       <IconButton
                         size="small"
-                        onClick={() => setDeleteTarget(tenant)}
+                        onClick={() => setDeleteTarget(workspace)}
                         aria-label={t('common.delete')}
-                        data-testid={`delete-tenant-${tenant.id}`}
+                        data-testid={`delete-workspace-${workspace.id}`}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -244,16 +244,16 @@ function TenantsTab() {
         </Box>
       )}
 
-      <TenantFormDialog
+      <WorkspaceFormDialog
         key={editTarget?.id ?? 'new'}
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        editTenant={editTarget}
+        editWorkspace={editTarget}
       />
-      <DeleteTenantDialog
+      <DeleteWorkspaceDialog
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
-        tenant={deleteTarget}
+        workspace={deleteTarget}
       />
     </Box>
   )
@@ -345,12 +345,12 @@ interface CodeStructureDialogProps {
   open: boolean
   onClose: () => void
   current: CodeStructureConfig | undefined
-  tenantId: string
+  workspaceId: string
 }
 
-function CodeStructureDialog({ open, onClose, current, tenantId }: CodeStructureDialogProps) {
+function CodeStructureDialog({ open, onClose, current, workspaceId }: CodeStructureDialogProps) {
   const { t } = useTranslation()
-  const { configureCodeStructure } = useCodeStructureConfigMutations(tenantId)
+  const { configureCodeStructure } = useCodeStructureConfigMutations(workspaceId)
   const { error, handleError, clearError } = useErrorHandler()
 
   const [enabled, setEnabled] = useState(current?.enabled ?? false)
@@ -490,18 +490,18 @@ interface NominalAccountsDialogProps {
     nominalAccounts: string[] | null | undefined
     profitLossAccountId: string | null | undefined
   }
-  tenantId: string
+  workspaceId: string
 }
 
 function NominalAccountsDialog({
   open,
   onClose,
   current,
-  tenantId,
+  workspaceId,
 }: NominalAccountsDialogProps) {
   const { t } = useTranslation()
-  const { data: allAccounts } = useAccounts(tenantId)
-  const { setNominalAccountsConfig } = useTenantConfigMutations(tenantId)
+  const { data: allAccounts } = useAccounts(workspaceId)
+  const { setNominalAccountsConfig } = useWorkspaceConfigMutations(workspaceId)
 
   const [nominalAccounts, setNominalAccounts] = useState<AccountPickerOption[]>([])
   const [profitLossAccount, setProfitLossAccount] = useState<AccountPickerOption | null>(null)
@@ -612,7 +612,7 @@ function NominalAccountsDialog({
             {t('setup.config.nominalAccountsHint')}
           </Typography>
           <AccountMultiPicker
-            tenantId={tenantId}
+            workspaceId={workspaceId}
             value={nominalAccounts}
             onChange={setNominalAccounts}
             required
@@ -631,7 +631,7 @@ function NominalAccountsDialog({
             {t('setup.config.profitLossAccountExplanation')}
           </Typography>
           <AccountPicker
-            tenantId={tenantId}
+            workspaceId={workspaceId}
             value={profitLossAccount}
             onChange={setProfitLossAccount}
             required
@@ -663,18 +663,18 @@ interface ClosingTransactionTypeDialogProps {
   current: {
     closingTransactionTypeId: string | null | undefined
   }
-  tenantId: string
+  workspaceId: string
 }
 
 function ClosingTransactionTypeDialog({
   open,
   onClose,
   current,
-  tenantId,
+  workspaceId,
 }: ClosingTransactionTypeDialogProps) {
   const { t } = useTranslation()
   const { data: transactionTypes } = useTransactionTypes()
-  const { setClosingTransactionType } = useTenantConfigMutations(tenantId)
+  const { setClosingTransactionType } = useWorkspaceConfigMutations(workspaceId)
 
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null)
   const { error, setError, clearError } = useErrorHandler()
@@ -764,13 +764,13 @@ function ClosingTransactionTypeDialog({
 
 // ─── AccountingConfigTab ──────────────────────────────────────────────────────
 
-function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; initialEditMode?: string | null }) {
+function AccountingConfigTab({ workspaceId, initialEditMode }: { workspaceId: string; initialEditMode?: string | null }) {
   const { t } = useTranslation()
-  const { data: config, isLoading: configLoading, isError: configHasError, error: configError } = useTenantConfig(tenantId)
-  const { data: codeStructure, isLoading: csLoading, isError: csHasError, error: csError } = useCodeStructureConfig(tenantId)
-  const { data: allAccounts } = useAccounts(tenantId)
+  const { data: config, isLoading: configLoading, isError: configHasError, error: configError } = useWorkspaceConfig(workspaceId)
+  const { data: codeStructure, isLoading: csLoading, isError: csHasError, error: csError } = useCodeStructureConfig(workspaceId)
+  const { data: allAccounts } = useAccounts(workspaceId)
   const { data: transactionTypes } = useTransactionTypes()
-  const mutations = useTenantConfigMutations(tenantId)
+  const mutations = useWorkspaceConfigMutations(workspaceId)
   const { error: editError, setError: setEditError, clearError: clearEditError } = useErrorHandler()
 
   type EditMode = 'initialDate' | 'lockedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | 'nominalAccounts' | 'closingTransactionType' | null
@@ -977,7 +977,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
         open={editMode === 'codeStructure'}
         onClose={() => setEditMode(null)}
         current={codeStructure}
-        tenantId={tenantId}
+        workspaceId={workspaceId}
       />
 
       <Divider sx={{ my: 3 }} />
@@ -1061,7 +1061,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
           nominalAccounts: config?.nominalAccounts,
           profitLossAccountId: config?.profitLossAccountId,
         }}
-        tenantId={tenantId}
+        workspaceId={workspaceId}
       />
 
       {/* Closing transaction type dialog */}
@@ -1071,7 +1071,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
         current={{
           closingTransactionTypeId: config?.closingTransactionTypeId,
         }}
-        tenantId={tenantId}
+        workspaceId={workspaceId}
       />
 
       <Divider sx={{ my: 3 }} />
@@ -1126,7 +1126,7 @@ function AccountingConfigTab({ tenantId, initialEditMode }: { tenantId: string; 
 
 export function SetupPage() {
   const { t } = useTranslation()
-  const { tenantId = '' } = useParams<{ tenantId: string }>()
+  const { workspaceId = '' } = useParams<{ workspaceId: string }>()
   const location = useLocation()
   const [activeTab, setActiveTab] = useState(0)
   const [initialEditMode, setInitialEditMode] = useState<'initialDate' | 'nominalAccounts' | 'closingTransactionType' | null>(null)
@@ -1152,18 +1152,18 @@ export function SetupPage() {
       </Typography>
 
       <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} data-testid="setup-tabs">
-        <Tab label={t('setup.tabs.tenants')} data-testid="tab-tenants" />
+        <Tab label={t('setup.tabs.workspaces')} data-testid="tab-workspaces" />
         <Tab label={t('setup.tabs.accountingConfig')} data-testid="tab-accounting-config" />
         <Tab label={t('setup.tabs.transactionTypes')} data-testid="tab-transaction-types" />
         <Tab label={t('setup.tabs.theme')} data-testid="tab-theme" />
         <Tab label={t('setup.tabs.prefilledCharts')} data-testid="tab-prefilled-charts" />
       </Tabs>
 
-      <TabPanel value={activeTab} index={0} testId="tabpanel-tenants">
-        <TenantsTab />
+      <TabPanel value={activeTab} index={0} testId="tabpanel-workspaces">
+        <WorkspacesTab />
       </TabPanel>
       <TabPanel value={activeTab} index={1} testId="tabpanel-accounting-config">
-        <AccountingConfigTab tenantId={tenantId} initialEditMode={initialEditMode} />
+        <AccountingConfigTab workspaceId={workspaceId} initialEditMode={initialEditMode} />
       </TabPanel>
       <TabPanel value={activeTab} index={2} testId="tabpanel-transaction-types">
         <TransactionTypesContent hideTitle={true} />

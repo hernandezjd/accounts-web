@@ -25,16 +25,16 @@
     "closing": "Closing",
     "setup": "Setup"
   },
-  "tenant": {
-    "select": "Select Tenant",
-    "switch": "Switch Tenant",
-    "active": "Active Tenant",
-    "tenantPicker": "Select Your Tenant",
-    "autoSelecting": "Automatically selecting your tenant...",
-    "noTenants": "No tenants available",
-    "switchTenant": "Switch Tenant",
-    "createFirstTenant": "Create Your First Tenant",
-    "insufficientPermissionsCreate": "You do not have permission to create tenants. Contact your system administrator."
+  "workspace": {
+    "select": "Select Workspace",
+    "switch": "Switch Workspace",
+    "active": "Active Workspace",
+    "workspacePicker": "Select Your Workspace",
+    "autoSelecting": "Automatically selecting your workspace...",
+    "noWorkspaces": "No workspaces available",
+    "switchWorkspace": "Switch Workspace",
+    "createFirstWorkspace": "Create Your First Workspace",
+    "insufficientPermissionsCreate": "You do not have permission to create workspaces. Contact your system administrator."
   },
   "shortcuts": {
     "title": "Keyboard Shortcuts",
@@ -307,16 +307,16 @@
   "setup": {
     "title": "Setup",
     "tabs": {
-      "tenants": "Tenants",
+      "workspaces": "Workspaces",
       "accountingConfig": "Accounting Config",
       "transactionTypes": "Transaction Types",
       "theme": "Theme",
       "prefilledCharts": "Pre-filled Charts"
     },
-    "tenants": {
-      "newTenant": "New Tenant",
-      "editTenant": "Edit Tenant",
-      "createTenant": "Create Tenant",
+    "workspaces": {
+      "newWorkspace": "New Workspace",
+      "editWorkspace": "Edit Workspace",
+      "createWorkspace": "Create Workspace",
       "name": "Name",
       "contactName": "Contact Name",
       "contactEmail": "Contact Email",
@@ -332,12 +332,12 @@
       "actions": "Actions",
       "deactivate": "Deactivate",
       "reactivate": "Reactivate",
-      "deleteTitle": "Delete Tenant",
-      "deleteConfirm": "Are you sure you want to delete this tenant? This action cannot be undone.",
-      "deleteConflict": "This tenant has accounting data and cannot be deleted.",
-      "loading": "Loading tenants...",
-      "error": "Failed to load tenants.",
-      "noTenants": "No tenants found."
+      "deleteTitle": "Delete Workspace",
+      "deleteConfirm": "Are you sure you want to delete this workspace? This action cannot be undone.",
+      "deleteConflict": "This workspace has accounting data and cannot be deleted.",
+      "loading": "Loading workspaces...",
+      "error": "Failed to load workspaces.",
+      "noWorkspaces": "No workspaces found."
     },
     "config": {
       "systemInitialDate": "System Initial Date",
@@ -499,11 +499,11 @@
     "title": "Help",
     "gettingStarted": {
       "title": "Getting Started",
-      "description": "Here's how to get your accounting system up and running:\n\n1. Create a Tenant\nStart by creating your first tenant. This isolates your accounting data. Click \"Create Your First Tenant\" on the main screen and fill in your organization details.\n\n2. Set the System Initial Date\nOnce in your tenant, go to Setup → Accounting Configuration and set your system initial date. This marks the beginning of your accounting period.\n\n3. Create Your Chart of Accounts\nGo to Accounts and create your account structure. Start with main categories (Assets, Liabilities, Equity, Income, Expenses) and add sub-accounts as needed. Remember to use unique account codes.\n\n4. Create Transaction Types\nGo to Transaction Types and create the types of transactions your business uses (e.g., Invoice, Payment, Transfer, Journal Entry).\n\n5. Enter Initial Balances (Optional)\nIf you're starting with existing account balances, go to Initial Balances and record the opening balance for each account.\n\n6. Record Transactions\nGo to Transactions and start recording your business transactions. Each transaction must balance (total debits = total credits).\n\n7. Review Balances and Reports\nGo to the Accounting page to see your account tree with current balances. Use the Reports section to view period reports, balance-at-date, and balance-by-level.\n\nThat's it! You're now ready to manage your accounting records."
+      "description": "Here's how to get your accounting system up and running:\n\n1. Create a Workspace\nStart by creating your first workspace. This isolates your accounting data. Click \"Create Your First Workspace\" on the main screen and fill in your organization details.\n\n2. Set the System Initial Date\nOnce in your workspace, go to Setup → Accounting Configuration and set your system initial date. This marks the beginning of your accounting period.\n\n3. Create Your Chart of Accounts\nGo to Accounts and create your account structure. Start with main categories (Assets, Liabilities, Equity, Income, Expenses) and add sub-accounts as needed. Remember to use unique account codes.\n\n4. Create Transaction Types\nGo to Transaction Types and create the types of transactions your business uses (e.g., Invoice, Payment, Transfer, Journal Entry).\n\n5. Enter Initial Balances (Optional)\nIf you're starting with existing account balances, go to Initial Balances and record the opening balance for each account.\n\n6. Record Transactions\nGo to Transactions and start recording your business transactions. Each transaction must balance (total debits = total credits).\n\n7. Review Balances and Reports\nGo to the Accounting page to see your account tree with current balances. Use the Reports section to view period reports, balance-at-date, and balance-by-level.\n\nThat's it! You're now ready to manage your accounting records."
     },
-    "tenants": {
-      "title": "Tenants",
-      "description": "A tenant is an isolated instance of your accounting data. The system is designed to support multiple organizations or business units, each with their own separate accounts, transactions, and financial records. Each tenant operates independently with no data sharing between tenants. This ensures complete data isolation and privacy for each business unit you manage."
+    "workspaces": {
+      "title": "Workspaces",
+      "description": "A workspace is an isolated instance of your accounting data. The system is designed to support multiple organizations or business units, each with their own separate accounts, transactions, and financial records. Each workspace operates independently with no data sharing between workspaces. This ensures complete data isolation and privacy for each business unit you manage."
     },
     "accounts": {
       "title": "Accounts",
@@ -524,7 +524,7 @@
   },
   "prefilledCharts": {
     "title": "Pre-filled Charts",
-    "description": "Select a pre-filled chart of accounts template and merge it into your tenant's chart. Existing accounts are skipped automatically.",
+    "description": "Select a pre-filled chart of accounts template and merge it into your workspace's chart. Existing accounts are skipped automatically.",
     "name": "Name",
     "descriptionColumn": "Description",
     "accountCount": "Accounts",

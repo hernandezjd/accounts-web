@@ -212,8 +212,8 @@ describe('useErrorHandler', () => {
       expect(result.isRetryable).toBe(false);
     });
 
-    it('marks TENANT_ACCESS_REQUIRED as non-retryable', () => {
-      const error = { errorCode: 'TENANT_ACCESS_REQUIRED', message: 'Tenant access required', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+    it('marks WORKSPACE_ACCESS_REQUIRED as non-retryable', () => {
+      const error = { errorCode: 'WORKSPACE_ACCESS_REQUIRED', message: 'Workspace access required', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
       const result = formatError(error, 403);
 
       expect(result.isRetryable).toBe(false);
@@ -306,8 +306,8 @@ describe('useErrorHandler', () => {
       expect(result.severity).toBe('warning');
     });
 
-    it('sets warning severity for TENANT_ACCESS_REQUIRED', () => {
-      const error = { errorCode: 'TENANT_ACCESS_REQUIRED', message: 'Tenant access required', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
+    it('sets warning severity for WORKSPACE_ACCESS_REQUIRED', () => {
+      const error = { errorCode: 'WORKSPACE_ACCESS_REQUIRED', message: 'Workspace access required', requestId: 'req-123', timestamp: '2024-01-01T00:00:00Z' } as StructuredError;
       const result = formatError(error, 403);
 
       expect(result.severity).toBe('warning');
