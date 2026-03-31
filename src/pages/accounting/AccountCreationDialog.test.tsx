@@ -47,7 +47,7 @@ beforeEach(() => {
 describe('AccountCreationDialog', () => {
   it('renders code, name, and parent picker fields', () => {
     renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
     )
 
     expect(screen.getByTestId('account-code-input')).toBeInTheDocument()
@@ -58,7 +58,7 @@ describe('AccountCreationDialog', () => {
 
   it('parent picker is an Autocomplete (not a plain text field)', () => {
     renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
     )
 
     const combobox = screen.getByRole('combobox', { name: /parent account/i })
@@ -77,7 +77,7 @@ describe('AccountCreationDialog', () => {
     })
 
     renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
     )
 
     // Fill in code and name
@@ -107,7 +107,7 @@ describe('AccountCreationDialog', () => {
     })
 
     renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
     )
 
     await userEvent.type(screen.getByTestId('account-code-input'), '200')
@@ -123,7 +123,7 @@ describe('AccountCreationDialog', () => {
 
   it('renders hasThirdParties checkbox with correct label', () => {
     renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
     )
 
     const checkbox = screen.getByTestId('has-third-parties-checkbox')
@@ -133,7 +133,7 @@ describe('AccountCreationDialog', () => {
 
   it('hasThirdParties checkbox defaults to unchecked', () => {
     renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
     )
 
     const input = screen.getByTestId('has-third-parties-checkbox').querySelector('input') as HTMLInputElement
@@ -150,7 +150,7 @@ describe('AccountCreationDialog', () => {
     })
 
     renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
     )
 
     await userEvent.type(screen.getByTestId('account-code-input'), '300')
@@ -174,7 +174,7 @@ describe('AccountCreationDialog', () => {
     })
 
     renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={vi.fn()} />,
     )
 
     await userEvent.type(screen.getByTestId('account-code-input'), '400')
@@ -203,7 +203,7 @@ describe('AccountCreationDialog', () => {
 
     const onCreated = vi.fn()
     const { rerender } = renderWithProviders(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={onCreated} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={onCreated} />,
     )
 
     const input = screen.getByTestId('has-third-parties-checkbox').querySelector('input') as HTMLInputElement
@@ -230,7 +230,7 @@ describe('AccountCreationDialog', () => {
 
     // Re-render the dialog in open state to verify checkbox is reset
     rerender(
-      <AccountCreationDialog tenantId="t1" open={true} onClose={vi.fn()} onCreated={onCreated} />,
+      <AccountCreationDialog workspaceId="t1" open={true} onClose={vi.fn()} onCreated={onCreated} />,
     )
 
     // After successful creation and reset, checkbox should be unchecked again

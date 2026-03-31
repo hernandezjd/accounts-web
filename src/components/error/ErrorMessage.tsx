@@ -348,7 +348,7 @@ function is403Error(errorCode?: string): boolean {
     'ACTION_NOT_ALLOWED',
     'INSUFFICIENT_PERMISSIONS',
     'ROLE_REQUIRED',
-    'TENANT_ACCESS_REQUIRED',
+    'WORKSPACE_ACCESS_REQUIRED',
     'FORBIDDEN',
     'HTTP_403',
   ];

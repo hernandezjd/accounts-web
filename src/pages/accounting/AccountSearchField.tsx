@@ -25,14 +25,14 @@ function isSentinel(opt: AutocompleteOption): opt is SentinelOption {
 }
 
 interface AccountSearchFieldProps {
-  tenantId: string
+  workspaceId: string
   value: AccountOption | null
   onChange: (value: AccountOption | null) => void
 }
 
-export function AccountSearchField({ tenantId, value, onChange }: AccountSearchFieldProps) {
+export function AccountSearchField({ workspaceId, value, onChange }: AccountSearchFieldProps) {
   const { t } = useTranslation()
-  const { data: accounts } = useAccounts(tenantId)
+  const { data: accounts } = useAccounts(workspaceId)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const leafAccounts: AccountOption[] = (accounts ?? [])
@@ -95,7 +95,7 @@ export function AccountSearchField({ tenantId, value, onChange }: AccountSearchF
         fullWidth
       />
       <AccountCreationDialog
-        tenantId={tenantId}
+        workspaceId={workspaceId}
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onCreated={(created) => {

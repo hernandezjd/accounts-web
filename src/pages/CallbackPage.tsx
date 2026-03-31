@@ -13,14 +13,14 @@ import Alert from '@mui/material/Alert'
  * The OAuth provider (user-service) redirects here with an authorization code,
  * which react-oidc-context exchanges for an access token.
  *
- * Once authentication completes, redirect to the tenant picker page.
+ * Once authentication completes, redirect to the workspace picker page.
  */
 export function CallbackPage() {
   const navigate = useNavigate()
   const auth = useAuth()
 
   useEffect(() => {
-    // If authentication is complete and successful, redirect to tenant picker
+    // If authentication is complete and successful, redirect to workspace picker
     if (auth.isAuthenticated) {
       navigate('/', { replace: true })
     }

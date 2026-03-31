@@ -28,7 +28,7 @@ export function usePrefilledChartDetail(id: string | null) {
   )
 }
 
-export function useMergePrefilledChart(tenantId: string) {
+export function useMergePrefilledChart(workspaceId: string) {
   const qc = useQueryClient()
 
   return useApiMutation<MergeReportResponse, string>(
@@ -36,7 +36,7 @@ export function useMergePrefilledChart(tenantId: string) {
       apiClient.command.POST('/prefilled-charts/{id}/merge', {
         params: {
           path: { id: chartId },
-          header: { 'X-Tenant-Id': tenantId },
+          header: { 'X-Workspace-Id': workspaceId },
         },
       }),
     {

@@ -16,7 +16,7 @@ const mockUseSearch = vi.mocked(useUnifiedSearch)
 // ─── Default props ─────────────────────────────────────────────────────────────
 
 const defaultProps = {
-  tenantId: 'tenant-1',
+  workspaceId: 'workspace-1',
   from: '2026-01-01',
   to: '2026-01-31',
   onAccountSelect: vi.fn(),
@@ -180,7 +180,7 @@ describe('SearchBar', () => {
 
     await waitFor(() => {
       expect(mockUseSearch).toHaveBeenCalledWith(
-        'tenant-1',
+        'workspace-1',
         expect.any(String),
         '2026-01-01',
         '2026-01-31',
@@ -202,7 +202,7 @@ describe('SearchBar', () => {
 
     await waitFor(() => {
       expect(mockUseSearch).toHaveBeenCalledWith(
-        'tenant-1',
+        'workspace-1',
         expect.any(String),
         undefined,
         undefined,

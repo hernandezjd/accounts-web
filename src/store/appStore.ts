@@ -5,8 +5,8 @@ import i18n from '@/i18n'
 interface AppState {
   language: string
   setLanguage: (lang: string) => void
-  selectedTenantId: string | null
-  setSelectedTenantId: (id: string | null) => void
+  selectedWorkspaceId: string | null
+  setSelectedWorkspaceId: (id: string | null) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -17,9 +17,9 @@ export const useAppStore = create<AppState>()(
         void i18n.changeLanguage(lang)
         set({ language: lang })
       },
-      selectedTenantId: null,
-      setSelectedTenantId: (id: string | null) => {
-        set({ selectedTenantId: id })
+      selectedWorkspaceId: null,
+      setSelectedWorkspaceId: (id: string | null) => {
+        set({ selectedWorkspaceId: id })
       },
     }),
     {

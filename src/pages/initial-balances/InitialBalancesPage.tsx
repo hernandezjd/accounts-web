@@ -17,8 +17,8 @@ import EditIcon from '@mui/icons-material/Edit'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useInitialBalances } from '@/hooks/api/useInitialBalances'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
-import { useTenantAccess } from '@/hooks/useTenantAccess'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
+import { useWorkspaceAccess } from '@/hooks/useWorkspaceAccess'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from '@/pages/accounting/TransactionForm'
@@ -31,19 +31,19 @@ interface FormConfig {
 
 export function InitialBalancesPage() {
   const { t } = useTranslation()
-  const { tenantId } = useParams<{ tenantId: string }>()
-  const { data, isLoading, isError, error: apiError, refetch } = useInitialBalances(tenantId)
-  const { data: tenantConfig } = useTenantConfig(tenantId)
-  const { hasTenantAccess } = useTenantAccess()
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const { data, isLoading, isError, error: apiError, refetch } = useInitialBalances(workspaceId)
+  const { data: workspaceConfig } = useWorkspaceConfig(workspaceId)
+  const { hasWorkspaceAccess } = useWorkspaceAccess()
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
 
   // Format error for display with classification
   const formattedError = apiError ?? null
 
-  if (!tenantId) return null
+  if (!workspaceId) return null
 
-  const initialDateMissing = !tenantConfig?.systemInitialDate
-  const hasAccess = hasTenantAccess(tenantId)
+  const initialDateMissing = !workspaceConfig?.systemInitialDate
+  const hasAccess = hasWorkspaceAccess(workspaceId)
 
   return (
     <Box>
@@ -67,7 +67,7 @@ export function InitialBalancesPage() {
 
       {initialDateMissing && hasAccess && (
         <InitialDateConfigurationAlert
-          tenantId={tenantId}
+          workspaceId={workspaceId}
           messageKey="initialBalances.initialDateNotConfiguredWarning"
           testId="initial-date-warning"
         />
@@ -77,7 +77,7 @@ export function InitialBalancesPage() {
         {formConfig && (
           <Box sx={{ mb: 3 }}>
             <TransactionForm
-              tenantId={tenantId}
+              workspaceId={workspaceId}
               mode={formConfig.mode}
               transactionId={formConfig.transactionId}
               initialData={formConfig.initialData}

@@ -22,8 +22,8 @@ interface NavItem {
 }
 
 function useNavItems(): NavItem[] {
-  const { tenantId } = useParams<{ tenantId: string }>()
-  const base = `/tenants/${tenantId ?? ''}`
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const base = `/workspaces/${workspaceId ?? ''}`
   return [
     { key: 'accounting', labelKey: 'nav.accounting', icon: <AccountBalanceIcon />, path: `${base}/accounting` },
     { key: 'accounts', labelKey: 'nav.accounts', icon: <AccountTreeIcon />, path: `${base}/accounts` },

@@ -38,7 +38,7 @@ import { AccountPicker, type AccountPickerOption } from '@/components/AccountPic
 interface AccountFormDialogProps {
   open: boolean
   onClose: () => void
-  tenantId: string
+  workspaceId: string
   editAccount?: Account
   accounts: Account[]
 }
@@ -46,13 +46,13 @@ interface AccountFormDialogProps {
 function AccountFormDialog({
   open,
   onClose,
-  tenantId,
+  workspaceId,
   editAccount,
   accounts,
 }: AccountFormDialogProps) {
   const { t } = useTranslation()
-  const { createAccount, updateAccount } = useAccountMutations(tenantId)
-  const { data: codeStructureConfig } = useCodeStructureConfig(tenantId)
+  const { createAccount, updateAccount } = useAccountMutations(workspaceId)
+  const { data: codeStructureConfig } = useCodeStructureConfig(workspaceId)
 
   const isEdit = Boolean(editAccount)
 
@@ -141,7 +141,7 @@ function AccountFormDialog({
         <div style={{opacity: isEdit && editAccount?.hasChildren ? 0.6 : 1, pointerEvents: isEdit && editAccount?.hasChildren ? 'none' : 'auto'}}>
           <div style={{marginBottom: '1rem'}}>
             <AccountPicker
-              tenantId={tenantId}
+              workspaceId={workspaceId}
               value={isEdit && editAccount?.parentId ? { id: editAccount.parentId, code: accounts.find(a => a.id === editAccount.parentId)?.code || '', name: accounts.find(a => a.id === editAccount.parentId)?.name || '' } : parentAccount}
               onChange={(option) => {
                 if (isEdit) {
@@ -193,12 +193,12 @@ interface DeactivateAccountDialogProps {
   open: boolean
   onClose: () => void
   account: Account | null
-  tenantId: string
+  workspaceId: string
 }
 
-function DeactivateAccountDialog({ open, onClose, account, tenantId }: DeactivateAccountDialogProps) {
+function DeactivateAccountDialog({ open, onClose, account, workspaceId }: DeactivateAccountDialogProps) {
   const { t } = useTranslation()
-  const { deactivateAccount } = useAccountMutations(tenantId)
+  const { deactivateAccount } = useAccountMutations(workspaceId)
   const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
@@ -248,12 +248,12 @@ interface ReactivateAccountDialogProps {
   open: boolean
   onClose: () => void
   account: Account | null
-  tenantId: string
+  workspaceId: string
 }
 
-function ReactivateAccountDialog({ open, onClose, account, tenantId }: ReactivateAccountDialogProps) {
+function ReactivateAccountDialog({ open, onClose, account, workspaceId }: ReactivateAccountDialogProps) {
   const { t } = useTranslation()
-  const { activateAccount } = useAccountMutations(tenantId)
+  const { activateAccount } = useAccountMutations(workspaceId)
   const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
@@ -304,12 +304,12 @@ interface ToggleTpDialogProps {
   open: boolean
   onClose: () => void
   account: Account | null
-  tenantId: string
+  workspaceId: string
 }
 
-function ToggleTpDialog({ open, onClose, account, tenantId }: ToggleTpDialogProps) {
+function ToggleTpDialog({ open, onClose, account, workspaceId }: ToggleTpDialogProps) {
   const { t } = useTranslation()
-  const { toggleHasThirdParties } = useAccountMutations(tenantId)
+  const { toggleHasThirdParties } = useAccountMutations(workspaceId)
   const [thirdPartyId, setThirdPartyId] = useState('')
   const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
   const [needsThirdPartyId, setNeedsThirdPartyId] = useState(false)
@@ -378,10 +378,10 @@ function ToggleTpDialog({ open, onClose, account, tenantId }: ToggleTpDialogProp
 
 export function AccountsPage() {
   const { t } = useTranslation()
-  const { tenantId = '' } = useParams<{ tenantId: string }>()
+  const { workspaceId = '' } = useParams<{ workspaceId: string }>()
   const { hasAction } = useUserActions()
 
-  const { data: accounts, isLoading, isError, error: apiError, refetch } = useAccounts(tenantId || null, true)
+  const { data: accounts, isLoading, isError, error: apiError, refetch } = useAccounts(workspaceId || null, true)
 
   // Format error for display with classification
   const formattedError = apiError ?? null
@@ -508,7 +508,7 @@ export function AccountsPage() {
         key={editTarget?.id ?? 'new'}
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        tenantId={tenantId}
+        workspaceId={workspaceId}
         editAccount={editTarget}
         accounts={accounts ?? []}
       />
@@ -516,19 +516,19 @@ export function AccountsPage() {
         open={Boolean(deactivateTarget)}
         onClose={() => setDeactivateTarget(null)}
         account={deactivateTarget}
-        tenantId={tenantId}
+        workspaceId={workspaceId}
       />
       <ReactivateAccountDialog
         open={Boolean(reactivateTarget)}
         onClose={() => setReactivateTarget(null)}
         account={reactivateTarget}
-        tenantId={tenantId}
+        workspaceId={workspaceId}
       />
       <ToggleTpDialog
         open={Boolean(toggleTpTarget)}
         onClose={() => setToggleTpTarget(null)}
         account={toggleTpTarget}
-        tenantId={tenantId}
+        workspaceId={workspaceId}
       />
     </Box>
   )

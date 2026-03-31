@@ -23,7 +23,7 @@ type AccountSearchResult = components['schemas']['AccountSearchResult']
 type TransactionSearchResult = components['schemas']['TransactionSearchResult']
 
 interface SearchBarProps {
-  tenantId: string
+  workspaceId: string
   from: string
   to: string
   onAccountSelect: (accountId: string) => void
@@ -35,7 +35,7 @@ export interface SearchBarHandle {
 }
 
 export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function SearchBar(
-  { tenantId, from, to, onAccountSelect, onTransactionSelect },
+  { workspaceId, from, to, onAccountSelect, onTransactionSelect },
   ref,
 ) {
   const { t } = useTranslation()
@@ -61,7 +61,7 @@ export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(function Se
   const fromDate = allHistory ? undefined : from
   const toDate = allHistory ? undefined : to
 
-  const { data, isLoading, isError, error } = useUnifiedSearch(tenantId, debouncedQuery, fromDate, toDate)
+  const { data, isLoading, isError, error } = useUnifiedSearch(workspaceId, debouncedQuery, fromDate, toDate)
 
   // Format error when it changes
   useEffect(() => {

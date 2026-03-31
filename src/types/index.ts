@@ -1,4 +1,4 @@
-export interface Tenant {
+export interface Workspace {
   id: string
   name: string
   status: 'active' | 'inactive'

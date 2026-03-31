@@ -11,7 +11,7 @@ type EditTransactionRequest = TxnCmd['schemas']['EditTransactionRequest']
 type CreateInitialBalanceRequest = IbCmd['schemas']['CreateInitialBalanceRequest']
 type EditInitialBalanceRequest = IbCmd['schemas']['EditInitialBalanceRequest']
 
-export function useTransactionMutations(tenantId: string) {
+export function useTransactionMutations(workspaceId: string) {
   const qc = useQueryClient()
 
   /**
@@ -43,7 +43,7 @@ export function useTransactionMutations(tenantId: string) {
    * - Schedule refetch to ensure consistency with server
    */
   const patchInitialBalanceCache = (newBalance: InitialBalance) => {
-    const listKey = queryKeys.initialBalances.list(tenantId)
+    const listKey = queryKeys.initialBalances.list(workspaceId)
     qc.cancelQueries({ queryKey: listKey })
     qc.setQueryData<InitialBalance[]>(listKey, (old) =>
       old ? [...old, newBalance] : old
@@ -58,7 +58,7 @@ export function useTransactionMutations(tenantId: string) {
    * - Schedule refetch to ensure consistency with server
    */
   const updateInitialBalanceInCache = (id: string, updated: InitialBalance) => {
-    const listKey = queryKeys.initialBalances.list(tenantId)
+    const listKey = queryKeys.initialBalances.list(workspaceId)
     qc.cancelQueries({ queryKey: listKey })
     qc.setQueryData<InitialBalance[]>(listKey, (old) =>
       old ? old.map((ib) => (ib.id === id ? updated : ib)) : old
@@ -73,7 +73,7 @@ export function useTransactionMutations(tenantId: string) {
    * - Schedule refetch to ensure consistency with server
    */
   const removeInitialBalanceFromCache = (id: string) => {
-    const listKey = queryKeys.initialBalances.list(tenantId)
+    const listKey = queryKeys.initialBalances.list(workspaceId)
     qc.cancelQueries({ queryKey: listKey })
     qc.setQueryData<InitialBalance[]>(listKey, (old) =>
       old ? old.filter((ib) => ib.id !== id) : old

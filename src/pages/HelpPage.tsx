@@ -67,16 +67,16 @@ export function HelpPage() {
         </Accordion>
 
         <Accordion
-          expanded={expanded === 'tenants'}
-          onChange={handleChange('tenants')}
-          data-testid="help-section-tenants"
+          expanded={expanded === 'workspaces'}
+          onChange={handleChange('workspaces')}
+          data-testid="help-section-workspaces"
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">{t('help.tenants.title')}</Typography>
+            <Typography variant="h6">{t('help.workspaces.title')}</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
-              {t('help.tenants.description')}
+              {t('help.workspaces.description')}
             </Typography>
           </AccordionDetails>
         </Accordion>

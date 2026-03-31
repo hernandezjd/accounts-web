@@ -5,16 +5,16 @@ import type { components } from '@/api/generated/third-party-query-api'
 
 export type ThirdParty = components['schemas']['ThirdParty']
 
-export function useThirdParties(tenantId: string | null | undefined, name: string) {
+export function useThirdParties(workspaceId: string | null | undefined, name: string) {
   return useApiQuery<ThirdParty[]>(
-    queryKeys.thirdParties.list(tenantId!, name),
+    queryKeys.thirdParties.list(workspaceId!, name),
     () =>
       apiClient.query.GET('/third-parties', {
         params: {
           query: { name },
-          header: { 'X-Tenant-Id': tenantId! },
+          header: { 'X-Workspace-Id': workspaceId! },
         },
       }),
-    { enabled: Boolean(tenantId) && name.trim().length >= 1 },
+    { enabled: Boolean(workspaceId) && name.trim().length >= 1 },
   )
 }

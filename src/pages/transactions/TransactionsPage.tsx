@@ -19,8 +19,8 @@ import { useTranslation } from 'react-i18next'
 import { useTransactions, type Transaction, type TransactionFilters } from '@/hooks/api/useTransactions'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useAccounts } from '@/hooks/api/useAccounts'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
-import { useTenantAccess } from '@/hooks/useTenantAccess'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
+import { useWorkspaceAccess } from '@/hooks/useWorkspaceAccess'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData } from '../accounting/TransactionForm'
@@ -29,7 +29,7 @@ import { TransactionForm, type TransactionFormInitialData } from '../accounting/
 
 export function TransactionsPage() {
   const { t } = useTranslation()
-  const { tenantId = '' } = useParams<{ tenantId: string }>()
+  const { workspaceId = '' } = useParams<{ workspaceId: string }>()
 
   // Filter state
   const [dateFrom, setDateFrom] = useState('')
@@ -42,14 +42,14 @@ export function TransactionsPage() {
   const [activeFormMode, setActiveFormMode] = useState<'create' | 'edit' | null>(null)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
 
-  const { data: transactions, isLoading, isError, error } = useTransactions(tenantId || null, appliedFilters)
+  const { data: transactions, isLoading, isError, error } = useTransactions(workspaceId || null, appliedFilters)
   const { data: transactionTypes } = useTransactionTypes()
-  const { data: accounts } = useAccounts(tenantId || null)
-  const { data: tenantConfig } = useTenantConfig(tenantId || null)
-  const { hasTenantAccess } = useTenantAccess()
+  const { data: accounts } = useAccounts(workspaceId || null)
+  const { data: workspaceConfig } = useWorkspaceConfig(workspaceId || null)
+  const { hasWorkspaceAccess } = useWorkspaceAccess()
 
-  const initialDateMissing = !tenantConfig?.systemInitialDate
-  const hasAccess = hasTenantAccess(tenantId)
+  const initialDateMissing = !workspaceConfig?.systemInitialDate
+  const hasAccess = hasWorkspaceAccess(workspaceId)
 
   const typeOptions = (transactionTypes ?? []).map((tt) => ({ id: tt.id!, name: tt.name! }))
   const accountOptions = (accounts ?? []).map((a) => ({ id: a.id!, label: `${a.code} — ${a.name}` }))
@@ -140,17 +140,17 @@ export function TransactionsPage() {
 
       {initialDateMissing && hasAccess && (
         <InitialDateConfigurationAlert
-          tenantId={tenantId}
+          workspaceId={workspaceId}
           messageKey="transactionsPage.initialDateNotConfiguredWarning"
           testId="initial-date-warning"
         />
       )}
 
       {/* Inline form for create/edit */}
-      {activeFormMode !== null && tenantId && (
+      {activeFormMode !== null && workspaceId && (
         <Box sx={{ mb: 3 }}>
           <TransactionForm
-            tenantId={tenantId}
+            workspaceId={workspaceId}
             mode={activeFormMode}
             transactionId={editingTransaction?.id}
             initialData={activeFormMode === 'edit' && editingTransaction ? buildInitialData(editingTransaction) : undefined}

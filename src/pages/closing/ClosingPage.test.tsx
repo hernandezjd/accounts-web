@@ -10,7 +10,7 @@ vi.mock('react-router-dom', async () => {
   return {
     ...actual,
     useNavigate: () => mockNavigate,
-    useParams: () => ({ tenantId: 'test-tenant' }),
+    useParams: () => ({ workspaceId: 'test-workspace' }),
   }
 })
 
@@ -25,10 +25,10 @@ vi.mock('./ClosingDialog', () => ({
     open ? <div data-testid="closing-dialog">Dialog Content</div> : null,
 }))
 
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 
-vi.mock('@/hooks/api/useTenantConfig', () => ({
-  useTenantConfig: vi.fn(() => ({
+vi.mock('@/hooks/api/useWorkspaceConfig', () => ({
+  useWorkspaceConfig: vi.fn(() => ({
     data: undefined,
     isLoading: true,
     error: null,
@@ -40,7 +40,7 @@ vi.mock('@/components/error/ErrorMessage', () => ({
     error ? <div data-testid="error-message">{JSON.stringify(error)}</div> : null,
 }))
 
-const mockUseTenantConfig = vi.mocked(useTenantConfig)
+const mockUseWorkspaceConfig = vi.mocked(useWorkspaceConfig)
 
 function mockConfig(overrides: Record<string, unknown> = {}) {
   const fullConfig = {
@@ -49,11 +49,11 @@ function mockConfig(overrides: Record<string, unknown> = {}) {
     closingTransactionTypeId: 'txn-type',
     ...overrides,
   }
-  mockUseTenantConfig.mockReturnValue({
+  mockUseWorkspaceConfig.mockReturnValue({
     data: fullConfig,
     isLoading: false,
     error: null,
-  } as ReturnType<typeof useTenantConfig>)
+  } as ReturnType<typeof useWorkspaceConfig>)
 }
 
 const renderComponent = () => {
@@ -77,11 +77,11 @@ describe('ClosingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Reset default mock: config not loaded yet
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: undefined,
       isLoading: true,
       error: null,
-    } as ReturnType<typeof useTenantConfig>)
+    } as ReturnType<typeof useWorkspaceConfig>)
   })
 
   it('renders the closing page title', () => {
@@ -165,7 +165,7 @@ describe('ClosingPage', () => {
       mockConfig({ nominalAccounts: null })
       renderComponent()
       fireEvent.click(screen.getByTestId('warning-nominal-accounts-button'))
-      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', {
+      expect(mockNavigate).toHaveBeenCalledWith('/workspaces/test-workspace/setup', {
         state: { initialTab: 1, initialEditMode: 'nominalAccounts' },
       })
     })
@@ -174,7 +174,7 @@ describe('ClosingPage', () => {
       mockConfig({ profitLossAccountId: null })
       renderComponent()
       fireEvent.click(screen.getByTestId('warning-profit-loss-account-button'))
-      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', {
+      expect(mockNavigate).toHaveBeenCalledWith('/workspaces/test-workspace/setup', {
         state: { initialTab: 1, initialEditMode: 'nominalAccounts' },
       })
     })
@@ -183,7 +183,7 @@ describe('ClosingPage', () => {
       mockConfig({ closingTransactionTypeId: null })
       renderComponent()
       fireEvent.click(screen.getByTestId('warning-closing-transaction-type-button'))
-      expect(mockNavigate).toHaveBeenCalledWith('/tenants/test-tenant/setup', {
+      expect(mockNavigate).toHaveBeenCalledWith('/workspaces/test-workspace/setup', {
         state: { initialTab: 1, initialEditMode: 'closingTransactionType' },
       })
     })
@@ -208,15 +208,15 @@ describe('ClosingPage', () => {
   describe('Error Handling', () => {
     it('shows error message when config fetch fails', () => {
       const mockError = {
-        userMessage: 'You do not have access to this tenant',
+        userMessage: 'You do not have access to this workspace',
         errorCode: 'FORBIDDEN',
         isRetryable: false,
       }
-      mockUseTenantConfig.mockReturnValue({
+      mockUseWorkspaceConfig.mockReturnValue({
         data: undefined,
         isLoading: false,
         error: mockError,
-      } as ReturnType<typeof useTenantConfig>)
+      } as ReturnType<typeof useWorkspaceConfig>)
       renderComponent()
       expect(screen.getByTestId('error-message')).toBeInTheDocument()
       expect(screen.queryByTestId('open-closing-dialog-button')).not.toBeInTheDocument()

@@ -18,9 +18,9 @@ describe('errorCodeMap', () => {
       expect(ERROR_CODE_MAP.ROLE_REQUIRED.isRetryable).toBe(false)
     })
 
-    it('includes TENANT_ACCESS_REQUIRED error code', () => {
-      expect(ERROR_CODE_MAP.TENANT_ACCESS_REQUIRED).toBeDefined()
-      expect(ERROR_CODE_MAP.TENANT_ACCESS_REQUIRED.isRetryable).toBe(false)
+    it('includes WORKSPACE_ACCESS_REQUIRED error code', () => {
+      expect(ERROR_CODE_MAP.WORKSPACE_ACCESS_REQUIRED).toBeDefined()
+      expect(ERROR_CODE_MAP.WORKSPACE_ACCESS_REQUIRED.isRetryable).toBe(false)
     })
 
     it('includes HTTP_403 error code', () => {
@@ -35,7 +35,7 @@ describe('errorCodeMap', () => {
     })
 
     it('authorization error codes have no retry suggestions', () => {
-      const codes = ['ACTION_NOT_ALLOWED', 'INSUFFICIENT_PERMISSIONS', 'ROLE_REQUIRED', 'TENANT_ACCESS_REQUIRED']
+      const codes = ['ACTION_NOT_ALLOWED', 'INSUFFICIENT_PERMISSIONS', 'ROLE_REQUIRED', 'WORKSPACE_ACCESS_REQUIRED']
       codes.forEach(code => {
         const mapping = ERROR_CODE_MAP[code as keyof typeof ERROR_CODE_MAP]
         expect(mapping.isRetryable).toBe(false)
@@ -125,7 +125,7 @@ describe('errorCodeMap', () => {
         'ACTION_NOT_ALLOWED',
         'INSUFFICIENT_PERMISSIONS',
         'ROLE_REQUIRED',
-        'TENANT_ACCESS_REQUIRED',
+        'WORKSPACE_ACCESS_REQUIRED',
         'FORBIDDEN',
         'HTTP_403',
       ]

@@ -10,7 +10,7 @@ export interface AccountPickerOption {
 }
 
 interface AccountMultiPickerProps {
-  tenantId: string | null | undefined
+  workspaceId: string | null | undefined
   value: AccountPickerOption[]
   onChange: (accounts: AccountPickerOption[]) => void
   label?: string
@@ -25,7 +25,7 @@ const filterOptions = createFilterOptions<AccountPickerOption>({
 })
 
 export function AccountMultiPicker({
-  tenantId,
+  workspaceId,
   value,
   onChange,
   label,
@@ -33,7 +33,7 @@ export function AccountMultiPicker({
   size = 'small',
   filterLevel,
 }: AccountMultiPickerProps) {
-  const { data: accounts } = useAccounts(tenantId)
+  const { data: accounts } = useAccounts(workspaceId)
 
   const options: AccountPickerOption[] = (accounts ?? [])
     .filter((a) => filterLevel === undefined || a.level === filterLevel)

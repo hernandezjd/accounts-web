@@ -7,17 +7,17 @@ import { DEFAULT_THEME_SETTINGS } from '@/theme'
 
 // ─── Mock themeStore ──────────────────────────────────────────────────────────
 
-const mockSetThemeForTenant = vi.fn()
-const mockResetThemeForTenant = vi.fn()
+const mockSetThemeForWorkspace = vi.fn()
+const mockResetThemeForWorkspace = vi.fn()
 let mockStoredSettings = DEFAULT_THEME_SETTINGS
 
 vi.mock('@/store/themeStore', () => ({
   useThemeStore: (selector: (s: object) => unknown) => {
     const state = {
-      themesByTenant: {},
-      getThemeForTenant: (_id: string) => mockStoredSettings,
-      setThemeForTenant: mockSetThemeForTenant,
-      resetThemeForTenant: mockResetThemeForTenant,
+      themesByWorkspace: {},
+      getThemeForWorkspace: (_id: string) => mockStoredSettings,
+      setThemeForWorkspace: mockSetThemeForWorkspace,
+      resetThemeForWorkspace: mockResetThemeForWorkspace,
     }
     return selector(state)
   },
@@ -27,7 +27,7 @@ vi.mock('@/store/themeStore', () => ({
 
 function render() {
   return renderWithProviders(<ThemeEditorTab />, {
-    routerProps: { initialEntries: ['/tenants/t-1/setup'] },
+    routerProps: { initialEntries: ['/workspaces/t-1/setup'] },
   })
 }
 
@@ -117,7 +117,7 @@ describe('ThemeEditorTab — draft updates', () => {
 })
 
 describe('ThemeEditorTab — save', () => {
-  it('calls setThemeForTenant with current draft when Save is clicked', async () => {
+  it('calls setThemeForWorkspace with current draft when Save is clicked', async () => {
     const user = userEvent.setup()
     render()
 
@@ -127,8 +127,8 @@ describe('ThemeEditorTab — save', () => {
 
     await user.click(screen.getByTestId('save-theme-btn'))
 
-    // tenantId is '' in test (MemoryRouter has no route params without Route definitions)
-    expect(mockSetThemeForTenant).toHaveBeenCalledWith(
+    // workspaceId is '' in test (MemoryRouter has no route params without Route definitions)
+    expect(mockSetThemeForWorkspace).toHaveBeenCalledWith(
       '',
       expect.objectContaining({
         palette: expect.objectContaining({ primaryMain: '#abcdef' }),
@@ -145,12 +145,12 @@ describe('ThemeEditorTab — save', () => {
 })
 
 describe('ThemeEditorTab — reset', () => {
-  it('calls resetThemeForTenant when Reset is clicked', async () => {
+  it('calls resetThemeForWorkspace when Reset is clicked', async () => {
     const user = userEvent.setup()
     render()
     await user.click(screen.getByTestId('reset-theme-btn'))
-    // tenantId is '' in test (MemoryRouter has no route params without Route definitions)
-    expect(mockResetThemeForTenant).toHaveBeenCalledWith('')
+    // workspaceId is '' in test (MemoryRouter has no route params without Route definitions)
+    expect(mockResetThemeForWorkspace).toHaveBeenCalledWith('')
   })
 
   it('resets draft to default values after Reset is clicked', async () => {

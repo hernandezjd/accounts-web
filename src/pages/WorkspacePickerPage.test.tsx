@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
-import { TenantPickerPage } from './TenantPickerPage'
+import { WorkspacePickerPage } from './WorkspacePickerPage'
 import i18n from '@/i18n'
 import * as useAuthContextModule from '@/hooks/useAuthContext'
 
 // Mock the apiClient
 vi.mock('@/api/apiClient', () => ({
   apiClient: {
-    tenant: {
+    workspace: {
       GET: vi.fn(),
       POST: vi.fn(),
     },
@@ -19,26 +19,26 @@ vi.mock('@/api/apiClient', () => ({
 // Import after mock so we get the mocked version
 import { apiClient } from '@/api/apiClient'
 
-// Default auth mock: user has manage_tenants permission
+// Default auth mock: user has manage_workspaces permission
 const defaultAuthMock = {
-  user: { profile: { actions: ['manage_tenants'], tenants: ['tenant-1', 'tenant-2'] } },
+  user: { profile: { actions: ['manage_workspaces'], workspaces: ['workspace-1', 'workspace-2'] } },
   isAuthenticated: true,
   isLoading: false,
 }
 
-const mockTenants = [
-  { id: 'tenant-1', name: 'Acme Corp', status: 'active' as const },
-  { id: 'tenant-2', name: 'Globex Corp', status: 'active' as const },
+const mockWorkspaces = [
+  { id: 'workspace-1', name: 'Acme Corp', status: 'active' as const },
+  { id: 'workspace-2', name: 'Globex Corp', status: 'active' as const },
 ]
 
-type MockTenantClient = { GET: ReturnType<typeof vi.fn>; POST: ReturnType<typeof vi.fn> }
+type MockWorkspaceClient = { GET: ReturnType<typeof vi.fn>; POST: ReturnType<typeof vi.fn> }
 
 function mockGet(data: unknown) {
-  vi.mocked((apiClient.tenant as unknown as MockTenantClient).GET).mockResolvedValue({ data, response: new Response() })
+  vi.mocked((apiClient.workspace as unknown as MockWorkspaceClient).GET).mockResolvedValue({ data, response: new Response() })
 }
 
 function mockPost(data: unknown) {
-  vi.mocked((apiClient.tenant as unknown as MockTenantClient).POST).mockResolvedValue({ data, response: new Response() })
+  vi.mocked((apiClient.workspace as unknown as MockWorkspaceClient).POST).mockResolvedValue({ data, response: new Response() })
 }
 
 beforeEach(() => {
@@ -46,7 +46,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   // Reset language to English before each test
   i18n.changeLanguage('en')
-  // Mock auth context with manage_tenants permission by default
+  // Mock auth context with manage_workspaces permission by default
   vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
 })
 
@@ -56,93 +56,93 @@ afterEach(() => {
   i18n.changeLanguage('en')
 })
 
-describe('TenantPickerPage', () => {
+describe('WorkspacePickerPage', () => {
   it('shows loading state while fetching', () => {
-    vi.mocked((apiClient.tenant as unknown as MockTenantClient).GET).mockReturnValue(new Promise(() => {}))
-    renderWithProviders(<TenantPickerPage />)
+    vi.mocked((apiClient.workspace as unknown as MockWorkspaceClient).GET).mockReturnValue(new Promise(() => {}))
+    renderWithProviders(<WorkspacePickerPage />)
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
   })
 
-  it('renders tenant list when multiple tenants exist', async () => {
-    mockGet(mockTenants)
-    renderWithProviders(<TenantPickerPage />)
+  it('renders workspace list when multiple workspaces exist', async () => {
+    mockGet(mockWorkspaces)
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => {
       expect(screen.getByText('Acme Corp')).toBeInTheDocument()
       expect(screen.getByText('Globex Corp')).toBeInTheDocument()
     })
   })
 
-  it('saves tenantId to sessionStorage and navigates on selection', async () => {
-    mockGet(mockTenants)
-    const { unmount } = renderWithProviders(<TenantPickerPage />)
+  it('saves workspaceId to sessionStorage and navigates on selection', async () => {
+    mockGet(mockWorkspaces)
+    const { unmount } = renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => expect(screen.getByText('Acme Corp')).toBeInTheDocument())
     await userEvent.click(screen.getByText('Acme Corp'))
-    expect(sessionStorage.getItem('lastTenantId')).toBe('tenant-1')
+    expect(sessionStorage.getItem('lastWorkspaceId')).toBe('workspace-1')
     unmount()
   })
 
-  it('auto-redirects if sessionStorage has lastTenantId', async () => {
-    sessionStorage.setItem('lastTenantId', 'tenant-1')
-    mockGet(mockTenants)
-    // With a saved tenant, the picker should redirect (component triggers navigate)
+  it('auto-redirects if sessionStorage has lastWorkspaceId', async () => {
+    sessionStorage.setItem('lastWorkspaceId', 'workspace-1')
+    mockGet(mockWorkspaces)
+    // With a saved workspace, the picker should redirect (component triggers navigate)
     // We just verify sessionStorage is set; navigation is tested via routing
-    renderWithProviders(<TenantPickerPage />)
+    renderWithProviders(<WorkspacePickerPage />)
     // The effect fires synchronously: sessionStorage was set before render
-    expect(sessionStorage.getItem('lastTenantId')).toBe('tenant-1')
+    expect(sessionStorage.getItem('lastWorkspaceId')).toBe('workspace-1')
   })
 
-  it('auto-selects and shows spinner when exactly one tenant exists', async () => {
-    const singleTenant = [{ id: 'tenant-1', name: 'Acme Corp', status: 'active' as const }]
-    mockGet(singleTenant)
-    renderWithProviders(<TenantPickerPage />)
+  it('auto-selects and shows spinner when exactly one workspace exists', async () => {
+    const singleWorkspace = [{ id: 'workspace-1', name: 'Acme Corp', status: 'active' as const }]
+    mockGet(singleWorkspace)
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => {
-      expect(sessionStorage.getItem('lastTenantId')).toBe('tenant-1')
+      expect(sessionStorage.getItem('lastWorkspaceId')).toBe('workspace-1')
     })
   })
 
   it('shows error alert on network failure', async () => {
-    vi.mocked((apiClient.tenant as unknown as MockTenantClient).GET).mockRejectedValueOnce(new Error('Network error'))
-    renderWithProviders(<TenantPickerPage />)
+    vi.mocked((apiClient.workspace as unknown as MockWorkspaceClient).GET).mockRejectedValueOnce(new Error('Network error'))
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument()
     })
   })
 
-  it('shows no-tenants message and create button when empty list returned', async () => {
+  it('shows no-workspaces message and create button when empty list returned', async () => {
     mockGet([])
-    renderWithProviders(<TenantPickerPage />)
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => {
-      expect(screen.getByText(/no tenants available/i)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /create your first tenant/i })).toBeInTheDocument()
+      expect(screen.getByText(/no workspaces available/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /create your first workspace/i })).toBeInTheDocument()
     })
   })
 
   it('opens create dialog when button is clicked', async () => {
     mockGet([])
-    renderWithProviders(<TenantPickerPage />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /create your first tenant/i })).toBeInTheDocument())
-    await userEvent.click(screen.getByRole('button', { name: /create your first tenant/i }))
+    renderWithProviders(<WorkspacePickerPage />)
+    await waitFor(() => expect(screen.getByRole('button', { name: /create your first workspace/i })).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: /create your first workspace/i }))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /create tenant/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /create workspace/i })).toBeInTheDocument()
   })
 
-  it('navigates to new tenant after successful creation', async () => {
+  it('navigates to new workspace after successful creation', async () => {
     mockGet([])
-    const newTenant = {
-      id: 'new-tenant-id',
+    const newWorkspace = {
+      id: 'new-workspace-id',
       name: 'New Corp',
       status: 'active',
       contactName: 'Alice',
       contactEmail: 'alice@new.com',
       address: { street: '1 Main St', city: 'Springfield', state: 'IL', postalCode: '62701', country: 'US' },
     }
-    mockPost(newTenant)
+    mockPost(newWorkspace)
 
-    renderWithProviders(<TenantPickerPage />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /create your first tenant/i })).toBeInTheDocument())
+    renderWithProviders(<WorkspacePickerPage />)
+    await waitFor(() => expect(screen.getByRole('button', { name: /create your first workspace/i })).toBeInTheDocument())
 
     // Open dialog
-    await userEvent.click(screen.getByRole('button', { name: /create your first tenant/i }))
+    await userEvent.click(screen.getByRole('button', { name: /create your first workspace/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
 
     // Fill in required fields
@@ -156,16 +156,16 @@ describe('TenantPickerPage', () => {
     await userEvent.type(screen.getByLabelText(/country/i), 'US')
 
     // Submit
-    await userEvent.click(screen.getByTestId('tenant-form-save'))
+    await userEvent.click(screen.getByTestId('workspace-form-save'))
 
     await waitFor(() => {
-      expect(sessionStorage.getItem('lastTenantId')).toBe('new-tenant-id')
+      expect(sessionStorage.getItem('lastWorkspaceId')).toBe('new-workspace-id')
     })
   })
 
   it('renders language selector dropdown', async () => {
-    mockGet(mockTenants)
-    renderWithProviders(<TenantPickerPage />)
+    mockGet(mockWorkspaces)
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => {
       const languageSelector = screen.getByTestId('language-selector')
       expect(languageSelector).toBeInTheDocument()
@@ -173,8 +173,8 @@ describe('TenantPickerPage', () => {
   })
 
   it('language selector has proper accessibility attributes', async () => {
-    mockGet(mockTenants)
-    renderWithProviders(<TenantPickerPage />)
+    mockGet(mockWorkspaces)
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => expect(screen.getByTestId('language-selector')).toBeInTheDocument())
 
     const languageSelector = screen.getByTestId('language-selector')
@@ -184,8 +184,8 @@ describe('TenantPickerPage', () => {
   })
 
   it('renders help button', async () => {
-    mockGet(mockTenants)
-    renderWithProviders(<TenantPickerPage />)
+    mockGet(mockWorkspaces)
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => {
       const helpButton = screen.getByTestId('help-button')
       expect(helpButton).toBeInTheDocument()
@@ -193,8 +193,8 @@ describe('TenantPickerPage', () => {
   })
 
   it('has help button with correct aria label', async () => {
-    mockGet(mockTenants)
-    renderWithProviders(<TenantPickerPage />)
+    mockGet(mockWorkspaces)
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => {
       const helpButton = screen.getByTestId('help-button')
       const ariaLabel = helpButton.getAttribute('aria-label')
@@ -204,22 +204,22 @@ describe('TenantPickerPage', () => {
     })
   })
 
-  it('hides create button and shows permission warning when user lacks manage_tenants action', async () => {
-    // Mock user without manage_tenants permission
+  it('hides create button and shows permission warning when user lacks manage_workspaces action', async () => {
+    // Mock user without manage_workspaces permission
     vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
-      user: { profile: { actions: [], tenants: [] } },
+      user: { profile: { actions: [], workspaces: [] } },
       isAuthenticated: true,
       isLoading: false,
     } as any)
 
     mockGet([])
-    renderWithProviders(<TenantPickerPage />)
+    renderWithProviders(<WorkspacePickerPage />)
     await waitFor(() => {
-      expect(screen.getByText(/no tenants available/i)).toBeInTheDocument()
+      expect(screen.getByText(/no workspaces available/i)).toBeInTheDocument()
       // Create button should not be present
-      expect(screen.queryByRole('button', { name: /create your first tenant/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /create your first workspace/i })).not.toBeInTheDocument()
       // Permission warning should be displayed
-      expect(screen.getByText(/do not have permission to create tenants/i)).toBeInTheDocument()
+      expect(screen.getByText(/do not have permission to create workspaces/i)).toBeInTheDocument()
     })
   })
 })

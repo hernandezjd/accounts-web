@@ -19,18 +19,18 @@ vi.mock('@/hooks/api/useUnifiedSearch', () => ({
   useUnifiedSearch: vi.fn().mockReturnValue({ data: undefined, isLoading: false, isError: false }),
 }))
 
-vi.mock('@/hooks/api/useTenantConfig', () => ({
-  useTenantConfig: vi.fn(),
+vi.mock('@/hooks/api/useWorkspaceConfig', () => ({
+  useWorkspaceConfig: vi.fn(),
 }))
 
 import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
 import { useAccountTransactionsInPeriod } from '@/hooks/api/useAccountTransactionsInPeriod'
 import { useUnifiedSearch } from '@/hooks/api/useUnifiedSearch'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 const mockUseSummary = vi.mocked(usePeriodAccountSummary)
 const mockUseTxns = vi.mocked(useAccountTransactionsInPeriod)
 const mockUseSearch = vi.mocked(useUnifiedSearch)
-const mockUseTenantConfig = vi.mocked(useTenantConfig)
+const mockUseWorkspaceConfig = vi.mocked(useWorkspaceConfig)
 
 // ─── Sample data ──────────────────────────────────────────────────────────────
 
@@ -109,12 +109,12 @@ describe('AccountingPage', () => {
       isLoading: false,
       isError: false,
     } as ReturnType<typeof useUnifiedSearch>)
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: undefined,
       isLoading: false,
       isError: false,
       error: null,
-    } as unknown as ReturnType<typeof useTenantConfig>)
+    } as unknown as ReturnType<typeof useWorkspaceConfig>)
   })
 
   it('shows loading state while fetching', () => {
@@ -126,7 +126,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof usePeriodAccountSummary>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
     expect(screen.getByText(/loading account data/i)).toBeInTheDocument()
@@ -141,7 +141,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof usePeriodAccountSummary>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
@@ -156,7 +156,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof usePeriodAccountSummary>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
     await waitFor(() => {
@@ -175,7 +175,7 @@ describe('AccountingPage', () => {
 
     renderWithProviders(<AccountingPage />, {
       routerProps: {
-        initialEntries: ['/tenants/tenant-1/accounting?from=2026-03-01&to=2026-03-31&granularity=monthly&level=2'],
+        initialEntries: ['/workspaces/workspace-1/accounting?from=2026-03-01&to=2026-03-31&granularity=monthly&level=2'],
       },
     })
 
@@ -196,7 +196,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof usePeriodAccountSummary>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
     // Current month
@@ -215,7 +215,7 @@ describe('AccountingPage', () => {
 
     renderWithProviders(<AccountingPage />, {
       routerProps: {
-        initialEntries: ['/tenants/tenant-1/accounting?from=2026-03-01&to=2026-03-31&granularity=monthly'],
+        initialEntries: ['/workspaces/workspace-1/accounting?from=2026-03-01&to=2026-03-31&granularity=monthly'],
       },
     })
 
@@ -240,7 +240,7 @@ describe('AccountingPage', () => {
 
     renderWithProviders(<AccountingPage />, {
       routerProps: {
-        initialEntries: ['/tenants/tenant-1/accounting?from=2026-03-01&to=2026-03-31&granularity=monthly'],
+        initialEntries: ['/workspaces/workspace-1/accounting?from=2026-03-01&to=2026-03-31&granularity=monthly'],
       },
     })
 
@@ -270,7 +270,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof useAccountTransactionsInPeriod>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
     })
 
     await waitFor(() => expect(screen.getByText('Cash')).toBeInTheDocument())
@@ -304,7 +304,7 @@ describe('AccountingPage', () => {
     renderWithProviders(<AccountingPage />, {
       routerProps: {
         initialEntries: [
-          '/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&view=transactions&accountId=acc-1',
+          '/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&view=transactions&accountId=acc-1',
         ],
       },
     })
@@ -331,7 +331,7 @@ describe('AccountingPage', () => {
 
     renderWithProviders(<AccountingPage />, {
       routerProps: {
-        initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'],
+        initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'],
       },
     })
 
@@ -369,7 +369,7 @@ describe('AccountingPage', () => {
 
     renderWithProviders(<AccountingPage />, {
       routerProps: {
-        initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'],
+        initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'],
       },
     })
 
@@ -399,7 +399,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof usePeriodAccountSummary>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
     })
 
     expect(screen.getByRole('textbox')).toBeInTheDocument()
@@ -422,7 +422,7 @@ describe('AccountingPage', () => {
     renderWithProviders(<AccountingPage />, {
       routerProps: {
         initialEntries: [
-          '/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&view=transactions&accountId=acc-1',
+          '/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&view=transactions&accountId=acc-1',
         ],
       },
     })
@@ -482,7 +482,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof useUnifiedSearch>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&level=1'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&level=1'] },
     })
 
     // Tree is at level 1 — only parent visible initially (level filter collapses children)
@@ -542,7 +542,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof useUnifiedSearch>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
     })
 
     await waitFor(() => expect(screen.getByText('Cash')).toBeInTheDocument())
@@ -578,7 +578,7 @@ describe('AccountingPage', () => {
 
     renderWithProviders(<AccountingPage />, {
       routerProps: {
-        initialEntries: ['/tenants/tenant-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'],
+        initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'],
       },
     })
 
@@ -607,7 +607,7 @@ describe('AccountingPage', () => {
     } as ReturnType<typeof usePeriodAccountSummary>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
     const toggle = screen.getByRole('checkbox', { name: /simulate closure/i })
@@ -631,15 +631,15 @@ describe('AccountingPage', () => {
       isError: false,
       error: null,
     } as ReturnType<typeof usePeriodAccountSummary>)
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: { nominalAccounts: [], profitLossAccountId: 'pnl-1' },
       isLoading: false,
       isError: false,
       error: null,
-    } as unknown as ReturnType<typeof useTenantConfig>)
+    } as unknown as ReturnType<typeof useWorkspaceConfig>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
     const toggle = screen.getByRole('checkbox', { name: /simulate closure/i })
@@ -658,15 +658,15 @@ describe('AccountingPage', () => {
       isError: false,
       error: null,
     } as ReturnType<typeof usePeriodAccountSummary>)
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: { nominalAccounts: ['acc-1'], profitLossAccountId: null },
       isLoading: false,
       isError: false,
       error: null,
-    } as unknown as ReturnType<typeof useTenantConfig>)
+    } as unknown as ReturnType<typeof useWorkspaceConfig>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
     const toggle = screen.getByRole('checkbox', { name: /simulate closure/i })
@@ -685,15 +685,15 @@ describe('AccountingPage', () => {
       isError: false,
       error: null,
     } as ReturnType<typeof usePeriodAccountSummary>)
-    mockUseTenantConfig.mockReturnValue({
+    mockUseWorkspaceConfig.mockReturnValue({
       data: { nominalAccounts: ['acc-1'], profitLossAccountId: 'pnl-1' },
       isLoading: false,
       isError: false,
       error: null,
-    } as unknown as ReturnType<typeof useTenantConfig>)
+    } as unknown as ReturnType<typeof useWorkspaceConfig>)
 
     renderWithProviders(<AccountingPage />, {
-      routerProps: { initialEntries: ['/tenants/tenant-1/accounting'] },
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
     await userEvent.click(screen.getByRole('checkbox', { name: /simulate closure/i }))

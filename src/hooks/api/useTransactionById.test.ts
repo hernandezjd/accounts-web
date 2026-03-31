@@ -45,11 +45,11 @@ describe('useTransactionById', () => {
     vi.clearAllMocks()
   })
 
-  it('fetches transaction when id and tenantId are provided', async () => {
+  it('fetches transaction when id and workspaceId are provided', async () => {
     mockGet.mockResolvedValueOnce({ data: sampleTransaction, response: new Response() })
 
     const { result } = renderHook(
-      () => useTransactionById('tenant-1', 'txn-1'),
+      () => useTransactionById('workspace-1', 'txn-1'),
       { wrapper: makeWrapper() }
     )
 
@@ -61,7 +61,7 @@ describe('useTransactionById', () => {
 
   it('does not fetch when transactionId is null', () => {
     const { result } = renderHook(
-      () => useTransactionById('tenant-1', null),
+      () => useTransactionById('workspace-1', null),
       { wrapper: makeWrapper() }
     )
 
@@ -70,7 +70,7 @@ describe('useTransactionById', () => {
     expect(mockGet).not.toHaveBeenCalled()
   })
 
-  it('does not fetch when tenantId is null', () => {
+  it('does not fetch when workspaceId is null', () => {
     const { result } = renderHook(
       () => useTransactionById(null, 'txn-1'),
       { wrapper: makeWrapper() }
@@ -86,7 +86,7 @@ describe('useTransactionById', () => {
 
     const wrapper = makeWrapper()
     const { rerender } = renderHook(
-      ({ id }) => useTransactionById('tenant-1', id),
+      ({ id }) => useTransactionById('workspace-1', id),
       { wrapper, initialProps: { id: 'txn-1' } }
     )
 
@@ -109,7 +109,7 @@ describe('useTransactionById', () => {
     mockGet.mockRejectedValueOnce(new Error('Transaction not found'))
 
     const { result } = renderHook(
-      () => useTransactionById('tenant-1', 'invalid-txn'),
+      () => useTransactionById('workspace-1', 'invalid-txn'),
       { wrapper: makeWrapper() }
     )
 
@@ -117,12 +117,12 @@ describe('useTransactionById', () => {
     expect(result.current.error).toBeDefined()
   })
 
-  it('caches results by tenantId and transactionId', async () => {
+  it('caches results by workspaceId and transactionId', async () => {
     mockGet.mockResolvedValueOnce({ data: sampleTransaction, response: new Response() })
 
     const wrapper = makeWrapper()
     const { rerender } = renderHook(
-      () => useTransactionById('tenant-1', 'txn-1'),
+      () => useTransactionById('workspace-1', 'txn-1'),
       { wrapper }
     )
 

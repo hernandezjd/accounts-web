@@ -10,17 +10,17 @@ import { SideNav } from './SideNav'
 const DRAWER_WIDTH = 220
 
 export function AppShell() {
-  const { tenantId } = useParams<{ tenantId: string }>()
-  const setSelectedTenantId = useAppStore((s) => s.setSelectedTenantId)
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const setSelectedWorkspaceId = useAppStore((s) => s.setSelectedWorkspaceId)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  // Sync URL tenantId into store
+  // Sync URL workspaceId into store
   useEffect(() => {
-    if (tenantId) {
-      setSelectedTenantId(tenantId)
-      sessionStorage.setItem('lastTenantId', tenantId)
+    if (workspaceId) {
+      setSelectedWorkspaceId(workspaceId)
+      sessionStorage.setItem('lastWorkspaceId', workspaceId)
     }
-  }, [tenantId, setSelectedTenantId])
+  }, [workspaceId, setSelectedWorkspaceId])
 
   function handleMenuToggle() {
     setMobileOpen((prev) => !prev)

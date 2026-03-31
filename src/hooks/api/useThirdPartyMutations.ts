@@ -16,7 +16,7 @@ export function useThirdPartyMutations() {
    * Third-party mutations affect: third-party lists and transaction forms that reference third-parties.
    */
   const invalidateThirdPartyQueries = async () => {
-    // Invalidate both global and tenant-scoped variants
+    // Invalidate both global and workspace-scoped variants
     await Promise.all([
       qc.invalidateQueries({ queryKey: queryKeys.thirdParties.all() }),
       qc.invalidateQueries({ queryKey: queryKeys.transactions.all() }),

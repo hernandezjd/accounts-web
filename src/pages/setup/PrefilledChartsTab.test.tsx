@@ -6,7 +6,7 @@ import { PrefilledChartsTab } from './PrefilledChartsTab'
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
-  return { ...actual, useParams: () => ({ tenantId: 'tenant-1' }) }
+  return { ...actual, useParams: () => ({ workspaceId: 'workspace-1' }) }
 })
 
 vi.mock('@/hooks/api/usePrefilledCharts', () => ({
@@ -19,8 +19,8 @@ vi.mock('@/hooks/useUserActions', () => ({
   useUserActions: vi.fn(),
 }))
 
-vi.mock('@/hooks/useTenantAccess', () => ({
-  useTenantAccess: vi.fn(),
+vi.mock('@/hooks/useWorkspaceAccess', () => ({
+  useWorkspaceAccess: vi.fn(),
 }))
 
 import {
@@ -29,13 +29,13 @@ import {
   useMergePrefilledChart,
 } from '@/hooks/api/usePrefilledCharts'
 import { useUserActions } from '@/hooks/useUserActions'
-import { useTenantAccess } from '@/hooks/useTenantAccess'
+import { useWorkspaceAccess } from '@/hooks/useWorkspaceAccess'
 
 const mockUsePrefilledCharts = vi.mocked(usePrefilledCharts)
 const mockUsePrefilledChartDetail = vi.mocked(usePrefilledChartDetail)
 const mockUseMergePrefilledChart = vi.mocked(useMergePrefilledChart)
 const mockUseUserActions = vi.mocked(useUserActions)
-const mockUseTenantAccess = vi.mocked(useTenantAccess)
+const mockUseWorkspaceAccess = vi.mocked(useWorkspaceAccess)
 
 const sampleCharts = [
   { id: 'es-pgc', name: 'PGC', description: 'Spanish chart', accountCount: 120 },
@@ -78,9 +78,9 @@ beforeEach(() => {
     hasAction: vi.fn(() => true),
   } as ReturnType<typeof useUserActions>)
 
-  mockUseTenantAccess.mockReturnValue({
-    hasTenantAccess: vi.fn(() => true),
-  } as ReturnType<typeof useTenantAccess>)
+  mockUseWorkspaceAccess.mockReturnValue({
+    hasWorkspaceAccess: vi.fn(() => true),
+  } as ReturnType<typeof useWorkspaceAccess>)
 })
 
 describe('PrefilledChartsTab', () => {
@@ -176,10 +176,10 @@ describe('PrefilledChartsTab', () => {
     })
   })
 
-  it('disables merge button when user has no tenant access', () => {
-    mockUseTenantAccess.mockReturnValue({
-      hasTenantAccess: vi.fn(() => false),
-    } as ReturnType<typeof useTenantAccess>)
+  it('disables merge button when user has no workspace access', () => {
+    mockUseWorkspaceAccess.mockReturnValue({
+      hasWorkspaceAccess: vi.fn(() => false),
+    } as ReturnType<typeof useWorkspaceAccess>)
 
     renderWithProviders(<PrefilledChartsTab />)
 
@@ -189,14 +189,14 @@ describe('PrefilledChartsTab', () => {
     })
   })
 
-  it('disables merge button when user has both no permissions and no tenant access', () => {
+  it('disables merge button when user has both no permissions and no workspace access', () => {
     mockUseUserActions.mockReturnValue({
       hasAction: vi.fn(() => false),
     } as ReturnType<typeof useUserActions>)
 
-    mockUseTenantAccess.mockReturnValue({
-      hasTenantAccess: vi.fn(() => false),
-    } as ReturnType<typeof useTenantAccess>)
+    mockUseWorkspaceAccess.mockReturnValue({
+      hasWorkspaceAccess: vi.fn(() => false),
+    } as ReturnType<typeof useWorkspaceAccess>)
 
     renderWithProviders(<PrefilledChartsTab />)
 

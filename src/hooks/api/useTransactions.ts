@@ -14,7 +14,7 @@ export interface TransactionFilters {
 }
 
 export function useTransactions(
-  tenantId: string | null | undefined,
+  workspaceId: string | null | undefined,
   filters: TransactionFilters = {},
 ) {
   const query: Record<string, string> = {}
@@ -24,16 +24,16 @@ export function useTransactions(
   if (filters.dateTo) query.dateTo = filters.dateTo
 
   return useApiQuery(
-    queryKeys.transactions.list(tenantId!, filters),
+    queryKeys.transactions.list(workspaceId!, filters),
     () =>
       apiClient.query.GET<Transaction[]>('/transactions', {
         params: {
           query,
-          header: { 'X-Tenant-Id': tenantId! },
+          header: { 'X-Workspace-Id': workspaceId! },
         },
       }),
     {
-      enabled: Boolean(tenantId),
+      enabled: Boolean(workspaceId),
     }
   )
 }

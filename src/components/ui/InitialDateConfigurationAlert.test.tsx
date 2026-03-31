@@ -15,7 +15,7 @@ describe('InitialDateConfigurationAlert', () => {
     renderWithProviders(
       <MemoryRouter>
         <InitialDateConfigurationAlert
-          tenantId="tenant-1"
+          workspaceId="workspace-1"
           messageKey="transactionsPage.initialDateNotConfiguredWarning"
         />
       </MemoryRouter>
@@ -28,7 +28,7 @@ describe('InitialDateConfigurationAlert', () => {
     renderWithProviders(
       <MemoryRouter>
         <InitialDateConfigurationAlert
-          tenantId="tenant-1"
+          workspaceId="workspace-1"
           messageKey="transactionsPage.initialDateNotConfiguredWarning"
         />
       </MemoryRouter>
@@ -43,7 +43,7 @@ describe('InitialDateConfigurationAlert', () => {
     renderWithProviders(
       <MemoryRouter>
         <InitialDateConfigurationAlert
-          tenantId="tenant-123"
+          workspaceId="workspace-123"
           messageKey="transactionsPage.initialDateNotConfiguredWarning"
         />
       </MemoryRouter>
@@ -61,7 +61,7 @@ describe('InitialDateConfigurationAlert', () => {
     renderWithProviders(
       <MemoryRouter>
         <InitialDateConfigurationAlert
-          tenantId="tenant-1"
+          workspaceId="workspace-1"
           messageKey="transactionsPage.initialDateNotConfiguredWarning"
           testId="custom-alert"
         />
@@ -76,7 +76,7 @@ describe('InitialDateConfigurationAlert', () => {
     renderWithProviders(
       <MemoryRouter>
         <InitialDateConfigurationAlert
-          tenantId="tenant-1"
+          workspaceId="workspace-1"
           messageKey="transactionsPage.initialDateNotConfiguredWarning"
         />
       </MemoryRouter>
@@ -90,7 +90,7 @@ describe('InitialDateConfigurationAlert', () => {
     const { container } = renderWithProviders(
       <MemoryRouter>
         <InitialDateConfigurationAlert
-          tenantId="tenant-1"
+          workspaceId="workspace-1"
           messageKey="transactionsPage.initialDateNotConfiguredWarning"
         />
       </MemoryRouter>
@@ -104,7 +104,7 @@ describe('InitialDateConfigurationAlert', () => {
     renderWithProviders(
       <MemoryRouter>
         <InitialDateConfigurationAlert
-          tenantId="tenant-1"
+          workspaceId="workspace-1"
           messageKey="initialBalances.initialDateNotConfiguredWarning"
         />
       </MemoryRouter>

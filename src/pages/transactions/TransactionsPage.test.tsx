@@ -10,7 +10,7 @@ import type { Account } from '@/hooks/api/useAccounts'
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
-  return { ...actual, useParams: vi.fn().mockReturnValue({ tenantId: 'tenant-test' }) }
+  return { ...actual, useParams: vi.fn().mockReturnValue({ workspaceId: 'workspace-test' }) }
 })
 
 vi.mock('@/hooks/api/useTransactions', () => ({
@@ -22,8 +22,8 @@ vi.mock('@/hooks/api/useTransactionTypes', () => ({
 vi.mock('@/hooks/api/useAccounts', () => ({
   useAccounts: vi.fn(),
 }))
-vi.mock('@/hooks/api/useTenantConfig', () => ({
-  useTenantConfig: vi.fn(),
+vi.mock('@/hooks/api/useWorkspaceConfig', () => ({
+  useWorkspaceConfig: vi.fn(),
 }))
 
 // Mock the inline form to avoid setting up all its sub-hooks
@@ -47,12 +47,12 @@ vi.mock('../accounting/TransactionForm', () => ({
 import { useTransactions } from '@/hooks/api/useTransactions'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useAccounts } from '@/hooks/api/useAccounts'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 
 const mockUseTransactions = vi.mocked(useTransactions)
 const mockUseTransactionTypes = vi.mocked(useTransactionTypes)
 const mockUseAccounts = vi.mocked(useAccounts)
-const mockUseTenantConfig = vi.mocked(useTenantConfig)
+const mockUseWorkspaceConfig = vi.mocked(useWorkspaceConfig)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -117,12 +117,12 @@ beforeEach(() => {
     error: null,
   } as ReturnType<typeof useAccounts>)
 
-  mockUseTenantConfig.mockReturnValue({
+  mockUseWorkspaceConfig.mockReturnValue({
     data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null },
     isLoading: false,
     isError: false,
     error: null,
-  } as ReturnType<typeof useTenantConfig>)
+  } as ReturnType<typeof useWorkspaceConfig>)
 })
 
 // ─── Tests ───────────────────────────────────────────────────────────────────

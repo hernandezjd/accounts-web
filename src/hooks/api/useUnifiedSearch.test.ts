@@ -44,11 +44,11 @@ describe('useUnifiedSearch', () => {
     vi.clearAllMocks()
   })
 
-  it('shouldReturnResults_whenQueryAndTenantIdProvided', async () => {
+  it('shouldReturnResults_whenQueryAndWorkspaceIdProvided', async () => {
     mockGet.mockResolvedValueOnce({ data: sampleResponse, response: new Response() })
 
     const { result } = renderHook(
-      () => useUnifiedSearch('tenant-1', 'cash', '2026-01-01', '2026-01-31'),
+      () => useUnifiedSearch('workspace-1', 'cash', '2026-01-01', '2026-01-31'),
       { wrapper: makeWrapper() },
     )
 
@@ -65,7 +65,7 @@ describe('useUnifiedSearch', () => {
 
   it('shouldNotFetch_whenQueryIsEmpty', () => {
     const { result } = renderHook(
-      () => useUnifiedSearch('tenant-1', '', '2026-01-01', '2026-01-31'),
+      () => useUnifiedSearch('workspace-1', '', '2026-01-01', '2026-01-31'),
       { wrapper: makeWrapper() },
     )
 
@@ -78,7 +78,7 @@ describe('useUnifiedSearch', () => {
     mockGet.mockResolvedValueOnce({ data: sampleResponse, response: new Response() })
 
     const { result } = renderHook(
-      () => useUnifiedSearch('tenant-1', 'cash', '2026-01-01', '2026-01-31'),
+      () => useUnifiedSearch('workspace-1', 'cash', '2026-01-01', '2026-01-31'),
       { wrapper: makeWrapper() },
     )
 
@@ -99,7 +99,7 @@ describe('useUnifiedSearch', () => {
     mockGet.mockResolvedValueOnce({ data: { ...sampleResponse, fromDate: null, toDate: null }, response: new Response() })
 
     const { result } = renderHook(
-      () => useUnifiedSearch('tenant-1', 'cash', undefined, undefined),
+      () => useUnifiedSearch('workspace-1', 'cash', undefined, undefined),
       { wrapper: makeWrapper() },
     )
 

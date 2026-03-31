@@ -6,16 +6,16 @@ import GlobalStyles from '@mui/material/GlobalStyles'
 import { createAppTheme } from '@/theme'
 import { useThemeStore } from '@/store/themeStore'
 
-interface TenantThemeProviderProps {
+interface WorkspaceThemeProviderProps {
   children: ReactNode
 }
 
-export function TenantThemeProvider({ children }: TenantThemeProviderProps) {
-  const { tenantId = '' } = useParams<{ tenantId: string }>()
-  const getThemeForTenant = useThemeStore((s) => s.getThemeForTenant)
-  const settings = useThemeStore((s) => s.themesByTenant[tenantId])
+export function WorkspaceThemeProvider({ children }: WorkspaceThemeProviderProps) {
+  const { workspaceId = '' } = useParams<{ workspaceId: string }>()
+  const getThemeForWorkspace = useThemeStore((s) => s.getThemeForWorkspace)
+  const settings = useThemeStore((s) => s.themesByWorkspace[workspaceId])
 
-  const effectiveSettings = settings ?? getThemeForTenant(tenantId)
+  const effectiveSettings = settings ?? getThemeForWorkspace(workspaceId)
   const theme = useMemo(() => createAppTheme(effectiveSettings), [effectiveSettings])
 
   const cssVars = {

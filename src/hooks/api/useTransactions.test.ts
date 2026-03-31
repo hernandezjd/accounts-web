@@ -43,7 +43,7 @@ describe('useTransactions', () => {
     mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
 
     const { result } = renderHook(
-      () => useTransactions('tenant-1', { dateFrom: '2026-03-01', dateTo: '2026-03-31' }),
+      () => useTransactions('workspace-1', { dateFrom: '2026-03-01', dateTo: '2026-03-31' }),
       { wrapper: makeWrapper() }
     )
 
@@ -52,7 +52,7 @@ describe('useTransactions', () => {
     expect(result.current.data).toEqual(sampleTransactions)
   })
 
-  it('does not fetch when tenantId is null', () => {
+  it('does not fetch when workspaceId is null', () => {
     const { result } = renderHook(
       () => useTransactions(null),
       { wrapper: makeWrapper() }
@@ -67,7 +67,7 @@ describe('useTransactions', () => {
     mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
 
     const { result } = renderHook(
-      () => useTransactions('tenant-1', {}),
+      () => useTransactions('workspace-1', {}),
       { wrapper: makeWrapper() }
     )
 
@@ -80,7 +80,7 @@ describe('useTransactions', () => {
     mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
 
     const { result } = renderHook(
-      () => useTransactions('tenant-1', { dateFrom: '2026-03-01', dateTo: '2026-03-31' }),
+      () => useTransactions('workspace-1', { dateFrom: '2026-03-01', dateTo: '2026-03-31' }),
       { wrapper: makeWrapper() }
     )
 
@@ -93,7 +93,7 @@ describe('useTransactions', () => {
     mockGet.mockResolvedValueOnce({ data: [sampleTransactions[0]], response: new Response() })
 
     const { result } = renderHook(
-      () => useTransactions('tenant-1', { accountId: 'acc-1' }),
+      () => useTransactions('workspace-1', { accountId: 'acc-1' }),
       { wrapper: makeWrapper() }
     )
 
@@ -109,7 +109,7 @@ describe('useTransactions', () => {
     })
 
     const { result } = renderHook(
-      () => useTransactions('tenant-1'),
+      () => useTransactions('workspace-1'),
       { wrapper: makeWrapper() }
     )
 
@@ -131,7 +131,7 @@ describe('useTransactions', () => {
     } as any)
 
     const { result } = renderHook(
-      () => useTransactions('tenant-1'),
+      () => useTransactions('workspace-1'),
       { wrapper: makeWrapper() }
     )
 

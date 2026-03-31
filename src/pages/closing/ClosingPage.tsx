@@ -11,16 +11,16 @@ import CircularProgress from '@mui/material/CircularProgress'
 import ArchiveIcon from '@mui/icons-material/Archive'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { ClosingDialog } from './ClosingDialog'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 
 export function ClosingPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { tenantId } = useParams<{ tenantId: string }>()
+  const { workspaceId } = useParams<{ workspaceId: string }>()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const { data: config, error, isLoading } = useTenantConfig(tenantId)
+  const { data: config, error, isLoading } = useWorkspaceConfig(workspaceId)
 
   const hasNominalAccounts = Boolean(config?.nominalAccounts && config.nominalAccounts.length > 0)
   const hasProfitLossAccount = Boolean(config?.profitLossAccountId)
@@ -42,13 +42,13 @@ export function ClosingPage() {
   }
 
   const navigateToAccountsConfig = () => {
-    navigate(`/tenants/${tenantId}/setup`, {
+    navigate(`/workspaces/${workspaceId}/setup`, {
       state: { initialTab: 1, initialEditMode: 'nominalAccounts' },
     })
   }
 
   const navigateToTransactionTypeConfig = () => {
-    navigate(`/tenants/${tenantId}/setup`, {
+    navigate(`/workspaces/${workspaceId}/setup`, {
       state: { initialTab: 1, initialEditMode: 'closingTransactionType' },
     })
   }
@@ -153,9 +153,9 @@ export function ClosingPage() {
         </Card>
       )}
 
-      {tenantId && (
+      {workspaceId && (
         <ClosingDialog
-          tenantId={tenantId}
+          workspaceId={workspaceId}
           open={dialogOpen}
           onClose={handleCloseDialog}
           onSuccess={handleSuccess}

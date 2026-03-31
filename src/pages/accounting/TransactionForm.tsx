@@ -19,7 +19,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown'
 import { useTranslation } from 'react-i18next'
-import { useTenantConfig } from '@/hooks/api/useTenantConfig'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { PREFERENCE_KEYS } from '@/utils/preferences'
@@ -62,7 +62,7 @@ export interface TransactionFormInitialData {
 }
 
 interface TransactionFormProps {
-  tenantId: string
+  workspaceId: string
   mode: FormMode
   transactionId?: string
   initialData?: TransactionFormInitialData
@@ -139,7 +139,7 @@ function handleAmountPaste(
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function TransactionForm({
-  tenantId,
+  workspaceId,
   mode,
   transactionId,
   initialData,
@@ -147,12 +147,12 @@ export function TransactionForm({
   onCancel,
 }: TransactionFormProps) {
   const { t } = useTranslation()
-  const { data: tenantConfig } = useTenantConfig(
-    mode === 'create' || mode === 'createInitialBalance' || mode === 'editInitialBalance' ? tenantId : undefined,
+  const { data: workspaceConfig } = useWorkspaceConfig(
+    mode === 'create' || mode === 'createInitialBalance' || mode === 'editInitialBalance' ? workspaceId : undefined,
   )
-  const { data: accounts } = useAccounts(tenantId)
+  const { data: accounts } = useAccounts(workspaceId)
   const { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance } =
-    useTransactionMutations(tenantId)
+    useTransactionMutations(workspaceId)
 
   // ── UI Preferences persistence (localStorage) ──────────────────────────────
   const [lastUsedDate, setLastUsedDate] = useLocalStorage<string>(PREFERENCE_KEYS.TRANSACTION_LAST_DATE, '')
@@ -179,15 +179,15 @@ export function TransactionForm({
       return initialData.date
     }
     // For create mode, try to use the last used date if valid
-    if (mode === 'create' && lastUsedDate && tenantConfig?.systemInitialDate) {
-      if (lastUsedDate >= tenantConfig.systemInitialDate) {
+    if (mode === 'create' && lastUsedDate && workspaceConfig?.systemInitialDate) {
+      if (lastUsedDate >= workspaceConfig.systemInitialDate) {
         return lastUsedDate
       }
     }
     // Fall back to today's date if applicable
-    if (mode === 'create' && tenantConfig?.systemInitialDate) {
+    if (mode === 'create' && workspaceConfig?.systemInitialDate) {
       const today = getTodayDate()
-      if (today >= tenantConfig.systemInitialDate) {
+      if (today >= workspaceConfig.systemInitialDate) {
         return today
       }
     }
@@ -220,7 +220,7 @@ export function TransactionForm({
 
   // ── Draft persistence (create mode only) ────────────────────────────────────
   const isDraftMode = mode === 'create' && !initialData
-  const draftKey = `txn-draft-${tenantId}-create`
+  const draftKey = `txn-draft-${workspaceId}-create`
   const [storedDraft, , clearDraft, hasDraft] = useFormDraft<FormDraft>(draftKey, EMPTY_DRAFT)
   // Once user decides (restore or discard), start auto-saving
   const [draftDecided, setDraftDecided] = useState(!isDraftMode || !hasDraft)
@@ -300,10 +300,10 @@ export function TransactionForm({
   }, [accounts, initialData])
 
   // ── REQ-INIT-09: initial date guard (create mode only) ──
-  const initialDateMissing = mode === 'create' && !tenantConfig?.systemInitialDate
+  const initialDateMissing = mode === 'create' && !workspaceConfig?.systemInitialDate
 
   // ── FR-070: date-before-initial-date validation (regular transaction modes) ──
-  const systemInitialDate = tenantConfig?.systemInitialDate ?? null
+  const systemInitialDate = workspaceConfig?.systemInitialDate ?? null
   const isRegularMode = mode === 'create' || mode === 'edit'
   const dateBeforeInitialDate =
     isRegularMode && !!date && !!systemInitialDate && date < systemInitialDate
@@ -526,7 +526,7 @@ export function TransactionForm({
         {mode === 'createInitialBalance' || mode === 'editInitialBalance' ? (
           <TextField
             label={t('transactionForm.initialBalanceDate')}
-            value={tenantConfig?.systemInitialDate ?? ''}
+            value={workspaceConfig?.systemInitialDate ?? ''}
             size="small"
             sx={{ minWidth: 160 }}
             inputProps={{ readOnly: true }}
@@ -588,7 +588,7 @@ export function TransactionForm({
           >
             <Box sx={{ minWidth: 240, flexGrow: 1 }}>
               <AccountSearchField
-                tenantId={tenantId}
+                workspaceId={workspaceId}
                 value={item.account}
                 onChange={(account) => updateItem(item.id, { account })}
               />
@@ -597,7 +597,7 @@ export function TransactionForm({
             {item.account?.hasThirdParties && (
               <Box sx={{ minWidth: 200, flexGrow: 1 }}>
                 <ThirdPartySearchField
-                  tenantId={tenantId}
+                  workspaceId={workspaceId}
                   value={item.thirdParty}
                   onChange={(thirdParty) => updateItem(item.id, { thirdParty })}
                 />

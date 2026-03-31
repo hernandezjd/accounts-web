@@ -42,7 +42,7 @@ describe('AccountPicker', () => {
     } as ReturnType<typeof useAccounts>)
 
     renderWithProviders(
-      <AccountPicker tenantId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,
+      <AccountPicker workspaceId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,
     )
 
     expect(screen.getByRole('combobox')).toBeInTheDocument()
@@ -50,7 +50,7 @@ describe('AccountPicker', () => {
 
   it('shows options with "CODE — Name" format', async () => {
     renderWithProviders(
-      <AccountPicker tenantId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,
+      <AccountPicker workspaceId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,
     )
 
     await userEvent.click(screen.getByRole('combobox'))
@@ -63,7 +63,7 @@ describe('AccountPicker', () => {
 
   it('filters by typed code (partial match)', async () => {
     renderWithProviders(
-      <AccountPicker tenantId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,
+      <AccountPicker workspaceId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,
     )
 
     await userEvent.type(screen.getByRole('combobox'), '100')
@@ -77,7 +77,7 @@ describe('AccountPicker', () => {
 
   it('filters by typed name (partial match)', async () => {
     renderWithProviders(
-      <AccountPicker tenantId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,
+      <AccountPicker workspaceId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,
     )
 
     await userEvent.type(screen.getByRole('combobox'), 'ash')
@@ -93,7 +93,7 @@ describe('AccountPicker', () => {
     const handleChange = vi.fn()
 
     renderWithProviders(
-      <AccountPicker tenantId="t1" value={null} onChange={handleChange} label="Parent Account (optional)" />,
+      <AccountPicker workspaceId="t1" value={null} onChange={handleChange} label="Parent Account (optional)" />,
     )
 
     await userEvent.click(screen.getByRole('combobox'))
@@ -113,7 +113,7 @@ describe('AccountPicker', () => {
 
     renderWithProviders(
       <AccountPicker
-        tenantId="t1"
+        workspaceId="t1"
         value={selectedOption}
         onChange={handleChange}
         label="Parent Account (optional)"
@@ -130,7 +130,7 @@ describe('AccountPicker', () => {
   it('excludes the account matching excludeAccountId', async () => {
     renderWithProviders(
       <AccountPicker
-        tenantId="t1"
+        workspaceId="t1"
         value={null}
         onChange={vi.fn()}
         label="Parent Account (optional)"

@@ -408,10 +408,10 @@ describe('ErrorMessage', () => {
       expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
     })
 
-    it('hides DEBUG section completely for 403 TENANT_ACCESS_REQUIRED errors', () => {
+    it('hides DEBUG section completely for 403 WORKSPACE_ACCESS_REQUIRED errors', () => {
       const error403: FormattedError = {
         ...sampleError,
-        errorCode: 'TENANT_ACCESS_REQUIRED',
+        errorCode: 'WORKSPACE_ACCESS_REQUIRED',
         httpStatus: 403,
         requestUrl: 'GET /api/accounts/123',
         responseBody: '{"error":"forbidden"}',
@@ -507,17 +507,17 @@ describe('ErrorMessage', () => {
       expect(screen.queryByText(/req-403-role/)).not.toBeInTheDocument()
     })
 
-    it('hides request ID for 403 TENANT_ACCESS_REQUIRED errors', () => {
+    it('hides request ID for 403 WORKSPACE_ACCESS_REQUIRED errors', () => {
       const error403: FormattedError = {
         ...sampleError,
-        errorCode: 'TENANT_ACCESS_REQUIRED',
-        requestId: 'req-403-tenant',
+        errorCode: 'WORKSPACE_ACCESS_REQUIRED',
+        requestId: 'req-403-workspace',
         severity: 'warning',
       }
 
       renderWithProviders(<ErrorMessage error={error403} />)
 
-      expect(screen.queryByText(/req-403-tenant/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/req-403-workspace/)).not.toBeInTheDocument()
     })
 
     it('hides request ID for 403 FORBIDDEN errors', () => {

@@ -31,7 +31,7 @@ import { PeriodControls } from './PeriodControls'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from './TransactionForm'
 
 interface TransactionViewProps {
-  tenantId: string
+  workspaceId: string
   accountId: string
   accountName: string
   accountCode: string
@@ -58,7 +58,7 @@ function formatAmount(n: number | null | undefined): string {
 }
 
 export function TransactionView({
-  tenantId,
+  workspaceId,
   accountId,
   accountName,
   accountCode,
@@ -74,7 +74,7 @@ export function TransactionView({
 }: TransactionViewProps) {
   const { t } = useTranslation()
   const { data, isLoading, isError, error: apiError, refetch } = useAccountTransactionsInPeriod(
-    tenantId,
+    workspaceId,
     accountId,
     from,
     to,
@@ -91,7 +91,7 @@ export function TransactionView({
 
   // ── Fetch transaction to edit ──
   const { data: editTxnData, isSuccess: editFetched } = useTransactionById(
-    tenantId,
+    workspaceId,
     editingTxnId,
   )
 
@@ -130,7 +130,7 @@ export function TransactionView({
   )
 
   // ── Delete ──
-  const { deleteTransaction } = useTransactionMutations(tenantId)
+  const { deleteTransaction } = useTransactionMutations(workspaceId)
 
   const handleDeleteConfirm = () => {
     if (!deletingTxnId) return
@@ -187,7 +187,7 @@ export function TransactionView({
         {formConfig && (
           <Box sx={{ mt: 2 }}>
             <TransactionForm
-              tenantId={tenantId}
+              workspaceId={workspaceId}
               mode={formConfig.mode}
               transactionId={formConfig.transactionId}
               initialData={formConfig.initialData}

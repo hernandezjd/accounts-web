@@ -5,18 +5,18 @@ import type { components } from '@/api/generated/account-query-api'
 
 export type Account = components['schemas']['Account']
 
-export function useAccounts(tenantId: string | null | undefined, includeInactive = false) {
+export function useAccounts(workspaceId: string | null | undefined, includeInactive = false) {
   return useApiQuery(
-    queryKeys.accounts.list(tenantId!, includeInactive),
+    queryKeys.accounts.list(workspaceId!, includeInactive),
     () =>
       apiClient.query.GET<Account[]>('/accounts', {
         params: {
-          header: { 'X-Tenant-Id': tenantId! },
+          header: { 'X-Workspace-Id': workspaceId! },
           query: includeInactive ? { includeInactive: true } : undefined,
         },
       }),
     {
-      enabled: Boolean(tenantId),
+      enabled: Boolean(workspaceId),
     }
   )
 }

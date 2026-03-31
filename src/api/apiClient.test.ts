@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  * - Non-structured error path (fall back to response parsing)
  * - 4xx with falsy error (empty body edge case)
  * - Network/CORS thrown exceptions → synthetic 503 response
- * - All three client wrappers (command, query, tenant)
+ * - All three client wrappers (command, query, workspace)
  * - All HTTP methods (GET, POST, PUT, DELETE, PATCH, HEAD)
  */
 
@@ -32,7 +32,7 @@ vi.mock('./clients', () => ({
     PATCH: vi.fn(),
     HEAD: vi.fn(),
   },
-  tenantClient: {
+  workspaceClient: {
     GET: vi.fn(),
     POST: vi.fn(),
     PUT: vi.fn(),
@@ -59,12 +59,12 @@ vi.mock('@accounts/error-handling-web', () => ({
 }))
 
 import { apiClient } from './apiClient'
-import { commandClient, queryClient, tenantClient } from './clients'
+import { commandClient, queryClient, workspaceClient } from './clients'
 import { formatError } from '@accounts/error-handling-web'
 
 const mockedCommandClient = commandClient as { [key: string]: ReturnType<typeof vi.fn> }
 const mockedQueryClient = queryClient as { [key: string]: ReturnType<typeof vi.fn> }
-const mockedTenantClient = tenantClient as { [key: string]: ReturnType<typeof vi.fn> }
+const mockedWorkspaceClient = workspaceClient as { [key: string]: ReturnType<typeof vi.fn> }
 const mockedFormatError = formatError as ReturnType<typeof vi.fn>
 
 /** Build a mock openapi-fetch response tuple */
@@ -271,7 +271,7 @@ describe('ApiClient', () => {
     })
   })
 
-  describe('B8 — query and tenant client wrappers behave same as command', () => {
+  describe('B8 — query and workspace client wrappers behave same as command', () => {
     it('should return data from query client GET', async () => {
       mockedQueryClient.GET.mockResolvedValue(
         makeClientResponse({ data: [{ id: 'q1' }], status: 200 })
@@ -283,14 +283,14 @@ describe('ApiClient', () => {
       expect(result.error).toBeUndefined()
     })
 
-    it('should return data from tenant client GET', async () => {
-      mockedTenantClient.GET.mockResolvedValue(
-        makeClientResponse({ data: { id: 'tenant-1' }, status: 200 })
+    it('should return data from workspace client GET', async () => {
+      mockedWorkspaceClient.GET.mockResolvedValue(
+        makeClientResponse({ data: { id: 'workspace-1' }, status: 200 })
       )
 
-      const result = await apiClient.tenant.GET('/tenants')
+      const result = await apiClient.workspace.GET('/workspaces')
 
-      expect(result.data).toEqual({ id: 'tenant-1' })
+      expect(result.data).toEqual({ id: 'workspace-1' })
       expect(result.error).toBeUndefined()
     })
   })

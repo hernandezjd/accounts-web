@@ -25,15 +25,15 @@ import {
 } from '@/hooks/api/usePrefilledCharts'
 import type { MergeReportResponse } from '@/hooks/api/usePrefilledCharts'
 import { useUserActions } from '@/hooks/useUserActions'
-import { useTenantAccess } from '@/hooks/useTenantAccess'
+import { useWorkspaceAccess } from '@/hooks/useWorkspaceAccess'
 
 export function PrefilledChartsTab() {
   const { t } = useTranslation()
-  const { tenantId = '' } = useParams<{ tenantId: string }>()
+  const { workspaceId = '' } = useParams<{ workspaceId: string }>()
   const { data: charts, isLoading, error } = usePrefilledCharts()
-  const mergeMutation = useMergePrefilledChart(tenantId)
+  const mergeMutation = useMergePrefilledChart(workspaceId)
   const { hasAction } = useUserActions()
-  const { hasTenantAccess } = useTenantAccess()
+  const { hasWorkspaceAccess } = useWorkspaceAccess()
 
   const [viewChartId, setViewChartId] = useState<string | null>(null)
   const [mergeChartId, setMergeChartId] = useState<string | null>(null)
@@ -41,7 +41,7 @@ export function PrefilledChartsTab() {
 
   const { data: chartDetail } = usePrefilledChartDetail(viewChartId)
 
-  const canMerge = hasAction('create_account') && hasTenantAccess(tenantId)
+  const canMerge = hasAction('create_account') && hasWorkspaceAccess(workspaceId)
 
   const handleMerge = async () => {
     if (!mergeChartId) return
@@ -108,7 +108,7 @@ export function PrefilledChartsTab() {
                       size="small"
                       variant="contained"
                       onClick={() => setMergeChartId(chart.id)}
-                      disabled={!tenantId || !canMerge || mergeMutation.isPending}
+                      disabled={!workspaceId || !canMerge || mergeMutation.isPending}
                       data-testid={`merge-${chart.id}`}
                       sx={{ ml: 1 }}
                     >

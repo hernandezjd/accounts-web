@@ -4,7 +4,7 @@ React SPA front-end for the accounts-project. Built with Vite, TypeScript, and M
 
 ## Overview
 
-Single-page application that provides the user interface for the multi-tenant accounting system. Communicates with backend services through a Vite dev proxy.
+Single-page application that provides the user interface for the multi-workspace accounting system. Communicates with backend services through a Vite dev proxy.
 
 ### Tech Stack
 
@@ -41,7 +41,7 @@ Opens at http://localhost:5173. The Vite dev server proxies API requests:
 |---|---|---|
 | `/api/command/*` | `http://localhost:8081` | accounts-command-service |
 | `/api/query/*` | `http://localhost:8082` | accounts-query-service |
-| `/api/tenant/*` | `http://localhost:8083` | tenant-service |
+| `/api/workspace/*` | `http://localhost:8083` | workspace-service |
 
 ## Build
 
@@ -82,7 +82,7 @@ src/
 
 ## Related Repositories
 
-- Consumes APIs from [`accounts-command-service`](../accounts-command-service), [`accounts-query-service`](../accounts-query-service), and [`tenant-service`](../tenant-service)
+- Consumes APIs from [`accounts-command-service`](../accounts-command-service), [`accounts-query-service`](../accounts-query-service), and [`workspace-service`](../workspace-service)
 - API contracts defined in [`accounts/docs/api/`](../accounts/docs/api/)
 
 Part of [accounts-project](../accounts). See the [main README](../accounts/README.md) for the full system architecture.
