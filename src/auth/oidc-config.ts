@@ -9,7 +9,7 @@ import type { AuthProviderProps } from 'react-oidc-context'
  * Redirect URI: http://localhost:5173/callback (accounts-web dev server)
  */
 export const oidcConfig: AuthProviderProps = {
-  authority: import.meta.env.VITE_AUTH_AUTHORITY ?? 'http://localhost:8085',
+  authority: import.meta.env.VITE_AUTH_AUTHORITY !== undefined ? (import.meta.env.VITE_AUTH_AUTHORITY || window.location.origin) : 'http://localhost:8085',
   client_id: 'accounts-ui',
   redirect_uri: `${window.location.origin}/callback`,
   post_logout_redirect_uri: `${window.location.origin}`,
