@@ -33,9 +33,18 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     )
   }
 
+  // Auth error - show message instead of blank page
+  if (auth.error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <pre style={{ color: 'red' }}>{auth.error.message}</pre>
+      </Box>
+    )
+  }
+
   // Not authenticated - redirect to login
   if (!auth.isAuthenticated) {
-    auth.signinRedirect()
+    auth.signinRedirect().catch((err) => console.error('signinRedirect failed:', err))
     return null
   }
 
