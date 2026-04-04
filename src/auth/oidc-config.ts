@@ -4,12 +4,14 @@ import type { AuthProviderProps } from 'react-oidc-context'
  * OIDC Configuration for accounts-web
  * Connects to user-service OAuth 2.0 Authorization Server
  *
- * Authority: user-service on port 8085
+ * Authority: Can be configured via VITE_AUTH_AUTHORITY env var
+ *   - Dev: defaults to http://localhost:8085
+ *   - QA/Prod: set to the same origin (nginx proxies OAuth endpoints)
  * Client ID: accounts-ui (registered in user-service)
- * Redirect URI: http://localhost:5173/callback (accounts-web dev server)
+ * Redirect URI & Post Logout URI: dynamically set to current origin
  */
 export const oidcConfig: AuthProviderProps = {
-  authority: import.meta.env.VITE_AUTH_AUTHORITY !== undefined ? (import.meta.env.VITE_AUTH_AUTHORITY || window.location.origin) : 'http://localhost:8085',
+  authority: import.meta.env.VITE_AUTH_AUTHORITY || (window.location.hostname === 'localhost' ? 'http://localhost:8085' : window.location.origin),
   client_id: 'accounts-ui',
   redirect_uri: `${window.location.origin}/callback`,
   post_logout_redirect_uri: `${window.location.origin}`,
