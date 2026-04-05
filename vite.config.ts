@@ -16,17 +16,17 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api/command': {
-        target: 'http://localhost:8081',
+        target: process.env.VITE_COMMAND_SERVICE_URL || 'http://localhost:8081',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api\/command/, ''),
       },
       '/api/query': {
-        target: 'http://localhost:8082',
+        target: process.env.VITE_QUERY_SERVICE_URL || 'http://localhost:8082',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api\/query/, ''),
       },
       '/api/workspace': {
-        target: 'http://localhost:8083',
+        target: process.env.VITE_WORKSPACE_SERVICE_URL || 'http://localhost:8083',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api\/workspace/, ''),
       },
