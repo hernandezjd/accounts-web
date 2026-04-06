@@ -1,4 +1,7 @@
 import createClient from 'openapi-fetch'
+import { userManager } from '@/auth/oidc-config'
+
+let redirectingToLogin = false
 
 const workspaceBaseUrl = import.meta.env.VITE_WORKSPACE_API_URL ?? 'http://localhost:8083'
 const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost:8081'
@@ -51,20 +54,11 @@ function createAuthenticatedFetch() {
       headers,
     })
 
-    // Handle 401 (session expired) - redirect to login
-    if (response.status === 401) {
-      // Clear the invalid token
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('id_token')
-      localStorage.removeItem('refresh_token')
-
-      // Clear session storage to prevent WorkspacePickerPage from auto-redirecting
-      // back to the same page before the user re-authenticates
+    // Handle 401 (session expired) - redirect to login via OIDC
+    if (response.status === 401 && !redirectingToLogin) {
+      redirectingToLogin = true
       sessionStorage.removeItem('lastWorkspaceId')
-
-      // Redirect to login
-      // Using window.location to force a page reload and auth flow restart
-      window.location.href = '/'
+      userManager.removeUser().then(() => userManager.signinRedirect())
     }
 
     // Handle 403 (permission denied) - do NOT redirect

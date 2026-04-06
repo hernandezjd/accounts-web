@@ -9,7 +9,7 @@ import { I18nextProvider } from 'react-i18next'
 import i18n from '@/i18n'
 import { theme } from '@/theme'
 import { KeyboardShortcutsProvider } from '@/context/KeyboardShortcutsContext'
-import { oidcConfig } from '@/auth/oidc-config'
+import { oidcConfig, userManager } from '@/auth/oidc-config'
 import { shouldRetryRequest } from '@/api/clients/retryConfig'
 import App from './App'
 
@@ -29,7 +29,7 @@ if (!root) throw new Error('Root element not found')
 
 createRoot(root).render(
   <StrictMode>
-    <AuthProvider {...oidcConfig}>
+    <AuthProvider {...oidcConfig} userManager={userManager}>
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider theme={theme}>

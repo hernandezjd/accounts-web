@@ -1,4 +1,5 @@
 import type { AuthProviderProps } from 'react-oidc-context'
+import { UserManager } from 'oidc-client-ts'
 
 /**
  * OIDC Configuration for accounts-web
@@ -46,3 +47,17 @@ export const oidcConfig: AuthProviderProps = {
     window.location.pathname = '/'
   },
 }
+
+/**
+ * Singleton UserManager instance shared between AuthProvider and API clients.
+ * AuthProvider receives this via the `userManager` prop so both sides operate
+ * on the same OIDC session state.
+ */
+export const userManager = new UserManager({
+  authority: oidcConfig.authority as string,
+  client_id: oidcConfig.client_id as string,
+  redirect_uri: oidcConfig.redirect_uri as string,
+  post_logout_redirect_uri: oidcConfig.post_logout_redirect_uri,
+  response_type: oidcConfig.response_type,
+  scope: oidcConfig.scope,
+})
