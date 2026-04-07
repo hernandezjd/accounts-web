@@ -6,6 +6,7 @@ import { Outlet, useParams } from 'react-router-dom'
 import { useAppStore } from '@/store/appStore'
 import { AppHeader } from './AppHeader'
 import { SideNav } from './SideNav'
+import { VersionFooter } from '../VersionFooter'
 
 const DRAWER_WIDTH = 220
 
@@ -69,10 +70,13 @@ export function AppShell() {
           flexGrow: 1,
           p: 3,
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Toolbar />
         <Outlet />
+        <VersionFooter />
       </Box>
     </Box>
   )
