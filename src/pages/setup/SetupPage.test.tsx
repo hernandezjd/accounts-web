@@ -84,7 +84,7 @@ const noOpMutation = { mutate: vi.fn(), isPending: false }
 
 // Default auth mock: user has manage_workspaces permission
 const defaultAuthMock = {
-  user: { profile: { actions: ['manage_workspaces'], workspaces: ['t-1', 't-2'] } },
+  user: { profile: { global_actions: ['manage_workspaces'], workspace_actions: {}, workspaces: ['t-1', 't-2'] } },
   isAuthenticated: true,
   isLoading: false,
 }

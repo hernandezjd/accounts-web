@@ -21,7 +21,7 @@ import { apiClient } from '@/api/apiClient'
 
 // Default auth mock: user has manage_workspaces permission
 const defaultAuthMock = {
-  user: { profile: { actions: ['manage_workspaces'], workspaces: ['workspace-1', 'workspace-2'] } },
+  user: { profile: { global_actions: ['manage_workspaces'], workspace_actions: {}, workspaces: ['workspace-1', 'workspace-2'] } },
   isAuthenticated: true,
   isLoading: false,
 }
@@ -207,7 +207,7 @@ describe('WorkspacePickerPage', () => {
   it('hides create button and shows permission warning when user lacks manage_workspaces action', async () => {
     // Mock user without manage_workspaces permission
     vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
-      user: { profile: { actions: [], workspaces: [] } },
+      user: { profile: { global_actions: [], workspace_actions: {}, workspaces: [] } },
       isAuthenticated: true,
       isLoading: false,
     } as any)
