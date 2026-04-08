@@ -1,12 +1,8 @@
 import Box from '@mui/material/Box'
-import { useServiceVersion } from '@/hooks/useServiceVersion'
+import { useAppVersion } from '@/hooks/useServiceVersion'
 
 export function VersionFooter() {
-  const { versionInfo, loading, error } = useServiceVersion()
-
-  if (loading || !versionInfo || error) {
-    return null
-  }
+  const { versionInfo } = useAppVersion()
 
   return (
     <Box
@@ -20,7 +16,7 @@ export function VersionFooter() {
         textAlign: 'center',
       }}
     >
-      {versionInfo.serviceName} v{versionInfo.version} ({versionInfo.commitHash})
+      accounts-web v{versionInfo.version} ({versionInfo.commitHash})
     </Box>
   )
 }
