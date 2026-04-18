@@ -48,6 +48,14 @@ vi.mock('./clients', () => ({
     PATCH: vi.fn(),
     HEAD: vi.fn(),
   },
+  subscriptionClient: {
+    GET: vi.fn(),
+    POST: vi.fn(),
+    PUT: vi.fn(),
+    DELETE: vi.fn(),
+    PATCH: vi.fn(),
+    HEAD: vi.fn(),
+  },
 }))
 
 vi.mock('@accounts/error-handling-web', () => ({

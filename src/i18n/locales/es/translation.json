@@ -557,5 +557,17 @@
     "spanish": "Español",
     "ukrainian": "Українська",
     "french": "Français"
+  },
+  "subscription": {
+    "planLabel": "Plan",
+    "expiresLabel": "Vence",
+    "usersLabel": "Usuarios",
+    "transactionsLabel": "Transacciones",
+    "unlimited": "Ilimitado",
+    "upgradeButton": "Mejorar",
+    "statusActive": "Activo",
+    "statusExpired": "Vencido",
+    "statusCancelled": "Cancelado",
+    "statusSuspended": "Suspendido"
   }
 }
