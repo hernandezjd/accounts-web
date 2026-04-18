@@ -25,6 +25,13 @@
     "closing": "Clôture",
     "setup": "Paramétrage"
   },
+  "organization": {
+    "orgPicker": "Sélectionnez votre organisation",
+    "autoSelecting": "Sélection automatique de votre organisation...",
+    "noOrganizations": "Aucune organisation disponible",
+    "switchOrg": "Changer d'organisation",
+    "currentOrg": "Organisation"
+  },
   "workspace": {
     "select": "Sélectionner le client",
     "switch": "Changer de client",

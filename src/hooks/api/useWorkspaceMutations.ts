@@ -6,7 +6,7 @@ import type { components } from '@/api/generated/workspace-api'
 
 type CreateWorkspaceRequest = components['schemas']['CreateWorkspaceRequest']
 type UpdateWorkspaceRequest = components['schemas']['UpdateWorkspaceRequest']
-type Workspace = components['schemas']['Workspace']
+type Workspace = components['schemas']['WorkspaceResponse']
 
 export function useWorkspaceMutations() {
   const qc = useQueryClient()

@@ -6,6 +6,7 @@ let redirectingToLogin = false
 const workspaceBaseUrl = import.meta.env.VITE_WORKSPACE_API_URL ?? 'http://localhost:8080'
 const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost:8080'
 const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:8080'
+const organizationBaseUrl = import.meta.env.VITE_ORG_API_URL ?? 'http://localhost:8084'
 
 /**
  * Extract workspaceId from current URL pathname.
@@ -88,5 +89,11 @@ export const commandClient = createClient({
 /** Client for Query Services and Reporting (port 8082) */
 export const queryClient = createClient({
   baseUrl: queryBaseUrl,
+  fetch: createAuthenticatedFetch(),
+})
+
+/** Client for Organization Service (port 8084) */
+export const organizationClient = createClient({
+  baseUrl: organizationBaseUrl,
   fetch: createAuthenticatedFetch(),
 })

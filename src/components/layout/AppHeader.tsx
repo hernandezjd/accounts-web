@@ -9,10 +9,13 @@ import MenuItem from '@mui/material/MenuItem'
 import MenuIcon from '@mui/icons-material/Menu'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+import BusinessIcon from '@mui/icons-material/Business'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWorkspace } from '@/hooks/api/useWorkspace'
 import { useWorkspaces } from '@/hooks/api/useWorkspaces'
+import { useOrganizations } from '@/hooks/api/useOrganizations'
+import { useOrganization } from '@/hooks/api/useOrganization'
 import { useAppStore } from '@/store/appStore'
 import { clearAllPreferences } from '@/utils/preferences'
 
@@ -26,13 +29,23 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const { data: workspace } = useWorkspace(workspaceId)
   const { data: workspaces } = useWorkspaces()
-  const { language, setLanguage } = useAppStore()
+  const { language, setLanguage, selectedOrgId, clearSelectedOrgId } = useAppStore()
+  const { data: organizations } = useOrganizations()
+  const { data: currentOrg } = useOrganization(selectedOrgId)
+
+  const hasMultipleOrgs = organizations && organizations.length > 1
 
   function handleSwitchWorkspace() {
     sessionStorage.removeItem('lastWorkspaceId')
-    // Clear UI preferences to avoid cross-workspace leakage
     clearAllPreferences()
     navigate('/')
+  }
+
+  function handleSwitchOrg() {
+    sessionStorage.removeItem('lastWorkspaceId')
+    clearAllPreferences()
+    clearSelectedOrgId()
+    navigate('/org-picker')
   }
 
   function handleLanguageChange(newLanguage: string) {
@@ -55,6 +68,15 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
         <Typography variant="h6" component="div" sx={{ flexGrow: 0, mr: 3 }}>
           Accounts
         </Typography>
+
+        {currentOrg && (
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
+            <BusinessIcon fontSize="small" sx={{ mr: 0.5, opacity: 0.7 }} />
+            <Typography variant="body2" sx={{ opacity: 0.9 }} data-testid="current-org-name">
+              {currentOrg.name}
+            </Typography>
+          </Box>
+        )}
 
         {workspace && (
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
@@ -113,6 +135,19 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
             data-testid="switch-workspace-button"
           >
             {t('workspace.switchWorkspace')}
+          </Button>
+        )}
+
+        {hasMultipleOrgs && (
+          <Button
+            color="inherit"
+            size="small"
+            startIcon={<SwapHorizIcon />}
+            onClick={handleSwitchOrg}
+            data-testid="switch-org-button"
+            sx={{ ml: 1 }}
+          >
+            {t('organization.switchOrg')}
           </Button>
         )}
       </Toolbar>

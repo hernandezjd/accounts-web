@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -26,9 +26,15 @@ function workspaceAccountingPath(id: string): string {
 export function WorkspacePickerPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { data: workspaces, isLoading, isError, error } = useWorkspaces()
+  const { data: allWorkspaces, isLoading, isError, error } = useWorkspaces()
   const [createOpen, setCreateOpen] = useState(false)
-  const { language, setLanguage } = useAppStore()
+  const { language, setLanguage, selectedOrgId } = useAppStore()
+
+  const workspaces = useMemo(() => {
+    if (!allWorkspaces) return allWorkspaces
+    if (!selectedOrgId) return allWorkspaces
+    return allWorkspaces.filter((w) => w.organizationId === selectedOrgId)
+  }, [allWorkspaces, selectedOrgId])
   const { hasAction } = useUserActions()
   const canManageWorkspaces = hasAction('manage_workspaces')
 

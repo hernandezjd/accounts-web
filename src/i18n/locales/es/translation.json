@@ -25,6 +25,13 @@
     "closing": "Cierre",
     "setup": "Configuración"
   },
+  "organization": {
+    "orgPicker": "Selecciona tu organización",
+    "autoSelecting": "Seleccionando tu organización automáticamente...",
+    "noOrganizations": "No hay organizaciones disponibles",
+    "switchOrg": "Cambiar organización",
+    "currentOrg": "Organización"
+  },
   "workspace": {
     "select": "Seleccionar Workspace",
     "switch": "Cambiar Workspace",

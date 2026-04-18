@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { useWorkspaceMutations } from '@/hooks/api/useWorkspaceMutations'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { formatError, type FormattedError } from '@/lib/error/useErrorHandler'
+import { useAppStore } from '@/store/appStore'
 
 export interface WorkspaceFormData {
   id: string
@@ -37,6 +38,7 @@ export function WorkspaceFormDialog({ open, onClose, editWorkspace, onCreated }:
   const { t } = useTranslation()
   const { createWorkspace, updateWorkspace } = useWorkspaceMutations()
   const isEdit = Boolean(editWorkspace)
+  const selectedOrgId = useAppStore((s) => s.selectedOrgId)
 
   const [name, setName] = useState(editWorkspace?.name ?? '')
   const [contactName, setContactName] = useState(editWorkspace?.contactName ?? '')
@@ -57,6 +59,7 @@ export function WorkspaceFormDialog({ open, onClose, editWorkspace, onCreated }:
   const handleSubmit = () => {
     setError(null)
     const body = {
+      organizationId: selectedOrgId ?? '',
       name,
       contactName: contactName || '',
       contactEmail: contactEmail || '',
