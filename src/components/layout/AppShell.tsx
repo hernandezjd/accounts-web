@@ -7,6 +7,7 @@ import { useAppStore } from '@/store/appStore'
 import { AppHeader } from './AppHeader'
 import { SideNav } from './SideNav'
 import { VersionFooter } from '../VersionFooter'
+import { QuotaStatusBar } from '../QuotaStatusBar'
 
 const DRAWER_WIDTH = 220
 
@@ -76,6 +77,7 @@ export function AppShell() {
       >
         <Toolbar />
         <Outlet />
+        <QuotaStatusBar />
         <VersionFooter />
       </Box>
     </Box>

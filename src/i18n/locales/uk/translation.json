@@ -558,5 +558,17 @@
     "spanish": "Español",
     "ukrainian": "Українська",
     "french": "Français"
+  },
+  "subscription": {
+    "planLabel": "Тариф",
+    "expiresLabel": "Закінчується",
+    "usersLabel": "Користувачі",
+    "transactionsLabel": "Транзакції",
+    "unlimited": "Необмежено",
+    "upgradeButton": "Оновити",
+    "statusActive": "Активний",
+    "statusExpired": "Закінчився",
+    "statusCancelled": "Скасовано",
+    "statusSuspended": "Призупинено"
   }
 }

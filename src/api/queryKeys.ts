@@ -130,6 +130,22 @@ export const queryKeys = {
   },
 
   // =====================================================================
+  // SUBSCRIPTION (Global)
+  // =====================================================================
+  subscription: {
+    all: () => ['subscription'] as const,
+    orgSubscription: (orgId: string) => [...queryKeys.subscription.all(), 'org', orgId] as const,
+  },
+
+  // =====================================================================
+  // QUOTAS (Global)
+  // =====================================================================
+  quotas: {
+    all: () => ['quotas'] as const,
+    orgUsage: (orgId: string) => [...queryKeys.quotas.all(), 'org', orgId] as const,
+  },
+
+  // =====================================================================
   // WORKSPACES (Global)
   // =====================================================================
   workspaces: {
