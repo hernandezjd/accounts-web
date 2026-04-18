@@ -3,9 +3,9 @@ import { userManager } from '@/auth/oidc-config'
 
 let redirectingToLogin = false
 
-const workspaceBaseUrl = import.meta.env.VITE_WORKSPACE_API_URL ?? 'http://localhost:8083'
-const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost:8081'
-const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:8082'
+const workspaceBaseUrl = import.meta.env.VITE_WORKSPACE_API_URL ?? 'http://localhost:8080'
+const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost:8080'
+const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:8080'
 
 /**
  * Extract workspaceId from current URL pathname.
