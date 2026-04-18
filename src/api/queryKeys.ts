@@ -119,6 +119,17 @@ export const queryKeys = {
   },
 
   // =====================================================================
+  // ORGANIZATIONS (Global)
+  // =====================================================================
+  organizations: {
+    all: () => ['organizations'] as const,
+    lists: () => [...queryKeys.organizations.all(), 'list'] as const,
+    list: () => [...queryKeys.organizations.lists()] as const,
+    details: () => [...queryKeys.organizations.all(), 'detail'] as const,
+    detail: (id: string) => [...queryKeys.organizations.details(), { id }] as const,
+  },
+
+  // =====================================================================
   // WORKSPACES (Global)
   // =====================================================================
   workspaces: {

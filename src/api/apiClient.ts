@@ -14,7 +14,7 @@
  * We do NOT use fallback IDs to make missing IDs immediately visible.
  */
 
-import { commandClient, queryClient, workspaceClient } from './clients'
+import { commandClient, queryClient, workspaceClient, organizationClient } from './clients'
 import { formatError, type FormattedError } from '@accounts/error-handling-web'
 
 /**
@@ -136,6 +136,11 @@ class ApiClient {
    * Wrapper for workspace service client
    */
   readonly workspace = this.createClientWrapper(workspaceClient)
+
+  /**
+   * Wrapper for organization service client
+   */
+  readonly organization = this.createClientWrapper(organizationClient)
 
   /**
    * Create a wrapper around an openapi-fetch client.
