@@ -9,7 +9,7 @@ import { useOrganizationSubscription } from '@/hooks/api/useOrganizationSubscrip
 import { useOrganizationQuotaUsage } from '@/hooks/api/useOrganizationQuotaUsage'
 
 const UPGRADE_THRESHOLD = 80
-const SUBSCRIPTION_WEB_URL = import.meta.env.VITE_SUBSCRIPTION_WEB_URL ?? 'http://localhost:5174'
+const SUBSCRIPTION_WEB_URL = import.meta.env.VITE_SUBSCRIPTION_WEB_URL ?? 'http://localhost:5175'
 
 function QuotaGauge({
   label,
