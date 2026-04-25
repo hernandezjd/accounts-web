@@ -30,6 +30,28 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    proxy: {
+      '/api/workspace': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/workspace/, ''),
+      },
+      '/api/command': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/command/, ''),
+      },
+      '/api/query': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/query/, ''),
+      },
+      '/api/subscription': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/subscription/, ''),
+      },
+    },
   },
   test: {
     environment: 'jsdom',
