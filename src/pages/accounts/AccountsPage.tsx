@@ -138,7 +138,7 @@ function AccountFormDialog({
           size="small"
           inputProps={{ 'data-testid': 'account-name-input' }}
         />
-        <div style={{opacity: isEdit && editAccount?.hasChildren ? 0.6 : 1, pointerEvents: isEdit && editAccount?.hasChildren ? 'none' : 'auto'}}>
+        <div style={{opacity: isEdit && (editAccount?.hasTransactions || editAccount?.hasInitialBalances) ? 0.6 : 1, pointerEvents: isEdit && (editAccount?.hasTransactions || editAccount?.hasInitialBalances) ? 'none' : 'auto'}}>
           <div style={{marginBottom: '1rem'}}>
             <AccountPicker
               workspaceId={workspaceId}
@@ -155,9 +155,13 @@ function AccountFormDialog({
             />
           </div>
         </div>
-        {isEdit && editAccount?.hasChildren && (
+        {isEdit && (editAccount?.hasTransactions || editAccount?.hasInitialBalances) && (
           <Alert severity="info">
-            {'Account has children - parent cannot be changed'}
+            {editAccount.hasTransactions && editAccount.hasInitialBalances
+              ? 'Account has transactions and initial balances - parent cannot be changed'
+              : editAccount.hasTransactions
+              ? 'Account has transactions - parent cannot be changed'
+              : 'Account has initial balances - parent cannot be changed'}
           </Alert>
         )}
         {!isEdit && (
