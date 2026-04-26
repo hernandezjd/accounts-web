@@ -6,8 +6,8 @@ let redirectingToLogin = false
 const workspaceBaseUrl = import.meta.env.VITE_WORKSPACE_API_URL ?? 'http://localhost:8080'
 const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost:8080'
 const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:8080'
-const organizationBaseUrl = import.meta.env.VITE_ORG_API_URL ?? 'http://localhost:8084'
-const subscriptionBaseUrl = import.meta.env.VITE_SUBSCRIPTION_API_URL ?? 'http://localhost:8086'
+const organizationBaseUrl = import.meta.env.VITE_ORG_API_URL ?? 'http://localhost:8080'
+const subscriptionBaseUrl = import.meta.env.VITE_SUBSCRIPTION_API_URL ?? 'http://localhost:8080'
 
 /**
  * Extract workspaceId from current URL pathname.
