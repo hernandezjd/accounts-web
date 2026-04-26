@@ -33,15 +33,15 @@
     "currentOrg": "Organización"
   },
   "workspace": {
-    "select": "Seleccionar Workspace",
-    "switch": "Cambiar Workspace",
-    "active": "Workspace Activo",
-    "workspacePicker": "Seleccionar Workspace",
-    "autoSelecting": "Seleccionando tu workspace automáticamente...",
-    "noWorkspaces": "No hay workspaces disponibles",
-    "switchWorkspace": "Cambiar Workspace",
-    "createFirstWorkspace": "Crear tu primer workspace",
-    "insufficientPermissionsCreate": "No tienes permiso para crear workspaces. Contacta a tu administrador del sistema."
+    "select": "Seleccionar espacio de trabajo",
+    "switch": "Cambiar espacio de trabajo",
+    "active": "Espacio de trabajo activo",
+    "workspacePicker": "Seleccionar espacio de trabajo",
+    "autoSelecting": "Seleccionando tu espacio de trabajo automáticamente...",
+    "noWorkspaces": "No hay espacios de trabajo disponibles",
+    "switchWorkspace": "Cambiar espacio de trabajo",
+    "createFirstWorkspace": "Crear tu primer espacio de trabajo",
+    "insufficientPermissionsCreate": "No tienes permiso para crear espacios de trabajo. Contacta a tu administrador del sistema."
   },
   "shortcuts": {
     "title": "Atajos de Teclado",
@@ -509,8 +509,8 @@
       "description": "Aquí te mostramos cómo poner en funcionamiento tu sistema de contabilidad:\n\n1. Crear un Espacio de Trabajo\nComienza creando tu primer espacio de trabajo. Esto aísla tus datos contables. Haz clic en \"Crear tu Primer Espacio de Trabajo\" en la pantalla principal e ingresa los detalles de tu organización.\n\n2. Establecer la Fecha Inicial del Sistema\nUna vez en tu espacio de trabajo, ve a Configuración → Configuración Contable y establece tu fecha inicial del sistema. Esto marca el comienzo de tu período contable.\n\n3. Crear tu Catálogo de Cuentas\nVe a Cuentas y crea tu estructura de cuentas. Comienza con categorías principales (Activos, Pasivos, Patrimonio, Ingresos, Gastos) y añade subcuentas según sea necesario. Recuerda usar códigos de cuenta únicos.\n\n4. Crear Tipos de Transacciones\nVe a Tipos de Transacciones y crea los tipos de transacciones que utiliza tu negocio (por ejemplo, Factura, Pago, Transferencia, Asiento de Diario).\n\n5. Ingresar Saldos Iniciales (Opcional)\nSi estás comenzando con saldos de cuenta existentes, ve a Saldos Iniciales e ingresa el saldo de apertura para cada cuenta.\n\n6. Registrar Transacciones\nVe a Transacciones y comienza a registrar tus transacciones comerciales. Cada transacción debe estar balanceada (débitos totales = créditos totales).\n\n7. Revisar Saldos e Informes\nVe a la página de Contabilidad para ver tu árbol de cuentas con saldos actuales. Usa la sección Informes para ver reportes de período, saldo a fecha y saldo por nivel.\n\n¡Eso es todo! Ahora estás listo para administrar tus registros contables."
     },
     "workspaces": {
-      "title": "Espacio de Trabajos",
-      "description": "Un espacio de trabajo (workspace) es una instancia aislada de tus datos contables. El sistema está diseñado para soportar múltiples organizaciones o unidades de negocio, cada una con sus propias cuentas, transacciones y registros financieros. Cada espacio de trabajo opera de manera independiente sin compartir datos con otros espacio de trabajos. Esto garantiza un aislamiento completo de datos y privacidad para cada unidad de negocio que administres."
+      "title": "Espacios de trabajo",
+      "description": "Un espacio de trabajo es una instancia aislada de tus datos contables. El sistema está diseñado para soportar múltiples organizaciones o unidades de negocio, cada una con sus propias cuentas, transacciones y registros financieros. Cada espacio de trabajo opera de manera independiente sin compartir datos con otros espacios de trabajo. Esto garantiza un aislamiento completo de datos y privacidad para cada unidad de negocio que administres."
     },
     "accounts": {
       "title": "Cuentas",

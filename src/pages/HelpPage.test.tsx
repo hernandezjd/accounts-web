@@ -100,7 +100,7 @@ describe('HelpPage', () => {
     const helpHeading = screen.queryByText(/Ayuda/i)
     expect(helpHeading).toBeInTheDocument()
 
-    const workspacesHeading = screen.queryByRole('heading', { name: /Espacio de Trabajos/i, level: 6 })
+    const workspacesHeading = screen.queryByRole('heading', { name: /Espacios de trabajo/i, level: 6 })
     expect(workspacesHeading).toBeInTheDocument()
 
     // Change back to English after test
