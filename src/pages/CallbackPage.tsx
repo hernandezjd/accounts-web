@@ -13,17 +13,40 @@ import Alert from '@mui/material/Alert'
  * The OAuth provider (user-service) redirects here with an authorization code,
  * which react-oidc-context exchanges for an access token.
  *
- * Once authentication completes, redirect to the workspace picker page.
+ * Once authentication completes AND the token is stored in localStorage,
+ * redirect to the workspace picker page. This ensures API calls after
+ * redirect have access to the Bearer token.
  */
 export function CallbackPage() {
   const navigate = useNavigate()
   const auth = useAuth()
 
   useEffect(() => {
-    // If authentication is complete and successful, redirect to workspace picker
-    if (auth.isAuthenticated) {
-      navigate('/', { replace: true })
+    // Wait for both auth completion AND token storage before redirecting.
+    // This prevents a race condition where the redirect happens before
+    // onSigninCallback has stored the token in localStorage.
+    if (!auth.isAuthenticated) {
+      return
     }
+
+    const token = localStorage.getItem('access_token')
+    if (token) {
+      // Token is ready; navigate to workspace picker
+      navigate('/', { replace: true })
+      return
+    }
+
+    // Token not yet stored; check again after a brief delay.
+    // This should rarely happen as onSigninCallback typically runs synchronously,
+    // but we guard against timing issues.
+    const timer = setTimeout(() => {
+      const delayedToken = localStorage.getItem('access_token')
+      if (delayedToken) {
+        navigate('/', { replace: true })
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [auth.isAuthenticated, navigate])
 
   // If there was an error during callback processing
