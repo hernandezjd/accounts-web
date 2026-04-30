@@ -30,12 +30,22 @@ function extractWorkspaceIdFromUrl(): string | undefined {
  * - 401: Redirect to login (authentication failure, not retryable)
  * - 403: Do NOT redirect; let error bubble up to component (authorization failure, not retryable)
  * - 5xx/network: Return response for component retry logic
+ *
+ * Token timing: If no token is available on first attempt after auth.isAuthenticated,
+ * wait briefly and retry once to handle race conditions in OAuth callback flow.
  */
 function createAuthenticatedFetch() {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     // Get the access token from localStorage
     // (set by AuthProvider's onSigninCallback)
-    const token = localStorage.getItem('access_token')
+    let token = localStorage.getItem('access_token')
+
+    // If no token available after auth completes, wait briefly for token storage
+    // to complete (handles potential race condition in OAuth callback flow)
+    if (!token) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      token = localStorage.getItem('access_token')
+    }
 
     // Merge headers from the Request object (set by openapi-fetch) and init overrides
     const requestHeaders = input instanceof Request ? input.headers : undefined
