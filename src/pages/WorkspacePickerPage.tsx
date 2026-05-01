@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -17,6 +17,7 @@ import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { useWorkspaces } from '@/hooks/api/useWorkspaces'
 import { useAppStore } from '@/store/appStore'
 import { useUserActions } from '@/hooks/useUserActions'
+import { useAuthContext } from '@/hooks/useAuthContext'
 import { WorkspaceFormDialog } from './WorkspaceFormDialog'
 
 function workspaceAccountingPath(id: string): string {
@@ -26,8 +27,10 @@ function workspaceAccountingPath(id: string): string {
 export function WorkspacePickerPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const auth = useAuthContext()
   const { data: allWorkspaces, isLoading, isError, error } = useWorkspaces()
   const [createOpen, setCreateOpen] = useState(false)
+  const skipAutoSelect = useRef(false)
   const { language, setLanguage, selectedOrgId } = useAppStore()
 
   const { clearSelectedOrgId } = useAppStore()
@@ -64,9 +67,9 @@ export function WorkspacePickerPage() {
     }
   }, [navigate])
 
-  // Auto-select when exactly one workspace
+  // Auto-select when exactly one workspace (suppressed during workspace creation to allow JWT refresh first)
   useEffect(() => {
-    if (workspaces && workspaces.length === 1) {
+    if (workspaces && workspaces.length === 1 && !skipAutoSelect.current) {
       const id = workspaces[0].id
       sessionStorage.setItem('lastWorkspaceId', id)
       navigate(workspaceAccountingPath(id), { replace: true })
@@ -160,8 +163,21 @@ export function WorkspacePickerPage() {
             <WorkspaceFormDialog
               open={createOpen}
               onClose={() => setCreateOpen(false)}
-              onCreated={(id) => {
+              onCreated={async (id) => {
+                // Block auto-select effect so it doesn't race ahead before JWT is refreshed
+                skipAutoSelect.current = true
                 sessionStorage.setItem('lastWorkspaceId', id)
+                // Refresh the JWT so the new workspace appears in the 'workspaces' claim.
+                // signinSilent() uses the refresh token (offline_access scope) to get a
+                // new access token + ID token with updated workspace claims.
+                try {
+                  const newUser = await auth.signinSilent()
+                  if (newUser?.access_token) {
+                    localStorage.setItem('access_token', newUser.access_token)
+                  }
+                } catch {
+                  // If silent refresh fails, navigate anyway — user may need to re-login
+                }
                 navigate(workspaceAccountingPath(id))
               }}
             />
