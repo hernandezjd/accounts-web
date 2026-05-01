@@ -36,15 +36,17 @@ function extractWorkspaceIdFromUrl(): string | undefined {
  */
 function createAuthenticatedFetch() {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    // Get the access token from localStorage
-    // (set by AuthProvider's onSigninCallback)
-    let token = localStorage.getItem('access_token')
+    // Get the access token from the OIDC user manager (always up-to-date, including after silent renew)
+    // Fall back to localStorage for tokens set during initial sign-in callback
+    let user = await userManager.getUser()
+    let token = user?.access_token ?? localStorage.getItem('access_token')
 
-    // If no token available after auth completes, wait briefly for token storage
-    // to complete (handles potential race condition in OAuth callback flow)
+    // If no token available after auth completes, wait briefly and retry
+    // (handles potential race condition in OAuth callback flow)
     if (!token) {
       await new Promise((resolve) => setTimeout(resolve, 50))
-      token = localStorage.getItem('access_token')
+      user = await userManager.getUser()
+      token = user?.access_token ?? localStorage.getItem('access_token')
     }
 
     // Merge headers from the Request object (set by openapi-fetch) and init overrides
