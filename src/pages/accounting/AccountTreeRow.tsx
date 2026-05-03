@@ -61,13 +61,13 @@ function ThirdPartyRow({
           {tp.thirdPartyName}
         </Box>
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.openingBalance, tp.originalOpeningBalance) ?? 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.openingBalance, tp.originalOpeningBalance) ?? 'text.secondary' }}>
         {formatAmount(tp.openingBalance)}
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.totalDebits, tp.originalTotalDebits) ?? 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.totalDebits, tp.originalTotalDebits) ?? 'text.secondary' }}>
         {formatAmount(tp.totalDebits)}
       </TableCell>
-      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.totalCredits, tp.originalTotalCredits) ?? 'text.secondary', display: { xs: 'none', sm: 'table-cell' } }}>
+      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.totalCredits, tp.originalTotalCredits) ?? 'text.secondary' }}>
         {formatAmount(tp.totalCredits)}
       </TableCell>
       <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.closingBalance, tp.originalClosingBalance) ?? 'text.secondary' }}>
@@ -138,13 +138,13 @@ export function AccountTreeRow({
         <TableCell sx={{ py: 0.75, fontWeight: node.level === 1 ? 600 : 400 }}>
           {node.accountName}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' }, color: simColor(node.openingBalance, node.originalOpeningBalance) }}>
+        <TableCell align="right" sx={{ py: 0.75, color: simColor(node.openingBalance, node.originalOpeningBalance) }}>
           {formatAmount(node.openingBalance)}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' }, color: simColor(node.totalDebits, node.originalTotalDebits) }}>
+        <TableCell align="right" sx={{ py: 0.75, color: simColor(node.totalDebits, node.originalTotalDebits) }}>
           {formatAmount(node.totalDebits)}
         </TableCell>
-        <TableCell align="right" sx={{ py: 0.75, display: { xs: 'none', sm: 'table-cell' }, color: simColor(node.totalCredits, node.originalTotalCredits) }}>
+        <TableCell align="right" sx={{ py: 0.75, color: simColor(node.totalCredits, node.originalTotalCredits) }}>
           {formatAmount(node.totalCredits)}
         </TableCell>
         <TableCell align="right" sx={{ py: 0.75, color: simColor(node.closingBalance, node.originalClosingBalance) }}>

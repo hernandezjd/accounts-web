@@ -121,20 +121,19 @@ export function AccountTree({
       </Toolbar>
 
       {/* Account tree table */}
-      <Box sx={{ overflowX: 'auto' }}>
-      <TableContainer>
-        <Table size="small" stickyHeader sx={{ tableLayout: 'fixed' }}>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small" stickyHeader sx={{ tableLayout: 'fixed', minWidth: 920 }}>
           <TableHead>
             <TableRow sx={{ height: 80 }}>
               <TableCell sx={{ fontWeight: 700, width: 140 }}>{t('accounting.tree.code')}</TableCell>
               <TableCell sx={{ fontWeight: 700, width: 300 }}>{t('accounting.tree.name')}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120 }}>
                 {getOpeningBalanceHeader(from, simulateClosure ?? false, t)}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120 }}>
                 {t('accounting.tree.debits')}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, width: 120, display: { xs: 'none', sm: 'table-cell' } }}>
+              <TableCell align="right" sx={{ fontWeight: 700, width: 120 }}>
                 {t('accounting.tree.credits')}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, width: 120 }}>
@@ -156,7 +155,6 @@ export function AccountTree({
           </TableBody>
         </Table>
       </TableContainer>
-      </Box>
     </Box>
   )
 }
