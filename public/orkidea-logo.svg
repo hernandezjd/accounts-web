@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!-- Background circle/mark -->
+  <circle cx="30" cy="30" r="24" fill="#581fc1" opacity="0.1"/>
+  <path d="M 15 30 Q 30 15 45 30 Q 30 45 15 30" fill="#581fc1"/>
+
+  <!-- Brand text -->
+  <text x="60" y="38" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#581fc1">orkidea</text>
+</svg>
