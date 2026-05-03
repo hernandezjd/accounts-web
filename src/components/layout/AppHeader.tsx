@@ -66,7 +66,7 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
         </IconButton>
 
         <Typography variant="h6" component="div" sx={{ flexGrow: 0, mr: 3 }}>
-          Accounts
+          Orkidea
         </Typography>
 
         {currentOrg && (
