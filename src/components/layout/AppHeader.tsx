@@ -65,8 +65,6 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
           <MenuIcon />
         </IconButton>
 
-        <Box component="img" src="/orkidea-logo.svg" alt="orkidea" sx={{ height: 32, mr: 3 }} />
-
         {currentOrg && (
           <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
             <BusinessIcon fontSize="small" sx={{ mr: 0.5, opacity: 0.7 }} />
