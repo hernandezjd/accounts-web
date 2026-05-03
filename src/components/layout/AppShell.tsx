@@ -28,6 +28,10 @@ export function AppShell() {
     setMobileOpen((prev) => !prev)
   }
 
+  function handleMobileNavItemClick() {
+    setMobileOpen(false)
+  }
+
   const drawerContent = <SideNav />
 
   return (
@@ -46,7 +50,7 @@ export function AppShell() {
         }}
       >
         <Toolbar />
-        {drawerContent}
+        <SideNav onNavItemClick={handleMobileNavItemClick} />
       </Drawer>
 
       {/* Desktop drawer */}

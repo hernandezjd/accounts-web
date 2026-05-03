@@ -21,6 +21,10 @@ interface NavItem {
   path: string
 }
 
+interface SideNavProps {
+  onNavItemClick?: () => void
+}
+
 function useNavItems(): NavItem[] {
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const base = `/workspaces/${workspaceId ?? ''}`
@@ -38,7 +42,7 @@ function useNavItems(): NavItem[] {
 
 const DRAWER_WIDTH = 220
 
-export function SideNav() {
+export function SideNav({ onNavItemClick }: SideNavProps = {}) {
   const { t } = useTranslation()
   const navItems = useNavItems()
 
@@ -54,6 +58,7 @@ export function SideNav() {
             {({ isActive }) => (
               <ListItemButton
                 selected={isActive}
+                onClick={onNavItemClick}
                 sx={{
                   borderRadius: 1,
                   mx: 0.5,
