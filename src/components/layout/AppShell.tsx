@@ -32,7 +32,16 @@ export function AppShell() {
     setMobileOpen(false)
   }
 
-  const drawerContent = <SideNav />
+  const drawerFooter = (
+    <Box sx={{ mt: 'auto', px: 2, py: 1.5, borderTop: 1, borderColor: 'divider' }}>
+      <Box
+        component="img"
+        src="/orkidea-logo.png"
+        alt="orkidea"
+        sx={{ height: 32, width: 'auto', display: 'block' }}
+      />
+    </Box>
+  )
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
@@ -51,6 +60,7 @@ export function AppShell() {
       >
         <Toolbar />
         <SideNav onNavItemClick={handleMobileNavItemClick} />
+        {drawerFooter}
       </Drawer>
 
       {/* Desktop drawer */}
@@ -65,7 +75,8 @@ export function AppShell() {
         open
       >
         <Toolbar />
-        {drawerContent}
+        <SideNav />
+        {drawerFooter}
       </Drawer>
 
       {/* Main content */}
