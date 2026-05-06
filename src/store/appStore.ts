@@ -34,7 +34,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'app-store',
-      partialize: (state) => ({ language: state.language, selectedOrgId: state.selectedOrgId }),
+      partialize: (state) => ({ language: state.language }),
     },
   ),
 )

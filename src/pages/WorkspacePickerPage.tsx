@@ -33,8 +33,6 @@ export function WorkspacePickerPage() {
   const skipAutoSelect = useRef(false)
   const { language, setLanguage, selectedOrgId } = useAppStore()
 
-  const { clearSelectedOrgId } = useAppStore()
-
   const workspaces = useMemo(() => {
     if (!allWorkspaces) return allWorkspaces
     if (!selectedOrgId) return allWorkspaces
@@ -42,12 +40,6 @@ export function WorkspacePickerPage() {
     return filtered
   }, [allWorkspaces, selectedOrgId])
 
-  // Clear stale org selection when it matches no workspaces
-  useEffect(() => {
-    if (allWorkspaces && allWorkspaces.length > 0 && workspaces && workspaces.length === 0 && selectedOrgId) {
-      clearSelectedOrgId()
-    }
-  }, [allWorkspaces, workspaces, selectedOrgId, clearSelectedOrgId])
   const { hasAction } = useUserActions()
   const canManageWorkspaces = hasAction('manage_workspaces')
 

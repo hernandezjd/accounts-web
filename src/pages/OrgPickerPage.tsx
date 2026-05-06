@@ -18,13 +18,12 @@ export function OrgPickerPage() {
   const { data: organizations, isLoading, isError, error } = useOrganizations()
   const setSelectedOrgId = useAppStore((s) => s.setSelectedOrgId)
 
-  // Auto-select when exactly one organization
   useEffect(() => {
     if (organizations && organizations.length === 1 && organizations[0].id) {
       setSelectedOrgId(organizations[0].id)
       navigate('/', { replace: true })
     }
-  }, [organizations, setSelectedOrgId, navigate])
+  }, [organizations])
 
   function handleSelect(id: string) {
     setSelectedOrgId(id)

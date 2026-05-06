@@ -57,7 +57,7 @@ describe('OrgPickerPage', () => {
     })
   })
 
-  it('stores selectedOrgId on org selection', async () => {
+  it('stores selectedOrgId on first org selection', async () => {
     mockOrgGet(twoOrgs)
     renderWithProviders(<OrgPickerPage />)
     await waitFor(() => {
@@ -65,6 +65,16 @@ describe('OrgPickerPage', () => {
     })
     await userEvent.click(screen.getByTestId('org-item-org-1'))
     expect(useAppStore.getState().selectedOrgId).toBe('org-1')
+  })
+
+  it('stores selectedOrgId on second org selection', async () => {
+    mockOrgGet(twoOrgs)
+    renderWithProviders(<OrgPickerPage />)
+    await waitFor(() => {
+      expect(screen.getByTestId('org-list')).toBeInTheDocument()
+    })
+    await userEvent.click(screen.getByTestId('org-item-org-2'))
+    expect(useAppStore.getState().selectedOrgId).toBe('org-2')
   })
 
   it('shows no-orgs message when list is empty', async () => {
