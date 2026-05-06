@@ -8,6 +8,7 @@ const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost
 const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:8080'
 const organizationBaseUrl = import.meta.env.VITE_ORG_API_URL ?? 'http://localhost:8080'
 const subscriptionBaseUrl = import.meta.env.VITE_SUBSCRIPTION_API_URL ?? 'http://localhost:8080'
+const userBaseUrl = import.meta.env.VITE_USER_API_URL ?? 'http://localhost:8080'
 
 /**
  * Extract workspaceId from current URL pathname.
@@ -114,5 +115,11 @@ export const organizationClient = createClient({
 /** Client for Subscription Service (port 8086) */
 export const subscriptionClient = createClient({
   baseUrl: subscriptionBaseUrl,
+  fetch: createAuthenticatedFetch(),
+})
+
+/** Client for User Service (port 8085) */
+export const userClient = createClient({
+  baseUrl: userBaseUrl,
   fetch: createAuthenticatedFetch(),
 })
