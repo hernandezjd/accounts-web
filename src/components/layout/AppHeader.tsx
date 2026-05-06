@@ -13,9 +13,8 @@ import BusinessIcon from '@mui/icons-material/Business'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useWorkspace } from '@/hooks/api/useWorkspace'
-import { useWorkspaces } from '@/hooks/api/useWorkspaces'
-import { useOrganizations } from '@/hooks/api/useOrganizations'
 import { useOrganization } from '@/hooks/api/useOrganization'
+import { useAuthContext } from '@/hooks/useAuthContext'
 import { useAppStore } from '@/store/appStore'
 import { clearAllPreferences } from '@/utils/preferences'
 
@@ -27,13 +26,16 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { workspaceId } = useParams<{ workspaceId: string }>()
+  const auth = useAuthContext()
   const { data: workspace } = useWorkspace(workspaceId)
-  const { data: workspaces } = useWorkspaces()
   const { language, setLanguage, selectedOrgId, clearSelectedOrgId } = useAppStore()
-  const { data: organizations } = useOrganizations()
   const { data: currentOrg } = useOrganization(selectedOrgId)
 
-  const hasMultipleOrgs = organizations && organizations.length > 1
+  const userWorkspaces = (auth?.user?.profile?.workspaces ?? []) as string[]
+  const userOrganizations = (auth?.user?.profile?.organization_ids ?? []) as string[]
+
+  const hasMultipleWorkspaces = userWorkspaces.length > 1
+  const hasMultipleOrgs = userOrganizations.length > 1
 
   function handleSwitchWorkspace() {
     sessionStorage.removeItem('lastWorkspaceId')
@@ -122,7 +124,7 @@ export function AppHeader({ onMenuToggle }: AppHeaderProps) {
           <MenuItem value="fr">{t('language.french')}</MenuItem>
         </Select>
 
-        {workspaces && workspaces.length > 1 && (
+        {hasMultipleWorkspaces && (
           <Button
             color="inherit"
             size="small"

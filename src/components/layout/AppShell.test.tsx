@@ -10,6 +10,7 @@ import { MemoryRouter } from 'react-router-dom'
 import i18n from '@/i18n'
 import { theme } from '@/theme'
 import { KeyboardShortcutsProvider } from '@/context/KeyboardShortcutsContext'
+import * as useAuthContextModule from '@/hooks/useAuthContext'
 import { AppShell } from './AppShell'
 
 vi.mock('@/api/apiClient', () => ({
@@ -21,6 +22,12 @@ vi.mock('@/api/apiClient', () => ({
 }))
 
 import { apiClient } from '@/api/apiClient'
+
+const defaultAuthMock = {
+  user: { profile: { workspaces: ['workspace-1'], organization_ids: [] } },
+  isAuthenticated: true,
+  isLoading: false,
+}
 
 const mockWorkspace = { id: 'workspace-1', name: 'Acme Corp', status: 'active' as const }
 const mockWorkspace2 = { id: 'workspace-2', name: 'Other Corp', status: 'active' as const }
@@ -54,9 +61,9 @@ function renderAppShell(initialPath = '/workspaces/workspace-1/accounting') {
 beforeEach(() => {
   sessionStorage.clear()
   vi.clearAllMocks()
+  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
   vi.mocked((apiClient.workspace as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
     (url: string) => {
-      if (url === '/workspaces') return Promise.resolve({ data: [mockWorkspace], response: new Response() })
       return Promise.resolve({ data: mockWorkspace, response: new Response() })
     },
   )
@@ -90,13 +97,11 @@ describe('AppShell', () => {
   })
 
   it('Switch Workspace button clears sessionStorage and is rendered when multiple workspaces exist', async () => {
-    vi.mocked((apiClient.workspace as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
-      (url: string) => {
-        if (url === '/workspaces')
-          return Promise.resolve({ data: [mockWorkspace, mockWorkspace2], response: new Response() })
-        return Promise.resolve({ data: mockWorkspace, response: new Response() })
-      },
-    )
+    vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
+      user: { profile: { workspaces: ['workspace-1', 'workspace-2'], organization_ids: [] } },
+      isAuthenticated: true,
+      isLoading: false,
+    } as any)
     sessionStorage.setItem('lastWorkspaceId', 'workspace-1')
     renderAppShell()
     await waitFor(() => {
@@ -119,5 +124,40 @@ describe('AppShell', () => {
     await waitFor(() => {
       expect(sessionStorage.getItem('lastWorkspaceId')).toBe('workspace-1')
     })
+  })
+
+  it('hides Switch Organization button when user has no organizations', async () => {
+    renderAppShell()
+    await waitFor(() => {
+      expect(screen.getByTestId('active-workspace-name')).toBeInTheDocument()
+    })
+    expect(screen.queryByTestId('switch-org-button')).not.toBeInTheDocument()
+  })
+
+  it('hides Switch Organization button when user has only one organization', async () => {
+    vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
+      user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1'] } },
+      isAuthenticated: true,
+      isLoading: false,
+    } as any)
+    renderAppShell()
+    await waitFor(() => {
+      expect(screen.getByTestId('active-workspace-name')).toBeInTheDocument()
+    })
+    expect(screen.queryByTestId('switch-org-button')).not.toBeInTheDocument()
+  })
+
+  it('shows Switch Organization button when user has multiple organizations', async () => {
+    vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
+      user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1', 'org-2'] } },
+      isAuthenticated: true,
+      isLoading: false,
+    } as any)
+    renderAppShell()
+    await waitFor(() => {
+      expect(screen.getByTestId('switch-org-button')).toBeInTheDocument()
+    })
+    await userEvent.click(screen.getByTestId('switch-org-button'))
+    expect(sessionStorage.getItem('lastWorkspaceId')).toBeNull()
   })
 })

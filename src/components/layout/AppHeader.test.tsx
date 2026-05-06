@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { AppHeader } from './AppHeader'
 import { useAppStore } from '@/store/appStore'
+import * as useAuthContextModule from '@/hooks/useAuthContext'
 
 vi.mock('@/api/apiClient', () => ({
   apiClient: {
@@ -31,16 +32,16 @@ type MockOrgClient = { GET: ReturnType<typeof vi.fn> }
 const org1 = { id: 'org-1', name: 'Acme Corp', contactEmail: 'acme@example.com' }
 const org2 = { id: 'org-2', name: 'Globex Corp', contactEmail: 'globex@example.com' }
 
-function mockOrgList(orgs: unknown[]) {
-  vi.mocked((apiClient.organization as unknown as MockOrgClient).GET).mockImplementation((url: string) => {
-    if (url === '/organizations') return Promise.resolve({ data: orgs, response: new Response() })
-    return Promise.resolve({ data: orgs[0], response: new Response() })
-  })
-}
-
 function mockWorkspaceGet() {
   vi.mocked((apiClient.workspace as unknown as MockWorkspaceClient).GET).mockResolvedValue({
     data: undefined,
+    response: new Response(),
+  })
+}
+
+function mockOrganizationGet(org: unknown) {
+  vi.mocked((apiClient.organization as unknown as MockOrgClient).GET).mockResolvedValue({
+    data: org,
     response: new Response(),
   })
 }
@@ -49,11 +50,17 @@ beforeEach(() => {
   vi.clearAllMocks()
   useAppStore.setState({ selectedOrgId: 'org-1' })
   mockWorkspaceGet()
+  mockOrganizationGet(org1)
+  // Default auth mock with user having access to one workspace and one organization
+  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
+    user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1'] } },
+    isAuthenticated: true,
+    isLoading: false,
+  } as any)
 })
 
 describe('AppHeader', () => {
   it('shows current org name when selectedOrgId is set', async () => {
-    mockOrgList([org1])
     renderHeader()
     await waitFor(() => {
       expect(screen.getByTestId('current-org-name')).toHaveTextContent('Acme Corp')
@@ -61,7 +68,6 @@ describe('AppHeader', () => {
   })
 
   it('hides Switch Org button when user has only one org', async () => {
-    mockOrgList([org1])
     renderHeader()
     await waitFor(() => {
       expect(screen.queryByTestId('switch-org-button')).not.toBeInTheDocument()
@@ -69,7 +75,11 @@ describe('AppHeader', () => {
   })
 
   it('shows Switch Org button when user has multiple orgs', async () => {
-    mockOrgList([org1, org2])
+    vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
+      user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1', 'org-2'] } },
+      isAuthenticated: true,
+      isLoading: false,
+    } as any)
     renderHeader()
     await waitFor(() => {
       expect(screen.getByTestId('switch-org-button')).toBeInTheDocument()
@@ -77,7 +87,11 @@ describe('AppHeader', () => {
   })
 
   it('clears selectedOrgId when Switch Org is clicked', async () => {
-    mockOrgList([org1, org2])
+    vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue({
+      user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1', 'org-2'] } },
+      isAuthenticated: true,
+      isLoading: false,
+    } as any)
     renderHeader()
     await waitFor(() => {
       expect(screen.getByTestId('switch-org-button')).toBeInTheDocument()
