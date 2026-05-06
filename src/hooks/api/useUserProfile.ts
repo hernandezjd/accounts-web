@@ -16,10 +16,10 @@ interface UseUserProfileResult {
 /**
  * Hook to get the current user's profile from OIDC token claims.
  *
- * The OIDC token already contains:
+ * The OIDC token contains:
  * - user_id: user's UUID
  * - email: user's email
- * - organization_id: user's organization ID (if assigned)
+ * - organization_ids: list of organization IDs the user belongs to
  *
  * No API call needed - all data comes from the JWT token.
  *
@@ -37,11 +37,11 @@ export function useUserProfile(): UseUserProfileResult {
     }
   }
 
-  const organizationId = (auth.user.profile as Record<string, unknown>).organization_id as string | undefined
-  const organizationIds = organizationId ? [organizationId] : []
+  const claims = auth.user.profile as Record<string, unknown>
+  const organizationIds = (claims.organization_ids as string[] | undefined) ?? []
 
   const profile: UserProfile = {
-    id: (auth.user.profile as Record<string, unknown>).user_id as string,
+    id: claims.user_id as string,
     email: auth.user.profile.email || '',
     organizationIds,
   }
