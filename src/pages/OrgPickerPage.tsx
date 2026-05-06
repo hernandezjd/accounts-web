@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -10,20 +10,31 @@ import Paper from '@mui/material/Paper'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { useOrganizations } from '@/hooks/api/useOrganizations'
+import { useUserProfile } from '@/hooks/api/useUserProfile'
 import { useAppStore } from '@/store/appStore'
 
 export function OrgPickerPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: organizations, isLoading, isError, error } = useOrganizations()
+  const { data: userProfile, isLoading: profileLoading } = useUserProfile()
   const setSelectedOrgId = useAppStore((s) => s.setSelectedOrgId)
 
+  const filteredOrganizations = useMemo(() => {
+    if (!organizations || !userProfile) {
+      return organizations
+    }
+
+    const userOrgIds = new Set(userProfile.organizationIds)
+    return organizations.filter((org) => userOrgIds.has(org.id || ''))
+  }, [organizations, userProfile])
+
   useEffect(() => {
-    if (organizations && organizations.length === 1 && organizations[0].id) {
-      setSelectedOrgId(organizations[0].id)
+    if (filteredOrganizations && filteredOrganizations.length === 1 && filteredOrganizations[0].id) {
+      setSelectedOrgId(filteredOrganizations[0].id)
       navigate('/', { replace: true })
     }
-  }, [organizations])
+  }, [filteredOrganizations, setSelectedOrgId, navigate])
 
   function handleSelect(id: string) {
     setSelectedOrgId(id)
@@ -46,7 +57,7 @@ export function OrgPickerPage() {
           {t('organization.orgPicker')}
         </Typography>
 
-        {isLoading && (
+        {(isLoading || profileLoading) && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress aria-label={t('common.loading')} />
           </Box>
@@ -54,22 +65,22 @@ export function OrgPickerPage() {
 
         {isError && <ErrorMessage error={error ?? null} />}
 
-        {organizations && organizations.length === 0 && (
+        {filteredOrganizations && filteredOrganizations.length === 0 && (
           <Typography color="text.secondary" align="center" sx={{ mt: 2 }} data-testid="no-orgs-message">
             {t('organization.noOrganizations')}
           </Typography>
         )}
 
-        {organizations && organizations.length === 1 && (
+        {filteredOrganizations && filteredOrganizations.length === 1 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={24} sx={{ mr: 2 }} />
             <Typography>{t('organization.autoSelecting')}</Typography>
           </Box>
         )}
 
-        {organizations && organizations.length > 1 && (
+        {filteredOrganizations && filteredOrganizations.length > 1 && (
           <List data-testid="org-list">
-            {organizations.map((org) => (
+            {filteredOrganizations.map((org) => (
               <ListItemButton
                 key={org.id}
                 onClick={() => handleSelect(org.id!)}

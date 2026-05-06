@@ -14,7 +14,7 @@
  * We do NOT use fallback IDs to make missing IDs immediately visible.
  */
 
-import { commandClient, queryClient, workspaceClient, organizationClient, subscriptionClient } from './clients'
+import { commandClient, queryClient, workspaceClient, organizationClient, subscriptionClient, userClient } from './clients'
 import { formatError, type FormattedError } from '@accounts/error-handling-web'
 
 /**
@@ -145,6 +145,11 @@ class ApiClient {
   readonly subscription = this.createClientWrapper(subscriptionClient)
 
   /**
+   * Wrapper for user service client
+   */
+  readonly user = this.createClientWrapper(userClient)
+
+  /**
    * Create a wrapper around an openapi-fetch client.
    * Intercepts responses and transforms errors.
    */
@@ -229,7 +234,6 @@ class ApiClient {
       }
     } catch (err) {
       // Unexpected error (e.g., network error, CORS block, JSON parse error)
-      console.error('[apiClient] network/CORS error caught:', err)
       const formattedError = formatError(err)
       formattedError.httpStatus = 0
       formattedError.requestUrl = `${method} ${url}`
