@@ -138,4 +138,22 @@ describe('OrgPickerPage', () => {
       expect(screen.getByTestId('no-orgs-message')).toBeInTheDocument()
     })
   })
+
+  it('navigates away when second org is clicked (FR-220 regression)', async () => {
+    // Regression test: clicking a non-first org must also trigger navigation.
+    // Before FR-220 fix, only the first org in the list would navigate.
+    mockOrgGet(twoOrgs)
+    vi.spyOn(useUserProfileModule, 'useUserProfile').mockReturnValue({
+      data: { ...userBelongsToOrg1, organizationIds: ['org-1', 'org-2'] },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as any)
+    renderWithProviders(<OrgPickerPage />)
+    await waitFor(() => {
+      expect(screen.getByTestId('org-item-org-2')).toBeInTheDocument()
+    })
+    await userEvent.click(screen.getByTestId('org-item-org-2'))
+    expect(useAppStore.getState().selectedOrgId).toBe('org-2')
+  })
 })
