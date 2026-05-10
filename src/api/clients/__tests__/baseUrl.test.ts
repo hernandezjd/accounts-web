@@ -24,14 +24,14 @@ describe('defaultApiBase — same-origin fallback logic (FR-228)', () => {
   })
 
   it('returns origin/api for a QA server hostname', () => {
-    expect(computeDefaultApiBase('147.93.190.239', 'http://147.93.190.239')).toBe(
-      'http://147.93.190.239/api'
+    expect(computeDefaultApiBase('test.orkidea.io', 'https://test.orkidea.io')).toBe(
+      'https://test.orkidea.io/api'
     )
   })
 
   it('returns origin/api for an HTTPS production hostname', () => {
-    expect(computeDefaultApiBase('app.orkidea.io', 'https://app.orkidea.io')).toBe(
-      'https://app.orkidea.io/api'
+    expect(computeDefaultApiBase('app.test.orkidea.io', 'https://app.test.orkidea.io')).toBe(
+      'https://app.test.orkidea.io/api'
     )
   })
 
@@ -65,14 +65,14 @@ describe('SUBSCRIPTION_WEB_URL — same-origin fallback logic (FR-228)', () => {
   })
 
   it('returns origin/subscription for a QA server hostname', () => {
-    expect(computeSubscriptionWebUrl('147.93.190.239', 'http://147.93.190.239')).toBe(
-      'http://147.93.190.239/subscription'
+    expect(computeSubscriptionWebUrl('test.orkidea.io', 'https://test.orkidea.io')).toBe(
+      'https://test.orkidea.io/subscription'
     )
   })
 
   it('returns origin/subscription for an HTTPS production hostname', () => {
-    expect(computeSubscriptionWebUrl('app.orkidea.io', 'https://app.orkidea.io')).toBe(
-      'https://app.orkidea.io/subscription'
+    expect(computeSubscriptionWebUrl('app.test.orkidea.io', 'https://app.test.orkidea.io')).toBe(
+      'https://app.test.orkidea.io/subscription'
     )
   })
 })
