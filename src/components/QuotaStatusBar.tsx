@@ -9,7 +9,11 @@ import { useOrganizationSubscription } from '@/hooks/api/useOrganizationSubscrip
 import { useOrganizationQuotaUsage } from '@/hooks/api/useOrganizationQuotaUsage'
 
 const UPGRADE_THRESHOLD = 80
-const SUBSCRIPTION_WEB_URL = import.meta.env.VITE_SUBSCRIPTION_WEB_URL ?? 'http://localhost:5175'
+// In dev, subscription-web runs on its own Vite port (5175). In deployed environments
+// it is mounted at `${origin}/subscription/` by nginx (see accounts/deploy/nginx/nginx-qa.conf).
+const SUBSCRIPTION_WEB_URL =
+  import.meta.env.VITE_SUBSCRIPTION_WEB_URL ??
+  (window.location.hostname === 'localhost' ? 'http://localhost:5175' : `${window.location.origin}/subscription`)
 
 function QuotaGauge({
   label,

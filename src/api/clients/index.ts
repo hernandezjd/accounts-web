@@ -3,12 +3,18 @@ import { userManager } from '@/auth/oidc-config'
 
 let redirectingToLogin = false
 
-const workspaceBaseUrl = import.meta.env.VITE_WORKSPACE_API_URL ?? 'http://localhost:8080'
-const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? 'http://localhost:8080'
-const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? 'http://localhost:8080'
-const organizationBaseUrl = import.meta.env.VITE_ORG_API_URL ?? 'http://localhost:8080'
-const subscriptionBaseUrl = import.meta.env.VITE_SUBSCRIPTION_API_URL ?? 'http://localhost:8080'
-const userBaseUrl = import.meta.env.VITE_USER_API_URL ?? 'http://localhost:8080'
+// Same-origin fallback: in dev, hit the gateway directly on localhost:8080.
+// In any deployed environment, route via nginx at `${origin}/api` (see accounts/deploy/nginx/nginx-qa.conf).
+// Build-time VITE_*_API_URL env vars override this if set.
+const defaultApiBase =
+  window.location.hostname === 'localhost' ? 'http://localhost:8080' : `${window.location.origin}/api`
+
+const workspaceBaseUrl = import.meta.env.VITE_WORKSPACE_API_URL ?? defaultApiBase
+const commandBaseUrl = import.meta.env.VITE_COMMAND_API_URL ?? defaultApiBase
+const queryBaseUrl = import.meta.env.VITE_QUERY_API_URL ?? defaultApiBase
+const organizationBaseUrl = import.meta.env.VITE_ORG_API_URL ?? defaultApiBase
+const subscriptionBaseUrl = import.meta.env.VITE_SUBSCRIPTION_API_URL ?? defaultApiBase
+const userBaseUrl = import.meta.env.VITE_USER_API_URL ?? defaultApiBase
 
 /**
  * Extract workspaceId from current URL pathname.
