@@ -24,8 +24,8 @@ describe('defaultApiBase — same-origin fallback logic (FR-228)', () => {
   })
 
   it('returns origin/api for a QA server hostname', () => {
-    expect(computeDefaultApiBase('test.orkidea.io', 'http://test.orkidea.io')).toBe(
-      'http://test.orkidea.io/api'
+    expect(computeDefaultApiBase('test.orkidea.io', 'https://test.orkidea.io')).toBe(
+      'https://test.orkidea.io/api'
     )
   })
 
@@ -65,8 +65,8 @@ describe('SUBSCRIPTION_WEB_URL — same-origin fallback logic (FR-228)', () => {
   })
 
   it('returns origin/subscription for a QA server hostname', () => {
-    expect(computeSubscriptionWebUrl('test.orkidea.io', 'http://test.orkidea.io')).toBe(
-      'http://test.orkidea.io/subscription'
+    expect(computeSubscriptionWebUrl('test.orkidea.io', 'https://test.orkidea.io')).toBe(
+      'https://test.orkidea.io/subscription'
     )
   })
 
