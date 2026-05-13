@@ -1,0 +1,33 @@
+name: Validate Main Merge
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-branch-name:
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+      checks: write
+    steps:
+      - name: Validate source branch name
+        run: |
+          SOURCE_BRANCH="${{ github.head_ref }}"
+
+          # Allow only release-* and hotfix-* branches to merge to main
+          if [[ $SOURCE_BRANCH =~ ^(release-|hotfix-) ]]; then
+            echo "✓ Valid branch name: $SOURCE_BRANCH"
+            echo "Branch is allowed to merge to main"
+            exit 0
+          else
+            echo "✗ Invalid branch name: $SOURCE_BRANCH"
+            echo ""
+            echo "Only the following branches can merge to main:"
+            echo "  - release-X.Y.Z (for releases)"
+            echo "  - hotfix-X.Y.Z (for urgent production fixes)"
+            echo ""
+            echo "Please create your PR from a release or hotfix branch."
+            exit 1
+          fi
