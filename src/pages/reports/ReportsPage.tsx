@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
@@ -18,11 +18,15 @@ import Alert from '@mui/material/Alert'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
 import Tooltip from '@mui/material/Tooltip'
+import ButtonGroup from '@mui/material/ButtonGroup'
 import { usePeriodReport, type PeriodReportWithClosureResponse, type PeriodReportResponse } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useUserActions } from '@/hooks/useUserActions'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
+import { useReportPeriodPreference } from '@/hooks/useReportPeriodPreference'
+import { getMonthlyPeriod, getQuarterlyPeriod, getYearlyPeriod } from '@/utils/reportPeriodUtils'
+import { ExternalReportDataForm } from '@/components/ExternalReportDataForm'
 
 // ─── Type guards & Helpers ──────────────────────────────────────────────────
 
@@ -78,8 +82,10 @@ function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = fal
   const { t } = useTranslation()
   const { hasAction } = useUserActions()
   const canViewReports = hasAction('view_reports')
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
+  const { preference, updatePreference, setToThisMonth, setToThisQuarter, setToThisYear } = useReportPeriodPreference(workspaceId, 'PERIOD_REPORT')
+
+  const [fromDate, setFromDate] = useState(preference?.periodStart ?? '')
+  const [toDate, setToDate] = useState(preference?.periodEnd ?? '')
   const [levelStr, setLevelStr] = useState('')
   const [appliedParams, setAppliedParams] = useState<{
     fromDate: string
@@ -89,6 +95,13 @@ function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = fal
   }>({ fromDate: '', toDate: '', enabled: false })
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (preference?.periodStart && preference?.periodEnd) {
+      setFromDate(preference.periodStart)
+      setToDate(preference.periodEnd)
+    }
+  }, [preference])
 
   const { data, isLoading, isError, error: apiError, refetch } = usePeriodReport(
     workspaceId,
@@ -108,7 +121,39 @@ function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = fal
   const handleRun = () => {
     const level = levelStr ? parseInt(levelStr, 10) : undefined
     setAppliedParams({ fromDate, toDate, level, enabled: true })
+    updatePreference({ periodStart: fromDate, periodEnd: toDate, periodType: preference?.periodType ?? 'CUSTOM' })
     setExpandedRow(null)
+  }
+
+  const handleQuickSelect = (selector: () => void) => {
+    selector()
+  }
+
+  const handleSetMonth = () => {
+    handleQuickSelect(() => {
+      setToThisMonth()
+      const { start, end } = getMonthlyPeriod(new Date())
+      setFromDate(start)
+      setToDate(end)
+    })
+  }
+
+  const handleSetQuarter = () => {
+    handleQuickSelect(() => {
+      setToThisQuarter()
+      const { start, end } = getQuarterlyPeriod(new Date())
+      setFromDate(start)
+      setToDate(end)
+    })
+  }
+
+  const handleSetYear = () => {
+    handleQuickSelect(() => {
+      setToThisYear()
+      const { start, end } = getYearlyPeriod(new Date())
+      setFromDate(start)
+      setToDate(end)
+    })
   }
 
   const toggleRow = (accountId: string) => {
@@ -122,6 +167,24 @@ function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = fal
           {t('reports.dateRangeRestriction', { initialDate: systemInitialDate })}
         </Alert>
       )}
+
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          {t('reports.quickSelect')}
+        </Typography>
+        <ButtonGroup size="small" variant="outlined" sx={{ mb: 2 }}>
+          <Button onClick={handleSetMonth} data-testid="quick-select-month">
+            {t('reports.periodType.month')}
+          </Button>
+          <Button onClick={handleSetQuarter} data-testid="quick-select-quarter">
+            {t('reports.periodType.quarter')}
+          </Button>
+          <Button onClick={handleSetYear} data-testid="quick-select-year">
+            {t('reports.periodType.year')}
+          </Button>
+        </ButtonGroup>
+      </Box>
+
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
         <TextField
           label={t('reports.form.fromDate')}
@@ -167,6 +230,17 @@ function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = fal
           </span>
         </Tooltip>
       </Box>
+
+      {appliedParams.enabled && (
+        <Box sx={{ mb: 3 }}>
+          <ExternalReportDataForm
+            workspaceId={workspaceId}
+            reportType="PERIOD_REPORT"
+            periodStartDate={fromDate}
+            periodEndDate={toDate}
+          />
+        </Box>
+      )}
 
       {isLoading && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
@@ -286,9 +360,17 @@ function BalanceAtDateTab({ workspaceId, systemInitialDate, simulateClosure = fa
   const { t } = useTranslation()
   const { hasAction } = useUserActions()
   const canViewReports = hasAction('view_reports')
-  const [date, setDate] = useState('')
+  const { preference, updatePreference, setToAsOfDate } = useReportPeriodPreference(workspaceId, 'BALANCE_AT_DATE')
+
+  const [date, setDate] = useState(preference?.customDate ?? '')
   const [appliedDate, setAppliedDate] = useState('')
   const [enabled, setEnabled] = useState(false)
+
+  useEffect(() => {
+    if (preference?.customDate) {
+      setDate(preference.customDate)
+    }
+  }, [preference])
 
   const { data, isLoading, isError, error: apiError, refetch } = usePeriodReport(
     workspaceId,
@@ -307,6 +389,7 @@ function BalanceAtDateTab({ workspaceId, systemInitialDate, simulateClosure = fa
   const handleRun = () => {
     setAppliedDate(date)
     setEnabled(true)
+    updatePreference({ customDate: date, periodType: 'AS_OF_DATE', periodStart: date, periodEnd: date })
   }
 
   return (
@@ -316,6 +399,23 @@ function BalanceAtDateTab({ workspaceId, systemInitialDate, simulateClosure = fa
           {t('reports.dateRangeRestriction', { initialDate: systemInitialDate })}
         </Alert>
       )}
+
+      <Box sx={{ mb: 2 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => {
+            const today = new Date().toISOString().split('T')[0]
+            setDate(today)
+            setToAsOfDate(today)
+          }}
+          data-testid="quick-select-today"
+          sx={{ mb: 1 }}
+        >
+          {t('reports.quickSelectToday')}
+        </Button>
+      </Box>
+
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
         <TextField
           label={t('reports.form.date')}
@@ -421,13 +521,21 @@ function BalanceAtLevelTab({ workspaceId, systemInitialDate, simulateClosure = f
   const { t } = useTranslation()
   const { hasAction } = useUserActions()
   const canViewReports = hasAction('view_reports')
-  const [date, setDate] = useState('')
+  const { preference, updatePreference, setToAsOfDate } = useReportPeriodPreference(workspaceId, 'BALANCE_AT_LEVEL')
+
+  const [date, setDate] = useState(preference?.customDate ?? '')
   const [levelStr, setLevelStr] = useState('')
   const [appliedParams, setAppliedParams] = useState<{
     date: string
     level: number | undefined
     enabled: boolean
   }>({ date: '', level: undefined, enabled: false })
+
+  useEffect(() => {
+    if (preference?.customDate) {
+      setDate(preference.customDate)
+    }
+  }, [preference])
 
   const { data, isLoading, isError, error: apiError, refetch } = useBalanceAtLevel(
     workspaceId,
@@ -446,6 +554,7 @@ function BalanceAtLevelTab({ workspaceId, systemInitialDate, simulateClosure = f
   const handleRun = () => {
     const level = levelStr ? parseInt(levelStr, 10) : undefined
     setAppliedParams({ date, level, enabled: true })
+    updatePreference({ customDate: date, periodType: 'AS_OF_DATE', periodStart: date, periodEnd: date })
   }
 
   return (
@@ -455,6 +564,23 @@ function BalanceAtLevelTab({ workspaceId, systemInitialDate, simulateClosure = f
           {t('reports.dateRangeRestriction', { initialDate: systemInitialDate })}
         </Alert>
       )}
+
+      <Box sx={{ mb: 2 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => {
+            const today = new Date().toISOString().split('T')[0]
+            setDate(today)
+            setToAsOfDate(today)
+          }}
+          data-testid="quick-select-level-today"
+          sx={{ mb: 1 }}
+        >
+          {t('reports.quickSelectToday')}
+        </Button>
+      </Box>
+
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end', mb: 2 }}>
         <TextField
           label={t('reports.form.date')}

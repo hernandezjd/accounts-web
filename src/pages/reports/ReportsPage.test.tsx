@@ -27,15 +27,21 @@ vi.mock('@/hooks/useUserActions', () => ({
   useUserActions: vi.fn(),
 }))
 
+vi.mock('@/hooks/useReportPeriodPreference', () => ({
+  useReportPeriodPreference: vi.fn(),
+}))
+
 import { usePeriodReport } from '@/hooks/api/usePeriodReport'
 import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
 import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useUserActions } from '@/hooks/useUserActions'
+import { useReportPeriodPreference } from '@/hooks/useReportPeriodPreference'
 
 const mockUsePeriodReport = vi.mocked(usePeriodReport)
 const mockUseBalanceAtLevel = vi.mocked(useBalanceAtLevel)
 const mockUseWorkspaceConfig = vi.mocked(useWorkspaceConfig)
 const mockUseUserActions = vi.mocked(useUserActions)
+const mockUseReportPeriodPreference = vi.mocked(useReportPeriodPreference)
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -116,6 +122,16 @@ beforeEach(() => {
   mockUseUserActions.mockReturnValue({
     hasAction: vi.fn((action: string) => action === 'view_reports'),
   })
+  mockUseReportPeriodPreference.mockReturnValue({
+    preference: null,
+    updatePreference: vi.fn(),
+    setToThisMonth: vi.fn(),
+    setToThisQuarter: vi.fn(),
+    setToThisYear: vi.fn(),
+    setToAsOfDate: vi.fn(),
+    setToCustomPeriod: vi.fn(),
+    clearPreference: vi.fn(),
+  } as unknown as ReturnType<typeof useReportPeriodPreference>)
 })
 
 // ─── Helper to render and switch to a tab ────────────────────────────────────
