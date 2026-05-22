@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
+import { pollUntilFound } from '@/api/polling'
 import { useApiMutation } from './useApiMutation'
 import type { components } from '@/api/generated/account-command-api'
 import type { Account } from '@/hooks/api/useAccounts'
@@ -59,12 +60,25 @@ export function useAccountMutations(workspaceId: string) {
             qc.setQueryData(key, [...existing, newAccount])
           }
         }
-        // Delay the authoritative refetch to avoid a race where the query service
-        // hasn't yet projected the event, which would overwrite the optimistic data.
-        setTimeout(async () => {
+        // Poll until the new account appears in the read model (query service projection).
+        // This handles the race condition where the command succeeds immediately but
+        // the event processor needs time to project the data, especially on slower machines.
+        // Once confirmed, invalidate the cache to ensure we have the authoritative data.
+        pollUntilFound(
+          () => {
+            const currentList =
+              qc.getQueryData<Account[]>(queryKeys.accounts.list(workspaceId, true)) ??
+              qc.getQueryData<Account[]>(queryKeys.accounts.list(workspaceId, false)) ??
+              []
+            return currentList.some((a) => a.id === newAccount.id)
+          },
+          { initialDelayMs: 50, maxTimeoutMs: 10000 }
+        ).then(async () => {
+          // Whether polling succeeded or timed out, invalidate and refetch
+          // to ensure we have the authoritative data from the query service.
           await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
           await refetchAccountQueries()
-        }, 500)
+        })
       },
     }
   )
