@@ -33,7 +33,7 @@ export function useAccountMutations(workspaceId: string) {
         body,
       }),
     {
-      onSuccess: (data, variables) => {
+      onSuccess: async (data, variables) => {
         // Optimistically add the new account to the cache so it appears immediately,
         // before the event processor has had time to project it to the read side.
         const cachedAccounts =
@@ -60,25 +60,26 @@ export function useAccountMutations(workspaceId: string) {
             qc.setQueryData(key, [...existing, newAccount])
           }
         }
-        // Poll until the new account appears in the read model (query service projection).
-        // This handles the race condition where the command succeeds immediately but
-        // the event processor needs time to project the data, especially on slower machines.
-        // Once confirmed, invalidate the cache to ensure we have the authoritative data.
-        pollUntilFound(
-          () => {
-            const currentList =
-              qc.getQueryData<Account[]>(queryKeys.accounts.list(workspaceId, true)) ??
-              qc.getQueryData<Account[]>(queryKeys.accounts.list(workspaceId, false)) ??
-              []
-            return currentList.some((a) => a.id === newAccount.id)
+        // Poll the query service directly until the new account appears in the read model.
+        // Checking the local cache wouldn't work: the optimistic update above has already
+        // inserted the account into the cache, so a cache-based predicate returns true
+        // immediately and the subsequent refetch would race the projection and overwrite
+        // the optimistic data with a stale list that excludes the new account.
+        await pollUntilFound(
+          async () => {
+            const response = await apiClient.query.GET<Account[]>('/accounts', {
+              params: {
+                header: { 'X-Workspace-Id': workspaceId },
+                query: { includeInactive: true },
+              },
+            })
+            return response.data?.some((a) => a.id === newAccount.id) ?? false
           },
           { initialDelayMs: 50, maxTimeoutMs: 10000 }
-        ).then(async () => {
-          // Whether polling succeeded or timed out, invalidate and refetch
-          // to ensure we have the authoritative data from the query service.
-          await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
-          await refetchAccountQueries()
-        })
+        )
+        // Projection is now consistent (or we timed out); safe to invalidate and refetch.
+        await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+        await refetchAccountQueries()
       },
     }
   )

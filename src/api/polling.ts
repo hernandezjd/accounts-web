@@ -21,12 +21,12 @@ const DEFAULT_CONFIG: Required<PollingConfig> = {
 /**
  * Poll with exponential backoff until a condition is met or timeout.
  *
- * @param predicate Function that returns true when the condition is met
+ * @param predicate Function (sync or async) that returns true when the condition is met
  * @param config Polling configuration
  * @returns true if predicate returned true, false if timeout
  */
 export async function pollUntilFound(
-  predicate: () => boolean,
+  predicate: () => boolean | Promise<boolean>,
   config?: PollingConfig
 ): Promise<boolean> {
   const finalConfig = { ...DEFAULT_CONFIG, ...config }
@@ -34,7 +34,7 @@ export async function pollUntilFound(
   let delayMs = finalConfig.initialDelayMs
 
   while (Date.now() - startTime < finalConfig.maxTimeoutMs) {
-    if (predicate()) {
+    if (await predicate()) {
       return true
     }
 
