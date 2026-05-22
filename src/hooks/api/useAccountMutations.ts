@@ -91,7 +91,60 @@ export function useAccountMutations(workspaceId: string) {
         body,
       }),
     {
-      onSuccess: async () => {
+      onSuccess: async (_data, variables) => {
+        const accountId = variables.id
+        const newCode = variables.body.code
+        const newName = variables.body.name
+        const newParentId = (variables.body as UpdateAccountRequest & { parentId?: string | null }).parentId
+        // Optimistically patch the existing entry in both includeInactive variants
+        // so the UI reflects the change immediately, before the projection catches up.
+        for (const includeInactive of [true, false]) {
+          const key = queryKeys.accounts.list(workspaceId, includeInactive)
+          const existing = qc.getQueryData<Account[]>(key)
+          if (existing === undefined) continue
+          const parent = newParentId
+            ? existing.find((a) => a.id === newParentId)
+            : undefined
+          const nextLevel = newParentId
+            ? (parent?.level != null ? parent.level + 1 : undefined)
+            : 1
+          qc.setQueryData<Account[]>(
+            key,
+            existing.map((a) =>
+              a.id === accountId
+                ? {
+                    ...a,
+                    code: newCode ?? a.code,
+                    name: newName ?? a.name,
+                    parentId: newParentId ?? undefined,
+                    level: nextLevel ?? a.level,
+                  }
+                : a,
+            ),
+          )
+        }
+        // Poll the query service directly until the read model reflects the update.
+        // A cache-based predicate would return true immediately because of the optimistic
+        // patch above, which would race the projection and let the subsequent refetch
+        // overwrite the cache with stale (pre-update) data. Same reasoning as createAccount.
+        await pollUntilFound(
+          async () => {
+            const response = await apiClient.query.GET<Account[]>('/accounts', {
+              params: {
+                header: { 'X-Workspace-Id': workspaceId },
+                query: { includeInactive: true },
+              },
+            })
+            const updated = response.data?.find((a) => a.id === accountId)
+            if (!updated) return false
+            return (
+              (newCode === undefined || updated.code === newCode) &&
+              (newName === undefined || updated.name === newName)
+            )
+          },
+          { initialDelayMs: 50, maxTimeoutMs: 10000 }
+        )
+        // Projection is now consistent (or we timed out); safe to invalidate and refetch.
         await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
         await refetchAccountQueries()
       },
