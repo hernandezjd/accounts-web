@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
+import { pollUntilFound } from '@/api/polling'
 import { useApiMutation } from './useApiMutation'
 import type { components } from '@/api/generated/account-command-api'
 import type { Account } from '@/hooks/api/useAccounts'
@@ -32,7 +33,7 @@ export function useAccountMutations(workspaceId: string) {
         body,
       }),
     {
-      onSuccess: (data, variables) => {
+      onSuccess: async (data, variables) => {
         // Optimistically add the new account to the cache so it appears immediately,
         // before the event processor has had time to project it to the read side.
         const cachedAccounts =
@@ -59,12 +60,26 @@ export function useAccountMutations(workspaceId: string) {
             qc.setQueryData(key, [...existing, newAccount])
           }
         }
-        // Delay the authoritative refetch to avoid a race where the query service
-        // hasn't yet projected the event, which would overwrite the optimistic data.
-        setTimeout(async () => {
-          await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
-          await refetchAccountQueries()
-        }, 500)
+        // Poll the query service directly until the new account appears in the read model.
+        // Checking the local cache wouldn't work: the optimistic update above has already
+        // inserted the account into the cache, so a cache-based predicate returns true
+        // immediately and the subsequent refetch would race the projection and overwrite
+        // the optimistic data with a stale list that excludes the new account.
+        await pollUntilFound(
+          async () => {
+            const response = await apiClient.query.GET<Account[]>('/accounts', {
+              params: {
+                header: { 'X-Workspace-Id': workspaceId },
+                query: { includeInactive: true },
+              },
+            })
+            return response.data?.some((a) => a.id === newAccount.id) ?? false
+          },
+          { initialDelayMs: 50, maxTimeoutMs: 10000 }
+        )
+        // Projection is now consistent (or we timed out); safe to invalidate and refetch.
+        await qc.invalidateQueries({ queryKey: queryKeys.accounts.all() })
+        await refetchAccountQueries()
       },
     }
   )
