@@ -508,14 +508,16 @@ export function AccountsPage() {
         </Box>
       )}
 
-      <AccountFormDialog
-        key={editTarget?.id ?? 'new'}
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        workspaceId={workspaceId}
-        editAccount={editTarget}
-        accounts={accounts ?? []}
-      />
+      {formOpen && (
+        <AccountFormDialog
+          key={editTarget?.id ?? 'new'}
+          open
+          onClose={() => setFormOpen(false)}
+          workspaceId={workspaceId}
+          editAccount={editTarget}
+          accounts={accounts ?? []}
+        />
+      )}
       <DeactivateAccountDialog
         open={Boolean(deactivateTarget)}
         onClose={() => setDeactivateTarget(null)}
