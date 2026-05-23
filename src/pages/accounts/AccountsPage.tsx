@@ -30,7 +30,7 @@ import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useUserActions } from '@/hooks/useUserActions'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 
 // ─── AccountFormDialog ─────────────────────────────────────────────────────────

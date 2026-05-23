@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { AccountsPage } from './AccountsPage'
 import type { Account } from '@/hooks/api/useAccounts'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 
 // ─── Mock hooks ─────────────────────────────────────────────────────────────
 

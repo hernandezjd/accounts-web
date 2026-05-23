@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 
 interface CreatedAccount {
   id: string
