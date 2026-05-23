@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
@@ -424,6 +424,13 @@ export function AccountsPage() {
           </span>
         </Tooltip>
       </Box>
+
+      <Alert severity="info" sx={{ mb: 2 }} data-testid="account-creation-help">
+        {t('accounts.helpMessage')}{' '}
+        <Link to="../setup" state={{ initialTab: 4 }} data-testid="prefilled-charts-link">
+          {t('accounts.helpMessageLink')}
+        </Link>
+      </Alert>
 
       {isLoading && <Typography>{t('accounts.loading')}</Typography>}
       {isError && <ErrorMessage error={formattedError} onRetry={() => void refetch()} />}

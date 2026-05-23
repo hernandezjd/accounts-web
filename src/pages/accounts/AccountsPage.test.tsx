@@ -365,6 +365,19 @@ describe('AccountsPage', () => {
     expect(button).toHaveAttribute('disabled')
   })
 
+  it('shows help message with link to pre-filled charts', () => {
+    renderWithProviders(<AccountsPage />)
+
+    const alert = screen.getByTestId('account-creation-help')
+    expect(alert).toBeInTheDocument()
+    expect(alert).toHaveTextContent(/one at a time/i)
+
+    const link = screen.getByTestId('prefilled-charts-link')
+    expect(link).toBeInTheDocument()
+    expect(link).toHaveTextContent(/pre-filled charts/i)
+    expect(link).toHaveAttribute('href', expect.stringContaining('setup'))
+  })
+
   it('Edit dialog is not in the DOM when closed', () => {
     renderWithProviders(<AccountsPage />)
 
