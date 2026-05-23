@@ -3,9 +3,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test-utils/renderWithProviders';
 import { ErrorMessage } from '@/components/error/ErrorMessage';
-import { formatError, parseErrorResponse } from '@/lib/error/useErrorHandler';
-import { isTransientError, classifyError } from '@/lib/error/isTransientError';
-import type { FormattedError } from '@/lib/error/useErrorHandler';
+import { formatError, parseErrorResponse } from '@accounts/error-handling-web';
+import { isTransientError, classifyError } from '@accounts/error-handling-web';
+import type { FormattedError } from '@accounts/error-handling-web';
 
 /**
  * Integration tests for error classification and display across the application.
@@ -64,7 +64,8 @@ describe('Error Classification Integration Tests', () => {
         <ErrorMessage error={formattedError} onRetry={handleRetry} />
       );
 
-      expect(screen.getByText(/Please check your input/i)).toBeInTheDocument();
+      // i18n translates VALIDATION_ERROR via the errors namespace
+      expect(screen.getByText(/Some of the information you entered is invalid/i)).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /try again/i })).not.toBeInTheDocument();
     });
   });
@@ -202,7 +203,8 @@ describe('Error Classification Integration Tests', () => {
 
       renderWithProviders(<ErrorMessage error={formattedError} />);
 
-      expect(screen.getByText(/An unexpected error occurred/i)).toBeInTheDocument();
+      // INTERNAL_SERVER_ERROR is translated via the errors namespace (5xx wording)
+      expect(screen.getByText(/We have a problem in the backend services/i)).toBeInTheDocument();
       expect(screen.getByText(/req-500-internal-abc123def456/i)).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /contact support/i })).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /try again/i })).not.toBeInTheDocument();
@@ -259,7 +261,8 @@ describe('Error Classification Integration Tests', () => {
         <ErrorMessage error={formattedError} onRetry={handleRetry} />
       );
 
-      expect(screen.getByText(/Service temporarily unavailable/i)).toBeInTheDocument();
+      // HTTP_503 is translated via the errors namespace
+      expect(screen.getByText(/temporarily unavailable/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
     });
   });
@@ -367,7 +370,8 @@ describe('Error Classification Integration Tests', () => {
         <ErrorMessage error={formattedError} onRetry={handleRetry} />
       );
 
-      expect(screen.getByText(/Gateway timeout/i)).toBeInTheDocument();
+      // HTTP_504 is translated via the errors namespace
+      expect(screen.getByText(/request timed out/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
     });
   });
