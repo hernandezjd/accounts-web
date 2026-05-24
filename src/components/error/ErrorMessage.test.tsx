@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { ErrorMessage } from './ErrorMessage'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 
 describe('ErrorMessage', () => {
   const sampleError: FormattedError = {
@@ -23,7 +23,8 @@ describe('ErrorMessage', () => {
     ...sampleError,
     classification: 'transient',
     isRetryable: true,
-    errorCode: 'HTTP_503',
+    // synthetic code with no i18n entry, so userMessage/suggestion fall through verbatim
+    errorCode: 'TEST_RETRY_001',
     severity: 'error',
   }
 
@@ -179,7 +180,10 @@ describe('ErrorMessage', () => {
     it('shows support contact for 5xx errors', () => {
       renderWithProviders(<ErrorMessage error={fiveXxError} />)
 
-      expect(screen.getByText(/contact support/i)).toBeInTheDocument()
+      // The support contact section has a "If this problem persists" lead-in;
+      // the 5xx error title itself also says "Contact support" so we anchor on
+      // the unique phrase that only appears in the support-contact block.
+      expect(screen.getByText(/If this problem persists/i)).toBeInTheDocument()
     })
 
     it('does not show support contact for 4xx errors', () => {
@@ -557,6 +561,51 @@ describe('ErrorMessage', () => {
       renderWithProviders(<ErrorMessage error={nonForbiddenError} />)
 
       expect(screen.getByText(/req-500-normal/)).toBeInTheDocument()
+    })
+  })
+
+  describe('Warning-severity errors (4xx user-side)', () => {
+    it('hides Request ID box for ACCOUNT_CODE_ALREADY_EXISTS (warning)', () => {
+      const dup: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACCOUNT_CODE_ALREADY_EXISTS',
+        requestId: 'req-409-dup',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={dup} showRequestId={true} />)
+
+      expect(screen.queryByText(/req-409-dup/)).not.toBeInTheDocument()
+    })
+
+    it('hides DEBUG accordion for ACCOUNT_CODE_ALREADY_EXISTS (warning)', () => {
+      const dup: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACCOUNT_CODE_ALREADY_EXISTS',
+        httpStatus: 409,
+        requestUrl: 'POST /accounts',
+        responseBody: '{"errorCode":"ACCOUNT_CODE_ALREADY_EXISTS"}',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={dup} />)
+
+      expect(screen.queryByText('DEBUG')).not.toBeInTheDocument()
+    })
+
+    it('renders the localized message from the errors i18n bundle', () => {
+      const dup: FormattedError = {
+        ...sampleError,
+        errorCode: 'ACCOUNT_CODE_ALREADY_EXISTS',
+        userMessage: 'this string should be overridden by i18n',
+        severity: 'warning',
+      }
+
+      renderWithProviders(<ErrorMessage error={dup} />)
+
+      expect(
+        screen.getByText('The account code you are trying to create is already registered.')
+      ).toBeInTheDocument()
     })
   })
 

@@ -16,7 +16,7 @@ import Button from '@mui/material/Button'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTranslation } from 'react-i18next'
 import { useUnifiedSearch } from '@/hooks/api/useUnifiedSearch'
-import { formatError } from '@/lib/error/useErrorHandler'
+import { formatError } from '@accounts/error-handling-web'
 import type { components } from '@/api/generated/reporting-api'
 
 type AccountSearchResult = components['schemas']['AccountSearchResult']

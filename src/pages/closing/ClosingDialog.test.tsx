@@ -4,7 +4,7 @@ import { ClosingDialog } from './ClosingDialog'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, opts?: { defaultValue?: string }) => opts?.defaultValue ?? key,
   }),
 }))
 

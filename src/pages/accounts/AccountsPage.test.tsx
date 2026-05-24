@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { AccountsPage } from './AccountsPage'
 import type { Account } from '@/hooks/api/useAccounts'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 
 // ─── Mock hooks ─────────────────────────────────────────────────────────────
 
@@ -363,5 +363,63 @@ describe('AccountsPage', () => {
     expect(button).toBeDisabled()
     // Tooltip should be present (aria-label or title attribute)
     expect(button).toHaveAttribute('disabled')
+  })
+
+  it('shows help message with link to pre-filled charts', () => {
+    renderWithProviders(<AccountsPage />)
+
+    const alert = screen.getByTestId('account-creation-help')
+    expect(alert).toBeInTheDocument()
+    expect(alert).toHaveTextContent(/one at a time/i)
+
+    const link = screen.getByTestId('prefilled-charts-link')
+    expect(link).toBeInTheDocument()
+    expect(link).toHaveTextContent(/pre-filled charts/i)
+    expect(link).toHaveAttribute('href', expect.stringContaining('setup'))
+  })
+
+  it('Edit dialog is not in the DOM when closed', () => {
+    renderWithProviders(<AccountsPage />)
+
+    expect(screen.queryByText('Edit Account')).not.toBeInTheDocument()
+    expect(screen.queryByText('Create Account')).not.toBeInTheDocument()
+  })
+
+  it('re-opening the edit dialog after a save shows the freshly-updated value', async () => {
+    // Simulates FR-237 regression: edit acc-1 ("Assets" → "Assets Renamed"),
+    // close, then reopen — the dialog must show the new value, not the stale one.
+    const { rerender } = renderWithProviders(<AccountsPage />)
+
+    // First edit: dialog shows the original name.
+    await userEvent.click(screen.getByTestId('edit-account-acc-1'))
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Assets')).toBeInTheDocument()
+    })
+
+    // Close the dialog (simulating a successful save → onSuccess → handleClose).
+    await userEvent.click(screen.getByRole('button', { name: /cancel/i }))
+    await waitFor(() => {
+      expect(screen.queryByText('Edit Account')).not.toBeInTheDocument()
+    })
+
+    // Server-side update happens: the accounts list now reflects the new name.
+    const updated: Account[] = [
+      { ...sampleAccounts[0], name: 'Assets Renamed' },
+      sampleAccounts[1],
+    ]
+    mockUseAccounts.mockReturnValue({
+      data: updated,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccounts>)
+    rerender(<AccountsPage />)
+
+    // Second edit on the same account: dialog must reflect the updated value.
+    await userEvent.click(screen.getByTestId('edit-account-acc-1'))
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Assets Renamed')).toBeInTheDocument()
+    })
+    expect(screen.queryByDisplayValue('Assets')).not.toBeInTheDocument()
   })
 })

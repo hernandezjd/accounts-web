@@ -29,9 +29,9 @@ import { useTranslation } from 'react-i18next'
 import { useAllThirdParties, type ThirdParty } from '@/hooks/api/useAllThirdParties'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
 import { useUserActions } from '@/hooks/useUserActions'
-import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { useErrorHandler } from '@accounts/error-handling-web'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 

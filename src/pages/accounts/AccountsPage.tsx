@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
@@ -30,7 +30,7 @@ import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useUserActions } from '@/hooks/useUserActions'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 
 // ─── AccountFormDialog ─────────────────────────────────────────────────────────
@@ -425,6 +425,13 @@ export function AccountsPage() {
         </Tooltip>
       </Box>
 
+      <Alert severity="info" sx={{ mb: 2 }} data-testid="account-creation-help">
+        {t('accounts.helpMessage')}{' '}
+        <Link to="../setup" state={{ initialTab: 4 }} data-testid="prefilled-charts-link">
+          {t('accounts.helpMessageLink')}
+        </Link>
+      </Alert>
+
       {isLoading && <Typography>{t('accounts.loading')}</Typography>}
       {isError && <ErrorMessage error={formattedError} onRetry={() => void refetch()} />}
 
@@ -508,14 +515,16 @@ export function AccountsPage() {
         </Box>
       )}
 
-      <AccountFormDialog
-        key={editTarget?.id ?? 'new'}
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        workspaceId={workspaceId}
-        editAccount={editTarget}
-        accounts={accounts ?? []}
-      />
+      {formOpen && (
+        <AccountFormDialog
+          key={editTarget?.id ?? 'new'}
+          open
+          onClose={() => setFormOpen(false)}
+          workspaceId={workspaceId}
+          editAccount={editTarget}
+          accounts={accounts ?? []}
+        />
+      )}
       <DeactivateAccountDialog
         open={Boolean(deactivateTarget)}
         onClose={() => setDeactivateTarget(null)}

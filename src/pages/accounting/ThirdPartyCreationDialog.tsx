@@ -7,7 +7,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
-import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { useErrorHandler } from '@accounts/error-handling-web'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 
 interface CreatedThirdParty {
