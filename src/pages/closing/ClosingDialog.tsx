@@ -16,10 +16,10 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { useExecuteClosingMutation } from '@/hooks/api/useExecuteClosingMutation'
 import { useClosingPreview } from '@/hooks/api/useClosingPreview'
-import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { useErrorHandler } from '@accounts/error-handling-web'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { components as Reporting } from '@/api/generated/reporting-api'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 
 type ClosingAccountLine = Reporting['schemas']['ClosingAccountLine']
 

@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField'
 import { useTranslation } from 'react-i18next'
 import { useWorkspaceMutations } from '@/hooks/api/useWorkspaceMutations'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import { formatError, type FormattedError } from '@/lib/error/useErrorHandler'
+import { formatError, type FormattedError } from '@accounts/error-handling-web'
 import { useAppStore } from '@/store/appStore'
 
 export interface WorkspaceFormData {

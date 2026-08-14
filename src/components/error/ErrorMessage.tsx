@@ -29,7 +29,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import WarningIcon from '@mui/icons-material/Warning';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { FormattedError } from '../../lib/error/useErrorHandler';
+import { useTranslation } from 'react-i18next';
+import { FormattedError } from '@accounts/error-handling-web';
 
 export interface ErrorMessageProps {
   error: FormattedError | null;
@@ -56,6 +57,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [debugExpanded, setDebugExpanded] = useState(false);
+  const { t } = useTranslation('errors');
 
   const handleCopyRequestId = useCallback(async () => {
     if (!error) return;
@@ -80,6 +82,15 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   const is5xxError = (error.errorCode?.startsWith('HTTP_5') ?? false) ||
                       error.errorCode === 'INTERNAL_SERVER_ERROR';
 
+  // Warning-severity errors are user-side issues (duplicate code, validation, 403, etc.) —
+  // hide the request ID box and DEBUG accordion; they only help with real faults.
+  const isUserError = severity === 'warning';
+
+  const localizedMessage = t(`codes.${error.errorCode}.message`, { defaultValue: error.userMessage });
+  const localizedSuggestion = error.suggestion
+    ? t(`codes.${error.errorCode}.suggestion`, { defaultValue: error.suggestion })
+    : undefined;
+
   return (
     <Alert
       severity={severity}
@@ -100,12 +111,12 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
       }
     >
         <Stack spacing={1}>
-          <AlertTitle>{error.userMessage}</AlertTitle>
+          <AlertTitle>{localizedMessage}</AlertTitle>
 
           {/* Show suggestion only for retryable errors */}
-          {error.suggestion && error.isRetryable && (
+          {localizedSuggestion && error.isRetryable && (
             <Typography variant="body2" sx={{ mt: 1 }}>
-              <strong>What you can try:</strong> {error.suggestion}
+              <strong>{t('whatYouCanTry', { defaultValue: 'What you can try:' })}</strong> {localizedSuggestion}
             </Typography>
           )}
 
@@ -123,8 +134,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show request ID prominently for 5xx errors with copy button (but not for 403 errors) */}
-          {showRequestId && is5xxError && !is403Error(error.errorCode) && (
+          {/* Show request ID prominently for 5xx errors with copy button (suppressed for user-side warnings) */}
+          {showRequestId && is5xxError && !isUserError && (
             <Box sx={{
               mt: 1,
               p: 1.5,
@@ -162,8 +173,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show request ID for other errors (but not for 403 errors) */}
-          {showRequestId && !is5xxError && !is403Error(error.errorCode) && (
+          {/* Show request ID for other errors (suppressed for user-side warnings) */}
+          {showRequestId && !is5xxError && !isUserError && (
             <Box sx={{ mt: 1, p: 1, backgroundColor: 'rgba(0, 0, 0, 0.05)', borderRadius: 1 }}>
               <Typography variant="caption" component="div">
                 <strong>Request ID:</strong>{' '}
@@ -210,8 +221,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
             </Box>
           )}
 
-          {/* Show debug information if available (but not for 403 permission errors) */}
-          {(error.httpStatus !== undefined || error.requestUrl || error.responseBody) && !is403Error(error.errorCode) && (
+          {/* Show debug information if available (suppressed for user-side warnings) */}
+          {(error.httpStatus !== undefined || error.requestUrl || error.responseBody) && !isUserError && (
             <Box sx={{ mt: 2, backgroundColor: 'rgba(0, 0, 0, 0.08)', borderRadius: 1, border: '1px solid rgba(0, 0, 0, 0.15)' }}>
               {/* Debug toggle header */}
               <Box
@@ -338,19 +349,3 @@ function formatResponseBody(body: string): string {
   }
 }
 
-/**
- * Check if error code is a 403 permission-related error.
- * For these errors, we hide the DEBUG section entirely.
- */
-function is403Error(errorCode?: string): boolean {
-  if (!errorCode) return false;
-  const permissionErrorCodes = [
-    'ACTION_NOT_ALLOWED',
-    'INSUFFICIENT_PERMISSIONS',
-    'ROLE_REQUIRED',
-    'WORKSPACE_ACCESS_REQUIRED',
-    'FORBIDDEN',
-    'HTTP_403',
-  ];
-  return permissionErrorCodes.includes(errorCode);
-}

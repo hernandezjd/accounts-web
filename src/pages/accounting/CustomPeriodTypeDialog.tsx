@@ -7,9 +7,9 @@ import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
 import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
-import { useErrorHandler } from '@/lib/error/useErrorHandler'
+import { useErrorHandler } from '@accounts/error-handling-web'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
-import type { FormattedError } from '@/lib/error/useErrorHandler'
+import type { FormattedError } from '@accounts/error-handling-web'
 
 export interface CustomPeriodType {
   id: string

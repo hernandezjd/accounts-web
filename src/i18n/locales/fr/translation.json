@@ -183,7 +183,9 @@
     "noAccounts": "Aucun compte trouvé.",
     "enable": "Activer",
     "disable": "Désactiver",
-    "toggleTp": "Basculer TP"
+    "toggleTp": "Basculer TP",
+    "helpMessage": "Cette page vous permet de créer des comptes un par un. Si vous préférez, vous pouvez utiliser des plans comptables prédéfinis pour créer automatiquement un ensemble complet de comptes.",
+    "helpMessageLink": "Aller aux plans comptables prédéfinis"
   },
   "thirdParties": {
     "title": "Tiers",

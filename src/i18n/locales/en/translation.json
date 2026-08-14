@@ -183,7 +183,9 @@
     "noAccounts": "No accounts found.",
     "enable": "Enable",
     "disable": "Disable",
-    "toggleTp": "Toggle TP"
+    "toggleTp": "Toggle TP",
+    "helpMessage": "This page lets you create accounts one at a time. If you prefer, you can use pre-filled charts to automatically create a full set of accounts.",
+    "helpMessageLink": "Go to pre-filled charts"
   },
   "thirdParties": {
     "title": "Third Parties",

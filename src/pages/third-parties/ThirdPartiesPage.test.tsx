@@ -176,7 +176,10 @@ describe('ThirdPartiesPage', () => {
   it('shows friendly message on 409 deactivate error', async () => {
     const deactivateMutate = vi.fn((_id, opts) => {
       const formattedError = {
-        errorCode: 'CONFLICT',
+        // Synthetic code without an i18n bundle entry so userMessage falls through
+        // verbatim. In production a real code (CONFLICT, ACCOUNT_HAS_TRANSACTIONS,
+        // etc.) would be translated via the errors namespace.
+        errorCode: 'TEST_TP_HAS_ACTIVE_TX',
         userMessage: 'This third party has active transactions and cannot be deactivated.',
         requestId: 'test-request-id',
         timestamp: new Date().toISOString(),

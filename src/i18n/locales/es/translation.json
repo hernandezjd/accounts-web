@@ -183,7 +183,9 @@
     "noAccounts": "No se encontraron cuentas.",
     "enable": "Activar",
     "disable": "Desactivar",
-    "toggleTp": "Terceros"
+    "toggleTp": "Terceros",
+    "helpMessage": "Esta página permite crear cuentas de una en una. Si lo prefiere, puede usar planes de cuentas predefinidos para crear automáticamente un conjunto completo de cuentas.",
+    "helpMessageLink": "Ir a planes de cuentas predefinidos"
   },
   "thirdParties": {
     "title": "Terceros",
