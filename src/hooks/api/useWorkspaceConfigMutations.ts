@@ -63,17 +63,6 @@ export function useWorkspaceConfigMutations(workspaceId: string) {
     }
   )
 
-  const setSnapshotFrequency = useApiMutation(
-    (snapshotFrequencyDays: number | null) =>
-      apiClient.command.PUT<WorkspaceConfigResponse>('/config/snapshot-frequency', {
-        params: { header: headers },
-        body: { snapshotFrequencyDays },
-      }),
-    {
-      onSuccess: (_data, snapshotFrequencyDays) => patchCache({ snapshotFrequencyDays }),
-    }
-  )
-
   const setNominalAccountsConfig = useApiMutation(
     ({
       nominalAccounts,
@@ -107,7 +96,6 @@ export function useWorkspaceConfigMutations(workspaceId: string) {
     setInitialDate,
     setLockedPeriodDate,
     setMinimumAccountLevel,
-    setSnapshotFrequency,
     setNominalAccountsConfig,
     setClosingTransactionType,
   }

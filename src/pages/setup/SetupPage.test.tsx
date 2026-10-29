@@ -57,7 +57,6 @@ const sampleConfig = {
   systemInitialDate: '2025-01-01',
   lockedPeriodDate: '2025-06-30',
   minimumAccountLevel: 3,
-  snapshotFrequencyDays: 30,
   nominalAccounts: ['acc-2', 'acc-3'],
   profitLossAccountId: 'acc-4',
 }
@@ -116,7 +115,6 @@ function setupMocks() {
     setInitialDate: { ...noOpMutation },
     setLockedPeriodDate: { ...noOpMutation },
     setMinimumAccountLevel: { ...noOpMutation },
-    setSnapshotFrequency: { ...noOpMutation },
     setNominalAccountsConfig: { ...noOpMutation },
     setClosingTransactionType: { ...noOpMutation },
   })
@@ -328,7 +326,6 @@ describe('SetupPage — Accounting Config tab', () => {
     expect(screen.getByTestId('config-initial-date-value')).toHaveTextContent('2025-01-01')
     expect(screen.getByTestId('config-locked-period-value')).toHaveTextContent('2025-06-30')
     expect(screen.getByTestId('config-min-level-value')).toHaveTextContent('3')
-    expect(screen.getByTestId('config-snapshot-freq-value')).toHaveTextContent('30')
   })
 
   it('opens edit initial date dialog', async () => {
@@ -343,7 +340,6 @@ describe('SetupPage — Accounting Config tab', () => {
       setInitialDate: { mutate: setDateFn, isPending: false },
       setLockedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },
-      setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { ...noOpMutation },
       setClosingTransactionType: { ...noOpMutation },
     })
@@ -502,7 +498,6 @@ describe('SetupPage — nominal accounts configuration', () => {
       setInitialDate: { ...noOpMutation },
       setLockedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },
-      setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { mutate: saveFn, isPending: false },
       setClosingTransactionType: { ...noOpMutation },
     })
@@ -548,7 +543,6 @@ describe('SetupPage — closing transaction type configuration', () => {
       setInitialDate: { ...noOpMutation },
       setLockedPeriodDate: { ...noOpMutation },
       setMinimumAccountLevel: { ...noOpMutation },
-      setSnapshotFrequency: { ...noOpMutation },
       setNominalAccountsConfig: { ...noOpMutation },
       setClosingTransactionType: { mutate: setClosingFn, isPending: false },
     })

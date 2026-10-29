@@ -773,7 +773,7 @@ function AccountingConfigTab({ workspaceId, initialEditMode }: { workspaceId: st
   const mutations = useWorkspaceConfigMutations(workspaceId)
   const { error: editError, setError: setEditError, clearError: clearEditError } = useErrorHandler()
 
-  type EditMode = 'initialDate' | 'lockedPeriod' | 'minLevel' | 'snapshotFreq' | 'codeStructure' | 'nominalAccounts' | 'closingTransactionType' | null
+  type EditMode = 'initialDate' | 'lockedPeriod' | 'minLevel' | 'codeStructure' | 'nominalAccounts' | 'closingTransactionType' | null
   const [editMode, setEditMode] = useState<EditMode>(
     initialEditMode === 'initialDate' ? 'initialDate' : initialEditMode === 'nominalAccounts' ? 'nominalAccounts' : initialEditMode === 'closingTransactionType' ? 'closingTransactionType' : null
   )
@@ -860,23 +860,6 @@ function AccountingConfigTab({ workspaceId, initialEditMode }: { workspaceId: st
         })
       },
       isPending: mutations.setMinimumAccountLevel.isPending,
-    },
-    {
-      label: t('setup.config.snapshotFrequencyDays'),
-      testId: 'config-snapshot-freq',
-      valueTestId: 'config-snapshot-freq-value',
-      value: config?.snapshotFrequencyDays != null ? String(config.snapshotFrequencyDays) : null,
-      editBtn: 'edit-snapshot-freq-btn',
-      editMode: 'snapshotFreq',
-      fieldType: 'nullable-number',
-      mutationFn: (v) => {
-        const numVal = v ? parseInt(v, 10) : null
-        mutations.setSnapshotFrequency.mutate(numVal, {
-          onSuccess: () => setEditMode(null),
-          onError: (err) => setEditError(err as FormattedError),
-        })
-      },
-      isPending: mutations.setSnapshotFrequency.isPending,
     },
   ]
 

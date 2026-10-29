@@ -385,13 +385,6 @@ export const cacheInvalidationMap = {
     ],
     description: 'Account level config affects reports',
   },
-  setSnapshotFrequency: {
-    invalidates: [
-      queryKeys.workspaceConfig.all(),
-      queryKeys.reports.all(),
-    ],
-    description: 'Snapshot frequency affects reporting queries',
-  },
   configureCodeStructure: {
     invalidates: [
       queryKeys.codeStructureConfig.all(),
