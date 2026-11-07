@@ -54,8 +54,12 @@ function ThirdPartyRow({
       aria-label={`${tp.thirdPartyExternalId} ${tp.thirdPartyName}`}
     >
       <TableCell sx={{ pl: `${indent}px`, py: 0.5 }}>
-        <Box component="span" sx={{ fontStyle: 'italic', fontSize: '0.85em', color: 'text.secondary' }}>
-          {tp.thirdPartyExternalId}
+        {/* Same toggle slot as account rows, so the code lines up with the codes of child accounts */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ width: TOGGLE_SLOT_PX, flexShrink: 0 }} />
+          <Box component="span" sx={{ fontStyle: 'italic', fontSize: '0.85em', color: 'text.secondary' }}>
+            {tp.thirdPartyExternalId}
+          </Box>
         </Box>
       </TableCell>
       <TableCell sx={{ py: 0.5 }}>
