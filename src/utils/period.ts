@@ -254,3 +254,29 @@ export function computeExpandedFromLevel(
   collectExpandable(nodes, levelFilter, result)
   return result
 }
+
+/**
+ * Default range for lists that follow the Accounting period.
+ * Uses the period stored by the Accounting page when present, otherwise the
+ * period containing today at the stored granularity. The range never starts
+ * before the system initial date, matching the Accounting page's behavior.
+ */
+export function resolveDefaultListPeriod(
+  storedFrom: string | null,
+  storedTo: string | null,
+  granularity: Granularity,
+  systemInitialDate?: string | null,
+): Period {
+  const fallback = getDefaultPeriod(granularity)
+  let from = storedFrom ?? fallback.from
+  let to = storedTo ?? fallback.to
+
+  if (systemInitialDate && to < systemInitialDate) {
+    // Entirely before the initial date: snap to the period containing it
+    return getPeriodContaining(systemInitialDate, granularity)
+  }
+  if (systemInitialDate && from < systemInitialDate) {
+    from = systemInitialDate
+  }
+  return { from, to }
+}

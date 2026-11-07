@@ -3,8 +3,10 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { TransactionsPage } from './TransactionsPage'
-import type { Transaction } from '@/hooks/api/useTransactions'
+import type { Transaction, TransactionPage } from '@/hooks/api/useTransactions'
 import type { Account } from '@/hooks/api/useAccounts'
+import { getDefaultPeriod } from '@/utils/period'
+import { PREFERENCE_KEYS } from '@/utils/preferences'
 
 // ─── Mock hooks ─────────────────────────────────────────────────────────────
 
@@ -69,6 +71,16 @@ const sampleAccounts: Account[] = [
   },
 ]
 
+function pageOf(content: Transaction[], totalElements = content.length, page = 0, size = 50): TransactionPage {
+  return {
+    content,
+    page,
+    size,
+    totalElements,
+    totalPages: Math.ceil(totalElements / size),
+  }
+}
+
 const sampleTransactions: Transaction[] = [
   {
     id: 'txn-1',
@@ -95,9 +107,10 @@ const sampleTransactions: Transaction[] = [
 
 beforeEach(() => {
   vi.clearAllMocks()
+  window.localStorage.clear()
 
   mockUseTransactions.mockReturnValue({
-    data: sampleTransactions,
+    data: pageOf(sampleTransactions),
     isLoading: false,
     isError: false,
     error: null,
@@ -198,7 +211,7 @@ describe('TransactionsPage', () => {
     }
 
     mockUseTransactions.mockReturnValue({
-      data: [multiItemTransaction],
+      data: pageOf([multiItemTransaction]),
       isLoading: false,
       isError: false,
       error: null,
@@ -273,7 +286,7 @@ describe('TransactionsPage', () => {
 
   it('shows empty state when no transactions', () => {
     mockUseTransactions.mockReturnValue({
-      data: [],
+      data: pageOf([]),
       isLoading: false,
       isError: false,
       error: null,
@@ -282,5 +295,88 @@ describe('TransactionsPage', () => {
     renderWithProviders(<TransactionsPage />)
 
     expect(screen.getByText(/no transactions found/i)).toBeInTheDocument()
+  })
+})
+
+describe('TransactionsPage date range and pagination', () => {
+  it('opens on the current Accounting period when nothing is stored', () => {
+    renderWithProviders(<TransactionsPage />)
+
+    const { from, to } = getDefaultPeriod('monthly')
+    expect(mockUseTransactions).toHaveBeenLastCalledWith(
+      'workspace-test',
+      { dateFrom: from, dateTo: to },
+      { page: 0, size: 50 },
+    )
+    expect(screen.getByTestId('filter-date-from')).toHaveValue(from)
+    expect(screen.getByTestId('filter-date-to')).toHaveValue(to)
+  })
+
+  it('opens on the period last selected in Accounting', () => {
+    window.localStorage.setItem(PREFERENCE_KEYS.ACCOUNTING_PERIOD_FROM, JSON.stringify('2026-09-01'))
+    window.localStorage.setItem(PREFERENCE_KEYS.ACCOUNTING_PERIOD_TO, JSON.stringify('2026-09-30'))
+
+    renderWithProviders(<TransactionsPage />)
+
+    expect(mockUseTransactions).toHaveBeenLastCalledWith(
+      'workspace-test',
+      { dateFrom: '2026-09-01', dateTo: '2026-09-30' },
+      { page: 0, size: 50 },
+    )
+  })
+
+  it('shows the total count and requests the next page', async () => {
+    mockUseTransactions.mockReturnValue({
+      data: pageOf(sampleTransactions, 120),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+
+    renderWithProviders(<TransactionsPage />)
+
+    expect(screen.getByText('1–50 of 120')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /next page/i }))
+
+    await waitFor(() => {
+      expect(mockUseTransactions).toHaveBeenLastCalledWith(
+        'workspace-test',
+        expect.any(Object),
+        { page: 1, size: 50 },
+      )
+    })
+  })
+
+  it('returns to the first page when filters are applied', async () => {
+    mockUseTransactions.mockReturnValue({
+      data: pageOf(sampleTransactions, 120),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+
+    renderWithProviders(<TransactionsPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: /next page/i }))
+    await waitFor(() => expect(mockUseTransactions).toHaveBeenLastCalledWith(
+      'workspace-test', expect.any(Object), { page: 1, size: 50 },
+    ))
+
+    await userEvent.click(screen.getByTestId('apply-filters-btn'))
+
+    await waitFor(() => expect(mockUseTransactions).toHaveBeenLastCalledWith(
+      'workspace-test', expect.any(Object), { page: 0, size: 50 },
+    ))
+  })
+
+  it('clearing filters requests all transactions without a date range', async () => {
+    renderWithProviders(<TransactionsPage />)
+
+    await userEvent.click(screen.getByTestId('clear-filters-btn'))
+
+    await waitFor(() => expect(mockUseTransactions).toHaveBeenLastCalledWith(
+      'workspace-test', {}, { page: 0, size: 50 },
+    ))
   })
 })

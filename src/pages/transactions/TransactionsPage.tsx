@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react'
+import { useEffect, useState, Fragment } from 'react'
 import { useParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -12,11 +12,16 @@ import TableCell from '@mui/material/TableCell'
 import IconButton from '@mui/material/IconButton'
 import TextField from '@mui/material/TextField'
 import Autocomplete from '@mui/material/Autocomplete'
+import TablePagination from '@mui/material/TablePagination'
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff'
 import { useTranslation } from 'react-i18next'
 import { useTransactions, type Transaction, type TransactionFilters } from '@/hooks/api/useTransactions'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { PREFERENCE_KEYS } from '@/utils/preferences'
+import { resolveDefaultListPeriod } from '@/utils/period'
+import type { Granularity } from '@/types/accounting'
 import { useTransactionTypes } from '@/hooks/api/useTransactionTypes'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
@@ -25,28 +30,69 @@ import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData } from '../accounting/TransactionForm'
 
+const DEFAULT_ROWS_PER_PAGE = 50
+const ROWS_PER_PAGE_OPTIONS = [25, 50, 100, 200]
+
+interface FilterForm {
+  dateFrom: string
+  dateTo: string
+  transactionTypeId?: string
+  accountId?: string
+}
+
 // ─── TransactionsPage ──────────────────────────────────────────────────────────
 
 export function TransactionsPage() {
   const { t } = useTranslation()
   const { workspaceId = '' } = useParams<{ workspaceId: string }>()
 
-  // Filter state
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [selectedTypeId, setSelectedTypeId] = useState<string | undefined>(undefined)
-  const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(undefined)
-  const [appliedFilters, setAppliedFilters] = useState<TransactionFilters>({})
+  // The list opens on the period Accounting is showing (stored preference, else the current period)
+  const [storedGranularity] = useLocalStorage<Granularity>(PREFERENCE_KEYS.ACCOUNTING_GRANULARITY, 'monthly')
+  const [storedPeriodFrom] = useLocalStorage<string | null>(PREFERENCE_KEYS.ACCOUNTING_PERIOD_FROM, null)
+  const [storedPeriodTo] = useLocalStorage<string | null>(PREFERENCE_KEYS.ACCOUNTING_PERIOD_TO, null)
+
+  const { data: workspaceConfig } = useWorkspaceConfig(workspaceId || null)
+  const defaultPeriod = resolveDefaultListPeriod(
+    storedPeriodFrom,
+    storedPeriodTo,
+    storedGranularity,
+    workspaceConfig?.systemInitialDate,
+  )
+
+  // Filter form: null until the user edits it, so the default period applies
+  const [draftFilters, setDraftFilters] = useState<FilterForm | null>(null)
+  const [appliedOverride, setAppliedOverride] = useState<TransactionFilters | null>(null)
+  const filterForm: FilterForm = draftFilters ?? { dateFrom: defaultPeriod.from, dateTo: defaultPeriod.to }
+  const appliedFilters: TransactionFilters = appliedOverride ?? {
+    dateFrom: defaultPeriod.from,
+    dateTo: defaultPeriod.to,
+  }
+
+  // Pagination state
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE)
 
   // Inline form state
   const [activeFormMode, setActiveFormMode] = useState<'create' | 'edit' | null>(null)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
 
-  const { data: transactions, isLoading, isError, error } = useTransactions(workspaceId || null, appliedFilters)
+  const { data: transactionsPage, isLoading, isError, error } = useTransactions(
+    workspaceId || null,
+    appliedFilters,
+    { page, size: rowsPerPage },
+  )
+  const transactions = transactionsPage?.content ?? []
+  const totalCount = transactionsPage?.totalElements ?? 0
   const { data: transactionTypes } = useTransactionTypes()
   const { data: accounts } = useAccounts(workspaceId || null)
-  const { data: workspaceConfig } = useWorkspaceConfig(workspaceId || null)
   const { hasWorkspaceAccess } = useWorkspaceAccess()
+
+  // If the last row of the last page disappears (e.g. after a delete), step back to the new last page
+  useEffect(() => {
+    if (transactionsPage && transactionsPage.content.length === 0 && page > 0) {
+      setPage(Math.max(0, transactionsPage.totalPages - 1))
+    }
+  }, [transactionsPage, page])
 
   const initialDateMissing = !workspaceConfig?.systemInitialDate
   const hasAccess = hasWorkspaceAccess(workspaceId)
@@ -65,21 +111,24 @@ export function TransactionsPage() {
     }
   }
 
+  const updateFilterForm = (patch: Partial<FilterForm>) => {
+    setDraftFilters({ ...filterForm, ...patch })
+  }
+
   const handleApplyFilters = () => {
-    setAppliedFilters({
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
-      transactionTypeId: selectedTypeId,
-      accountId: selectedAccountId,
+    setAppliedOverride({
+      dateFrom: filterForm.dateFrom || undefined,
+      dateTo: filterForm.dateTo || undefined,
+      transactionTypeId: filterForm.transactionTypeId,
+      accountId: filterForm.accountId,
     })
+    setPage(0)
   }
 
   const handleClearFilters = () => {
-    setDateFrom('')
-    setDateTo('')
-    setSelectedTypeId(undefined)
-    setSelectedAccountId(undefined)
-    setAppliedFilters({})
+    setDraftFilters({ dateFrom: '', dateTo: '' })
+    setAppliedOverride({})
+    setPage(0)
   }
 
   const buildInitialData = (txn: Transaction): TransactionFormInitialData => ({
@@ -165,8 +214,8 @@ export function TransactionsPage() {
         <TextField
           label={t('transactionsPage.dateFrom')}
           type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
+          value={filterForm.dateFrom}
+          onChange={(e) => updateFilterForm({ dateFrom: e.target.value })}
           size="small"
           InputLabelProps={{ shrink: true }}
           sx={{ minWidth: 160 }}
@@ -175,8 +224,8 @@ export function TransactionsPage() {
         <TextField
           label={t('transactionsPage.dateTo')}
           type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
+          value={filterForm.dateTo}
+          onChange={(e) => updateFilterForm({ dateTo: e.target.value })}
           size="small"
           InputLabelProps={{ shrink: true }}
           sx={{ minWidth: 160 }}
@@ -184,8 +233,8 @@ export function TransactionsPage() {
         />
         <Autocomplete
           options={typeOptions}
-          value={typeOptions.find((o) => o.id === selectedTypeId) ?? null}
-          onChange={(_, v) => setSelectedTypeId(v?.id ?? undefined)}
+          value={typeOptions.find((o) => o.id === filterForm.transactionTypeId) ?? null}
+          onChange={(_, v) => updateFilterForm({ transactionTypeId: v?.id ?? undefined })}
           getOptionLabel={(o) => o.name}
           isOptionEqualToValue={(a, b) => a.id === b.id}
           renderInput={(params) => (
@@ -196,8 +245,8 @@ export function TransactionsPage() {
         />
         <Autocomplete
           options={accountOptions}
-          value={accountOptions.find((o) => o.id === selectedAccountId) ?? null}
-          onChange={(_, v) => setSelectedAccountId(v?.id ?? undefined)}
+          value={accountOptions.find((o) => o.id === filterForm.accountId) ?? null}
+          onChange={(_, v) => updateFilterForm({ accountId: v?.id ?? undefined })}
           getOptionLabel={(o) => o.label}
           isOptionEqualToValue={(a, b) => a.id === b.id}
           renderInput={(params) => (
@@ -231,12 +280,12 @@ export function TransactionsPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(transactions ?? []).length === 0 && (
+            {transactions.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7}>{t('transactionsPage.noTransactions')}</TableCell>
               </TableRow>
             )}
-            {(transactions ?? []).map((txn) => {
+            {transactions.map((txn) => {
               const { debit, credit } = getTransactionTotals(txn)
               return (
                 <Fragment key={txn.id}>
@@ -297,6 +346,22 @@ export function TransactionsPage() {
             })}
           </TableBody>
         </Table>
+      )}
+
+      {!isError && (
+        <TablePagination
+          component="div"
+          count={totalCount}
+          page={Math.min(page, Math.max(0, Math.ceil(totalCount / rowsPerPage) - 1))}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10))
+            setPage(0)
+          }}
+          labelRowsPerPage={t('transactionsPage.rowsPerPage')}
+        />
       )}
     </Box>
   )

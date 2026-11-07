@@ -32,6 +32,14 @@ const sampleTransactions = [
   { id: 'txn-2', description: 'Equipment', date: '2026-03-02', amount: 1000 },
 ]
 
+const samplePage = {
+  content: sampleTransactions,
+  page: 0,
+  size: 50,
+  totalElements: 2,
+  totalPages: 1,
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('useTransactions', () => {
@@ -40,7 +48,7 @@ describe('useTransactions', () => {
   })
 
   it('fetches transactions with filters', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
+    mockGet.mockResolvedValueOnce({ data: samplePage, response: new Response() })
 
     const { result } = renderHook(
       () => useTransactions('workspace-1', { dateFrom: '2026-03-01', dateTo: '2026-03-31' }),
@@ -49,7 +57,7 @@ describe('useTransactions', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    expect(result.current.data).toEqual(sampleTransactions)
+    expect(result.current.data).toEqual(samplePage)
   })
 
   it('does not fetch when workspaceId is null', () => {
@@ -64,7 +72,7 @@ describe('useTransactions', () => {
   })
 
   it('handles empty filters', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
+    mockGet.mockResolvedValueOnce({ data: samplePage, response: new Response() })
 
     const { result } = renderHook(
       () => useTransactions('workspace-1', {}),
@@ -73,11 +81,11 @@ describe('useTransactions', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    expect(result.current.data).toEqual(sampleTransactions)
+    expect(result.current.data).toEqual(samplePage)
   })
 
   it('applies date filters', async () => {
-    mockGet.mockResolvedValueOnce({ data: sampleTransactions, response: new Response() })
+    mockGet.mockResolvedValueOnce({ data: samplePage, response: new Response() })
 
     const { result } = renderHook(
       () => useTransactions('workspace-1', { dateFrom: '2026-03-01', dateTo: '2026-03-31' }),
@@ -86,11 +94,32 @@ describe('useTransactions', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    expect(mockGet).toHaveBeenCalledWith('/transactions', expect.any(Object))
+    expect(mockGet).toHaveBeenCalledWith('/transactions', expect.objectContaining({
+      params: expect.objectContaining({
+        query: expect.objectContaining({ dateFrom: '2026-03-01', dateTo: '2026-03-31', page: 0, size: 50 }),
+      }),
+    }))
+  })
+
+  it('sends page and size when pagination is provided', async () => {
+    mockGet.mockResolvedValueOnce({ data: samplePage, response: new Response() })
+
+    const { result } = renderHook(
+      () => useTransactions('workspace-1', {}, { page: 2, size: 20 }),
+      { wrapper: makeWrapper() }
+    )
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    expect(mockGet).toHaveBeenCalledWith('/transactions', expect.objectContaining({
+      params: expect.objectContaining({
+        query: expect.objectContaining({ page: 2, size: 20 }),
+      }),
+    }))
   })
 
   it('applies account filter', async () => {
-    mockGet.mockResolvedValueOnce({ data: [sampleTransactions[0]], response: new Response() })
+    mockGet.mockResolvedValueOnce({ data: { ...samplePage, content: [sampleTransactions[0]], totalElements: 1 }, response: new Response() })
 
     const { result } = renderHook(
       () => useTransactions('workspace-1', { accountId: 'acc-1' }),
@@ -104,7 +133,7 @@ describe('useTransactions', () => {
 
   it('returns empty array when no transactions exist', async () => {
     mockGet.mockResolvedValueOnce({
-      data: [],
+      data: { content: [], page: 0, size: 50, totalElements: 0, totalPages: 0 },
       response: new Response(),
     })
 
@@ -115,7 +144,7 @@ describe('useTransactions', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    expect(result.current.data).toEqual([])
+    expect(result.current.data?.content).toEqual([])
   })
 
   it('handles fetch errors', async () => {

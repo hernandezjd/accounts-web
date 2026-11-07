@@ -8,6 +8,7 @@ import {
   computeExpandedFromLevel,
 } from './period'
 import type { AccountPeriodNode } from '@/types/accounting'
+import { resolveDefaultListPeriod, getDefaultPeriod } from './period'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -265,5 +266,48 @@ describe('computeExpandedFromLevel', () => {
 
   it('empty nodes → empty set', () => {
     expect(computeExpandedFromLevel([], null).size).toBe(0)
+  })
+})
+
+describe('resolveDefaultListPeriod', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 10, 7)) // 2026-11-07 (local)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('falls back to the current monthly period when nothing is stored', () => {
+    expect(resolveDefaultListPeriod(null, null, 'monthly')).toEqual({
+      from: '2026-11-01',
+      to: '2026-11-30',
+    })
+  })
+
+  it('uses the period stored by Accounting', () => {
+    expect(resolveDefaultListPeriod('2026-09-01', '2026-09-30', 'monthly')).toEqual({
+      from: '2026-09-01',
+      to: '2026-09-30',
+    })
+  })
+
+  it('uses the current period at the stored granularity when only granularity is known', () => {
+    expect(resolveDefaultListPeriod(null, null, 'yearly')).toEqual(getDefaultPeriod('yearly'))
+  })
+
+  it('clamps the start to the system initial date when the period straddles it', () => {
+    expect(resolveDefaultListPeriod('2026-10-01', '2026-10-31', 'monthly', '2026-10-15')).toEqual({
+      from: '2026-10-15',
+      to: '2026-10-31',
+    })
+  })
+
+  it('snaps to the period containing the initial date when the period ends before it', () => {
+    expect(resolveDefaultListPeriod('2026-03-01', '2026-03-31', 'monthly', '2026-11-03')).toEqual({
+      from: '2026-11-01',
+      to: '2026-11-30',
+    })
   })
 })
