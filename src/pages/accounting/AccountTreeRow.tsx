@@ -7,6 +7,8 @@ import Box from '@mui/material/Box'
 import type { AccountPeriodNode, ThirdPartyPeriodNode } from '@/types/accounting'
 
 const INDENT_PX = 24
+// Size of the small IconButton (20px icon + 2px padding per side).
+const TOGGLE_SLOT_PX = 24
 
 interface AccountTreeRowProps {
   node: AccountPeriodNode
@@ -110,26 +112,29 @@ export function AccountTreeRow({
         }}
         aria-label={`${node.accountCode} ${node.accountName}`}
       >
-        <TableCell sx={{ pl: `${indent + (hasChildren ? 0 : 40)}px`, py: 0.75 }}>
+        <TableCell sx={{ pl: `${indent}px`, py: 0.75 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            {hasChildren && (
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onToggle(node.accountId)
-                }}
-                onDoubleClick={(e) => e.stopPropagation()}
-                aria-label={`toggle ${node.accountCode}`}
-                sx={{ p: 0.25 }}
-              >
-                {isExpanded ? (
-                  <ExpandMoreIcon fontSize="small" />
-                ) : (
-                  <ChevronRightIcon fontSize="small" />
-                )}
-              </IconButton>
-            )}
+            {/* Fixed-width toggle slot so codes align whether or not the row has children */}
+            <Box sx={{ width: TOGGLE_SLOT_PX, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+              {hasChildren && (
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onToggle(node.accountId)
+                  }}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  aria-label={`toggle ${node.accountCode}`}
+                  sx={{ p: 0.25 }}
+                >
+                  {isExpanded ? (
+                    <ExpandMoreIcon fontSize="small" />
+                  ) : (
+                    <ChevronRightIcon fontSize="small" />
+                  )}
+                </IconButton>
+              )}
+            </Box>
             <Box component="span" sx={{ fontFamily: 'monospace', fontSize: '0.875em' }}>
               {node.accountCode}
             </Box>
