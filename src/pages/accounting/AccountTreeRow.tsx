@@ -3,12 +3,18 @@ import TableCell from '@mui/material/TableCell'
 import IconButton from '@mui/material/IconButton'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import PushPinIcon from '@mui/icons-material/PushPin'
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined'
+import Tooltip from '@mui/material/Tooltip'
 import Box from '@mui/material/Box'
+import { useTranslation } from 'react-i18next'
 import type { AccountPeriodNode, ThirdPartyPeriodNode } from '@/types/accounting'
 
 const INDENT_PX = 24
 // Size of the small IconButton (20px icon + 2px padding per side).
 const TOGGLE_SLOT_PX = 24
+// Accounts at these levels are always shown and cannot be configured as always visible.
+const ALWAYS_VISIBLE_MAX_LEVEL = 2
 
 interface AccountTreeRowProps {
   node: AccountPeriodNode
@@ -16,6 +22,10 @@ interface AccountTreeRowProps {
   onToggle: (accountId: string) => void
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
   highlightedAccountId?: string
+  /** Account ids configured to stay visible even when all their values are zero. */
+  alwaysVisibleIds?: ReadonlySet<string>
+  /** Called with the next state when the pin control is clicked. Omit to hide the control. */
+  onToggleAlwaysVisible?: (accountId: string, next: boolean) => void
 }
 
 function formatAmount(n: number): string {
@@ -89,11 +99,17 @@ export function AccountTreeRow({
   onToggle,
   onDrillDown,
   highlightedAccountId,
+  alwaysVisibleIds,
+  onToggleAlwaysVisible,
 }: AccountTreeRowProps) {
+  const { t } = useTranslation()
   const indent = (node.level - 1) * INDENT_PX
   const hasChildren = node.children.length > 0 || node.thirdPartyChildren.length > 0
   const isExpanded = expandedNodes.has(node.accountId)
   const isHighlighted = highlightedAccountId === node.accountId
+  const isAlwaysVisible = alwaysVisibleIds?.has(node.accountId) ?? false
+  const canConfigureAlwaysVisible = node.level > ALWAYS_VISIBLE_MAX_LEVEL && onToggleAlwaysVisible !== undefined
+  const pinLabel = t('accounting.tree.alwaysVisible')
 
   function handleActivate() {
     onDrillDown(node.accountId)
@@ -145,7 +161,35 @@ export function AccountTreeRow({
           </Box>
         </TableCell>
         <TableCell sx={{ py: 0.75, fontWeight: node.level === 1 ? 600 : 400 }}>
-          {node.accountName}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
+            <span>{node.accountName}</span>
+            {canConfigureAlwaysVisible && (
+              <Tooltip title={pinLabel}>
+                <IconButton
+                  size="small"
+                  aria-label={pinLabel}
+                  aria-pressed={isAlwaysVisible}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onToggleAlwaysVisible(node.accountId, !isAlwaysVisible)
+                  }}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  sx={{
+                    p: 0.25,
+                    color: isAlwaysVisible ? 'primary.main' : 'text.disabled',
+                    opacity: isAlwaysVisible ? 1 : 0.35,
+                    '&:hover': { opacity: 1 },
+                  }}
+                >
+                  {isAlwaysVisible ? (
+                    <PushPinIcon sx={{ fontSize: 14 }} />
+                  ) : (
+                    <PushPinOutlinedIcon sx={{ fontSize: 14 }} />
+                  )}
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
         </TableCell>
         <TableCell align="right" sx={{ py: 0.75, color: simColor(node.openingBalance, node.originalOpeningBalance) }}>
           {formatAmount(node.openingBalance)}
@@ -180,6 +224,8 @@ export function AccountTreeRow({
               onToggle={onToggle}
               onDrillDown={onDrillDown}
               highlightedAccountId={highlightedAccountId}
+              alwaysVisibleIds={alwaysVisibleIds}
+              onToggleAlwaysVisible={onToggleAlwaysVisible}
             />
           ))}
         </>

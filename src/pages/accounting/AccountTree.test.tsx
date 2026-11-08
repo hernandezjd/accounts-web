@@ -222,3 +222,80 @@ describe('AccountTree', () => {
     expect(level1Row).not.toBe(level2Row)
   })
 })
+
+describe('AccountTree: always-visible accounts', () => {
+  const pinnable = makeNode('L3', 3)
+  const level2 = { ...makeNode('L2', 2), children: [pinnable] }
+  const level1 = { ...makeNode('L1', 1), children: [level2] }
+  const expanded = new Set<string>(['L1', 'L2'])
+
+  it('offers the pin control only on level 3 and deeper accounts', () => {
+    renderWithProviders(
+      <AccountTree
+        {...defaultProps}
+        nodes={[level1]}
+        expandedNodes={expanded}
+        alwaysVisibleIds={new Set()}
+        onToggleAlwaysVisible={vi.fn()}
+      />
+    )
+
+    expect(screen.getAllByRole('button', { name: /always show this account/i })).toHaveLength(1)
+    const row = screen.getByRole('row', { name: /CODE-L3/ })
+    expect(row).toContainElement(screen.getByRole('button', { name: /always show this account/i }))
+  })
+
+  it('reflects the configured state with aria-pressed', () => {
+    renderWithProviders(
+      <AccountTree
+        {...defaultProps}
+        nodes={[level1]}
+        expandedNodes={expanded}
+        alwaysVisibleIds={new Set(['L3'])}
+        onToggleAlwaysVisible={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: /always show this account/i })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('calls onToggleAlwaysVisible with the next state and does not drill down or expand', () => {
+    const onToggleAlwaysVisible = vi.fn()
+    const onDrillDown = vi.fn()
+    const onToggle = vi.fn()
+    renderWithProviders(
+      <AccountTree
+        {...defaultProps}
+        onDrillDown={onDrillDown}
+        onToggle={onToggle}
+        nodes={[level1]}
+        expandedNodes={expanded}
+        alwaysVisibleIds={new Set()}
+        onToggleAlwaysVisible={onToggleAlwaysVisible}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /always show this account/i }))
+
+    expect(onToggleAlwaysVisible).toHaveBeenCalledWith('L3', true)
+    expect(onDrillDown).not.toHaveBeenCalled()
+    expect(onToggle).not.toHaveBeenCalled()
+  })
+
+  it('unpins a configured account when clicked again', () => {
+    const onToggleAlwaysVisible = vi.fn()
+    renderWithProviders(
+      <AccountTree
+        {...defaultProps}
+        nodes={[level1]}
+        expandedNodes={expanded}
+        alwaysVisibleIds={new Set(['L3'])}
+        onToggleAlwaysVisible={onToggleAlwaysVisible}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /always show this account/i }))
+
+    expect(onToggleAlwaysVisible).toHaveBeenCalledWith('L3', false)
+  })
+})

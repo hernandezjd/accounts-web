@@ -99,6 +99,7 @@
     },
     "tree": {
       "levelFilter": "Level",
+      "alwaysVisible": "Always show this account",
       "allLevels": "All",
       "expandAll": "Expand All",
       "collapseAll": "Collapse All",
@@ -146,6 +147,7 @@
       "loading": "Searching..."
     },
     "simulateClosureToggle": "Simulate Closure",
+    "showZeroAccounts": "Show zero-balance accounts",
     "simulateModeActive": "Closure simulation is active",
     "closureSimulationInfo": "Values shown in blue represent simulated closure entries: nominal account closures (set to zero) and the resulting profit/loss transfer to the P&L account.",
     "closureMissingBoth": "Closure simulation requires nominal accounts and a P&L account to be configured.",

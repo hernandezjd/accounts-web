@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
@@ -20,6 +20,7 @@ import { PREFERENCE_KEYS } from '@/utils/preferences'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { usePeriodAccountSummary } from '@/hooks/api/usePeriodAccountSummary'
 import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
+import { useWorkspaceConfigMutations } from '@/hooks/api/useWorkspaceConfigMutations'
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { PeriodControls } from './PeriodControls'
 import { AccountTree } from './AccountTree'
@@ -119,6 +120,8 @@ export function AccountingPage() {
   // ── Closure simulation toggle with localStorage persistence ───────────────
   const [simulateClosure, setSimulateClosureState] = useState(() => storedSimulateClosure)
   const [showMissingConfigWarning, setShowMissingConfigWarning] = useState(false)
+  // Zero-balance rows are hidden by default; this switch asks the backend for them.
+  const [showZeroAccounts, setShowZeroAccounts] = useState(false)
 
   const setSimulateClosure = (value: boolean | ((prev: boolean) => boolean)) => {
     setSimulateClosureState((prev) => {
@@ -164,6 +167,16 @@ export function AccountingPage() {
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { data: workspaceConfig, isLoading: isConfigLoading } = useWorkspaceConfig(workspaceId)
+  const { setAlwaysVisibleAccounts } = useWorkspaceConfigMutations(workspaceId ?? '')
+  const alwaysVisibleIds = useMemo(
+    () => new Set(workspaceConfig?.alwaysVisibleAccountIds ?? []),
+    [workspaceConfig?.alwaysVisibleAccountIds],
+  )
+  const handleToggleAlwaysVisible = (accountId: string, next: boolean) => {
+    const current = workspaceConfig?.alwaysVisibleAccountIds ?? []
+    const accountIds = next ? [...current, accountId] : current.filter((id) => id !== accountId)
+    setAlwaysVisibleAccounts.mutate(accountIds)
+  }
   const systemInitialDate = workspaceConfig?.systemInitialDate
 
   // Clamp `from` so we never request data before systemInitialDate.
@@ -172,7 +185,7 @@ export function AccountingPage() {
   const effectiveFrom =
     systemInitialDate && from < systemInitialDate ? systemInitialDate : from
 
-  const { data, isLoading, isError, error: apiError, refetch } = usePeriodAccountSummary(workspaceId, effectiveFrom, to, simulateClosure)
+  const { data, isLoading, isError, error: apiError, refetch } = usePeriodAccountSummary(workspaceId, effectiveFrom, to, simulateClosure, showZeroAccounts)
 
   // Format error for display with classification
   const formattedError = apiError ?? null
@@ -470,8 +483,18 @@ export function AccountingPage() {
               onPeriodChange={handlePeriodChange}
               systemInitialDate={systemInitialDate}
             />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 'auto' }}>
             <FormControlLabel
-              sx={{ ml: 'auto' }}
+              control={
+                <Switch
+                  checked={showZeroAccounts}
+                  onChange={(e) => setShowZeroAccounts(e.target.checked)}
+                  data-testid="show-zero-accounts-toggle"
+                />
+              }
+              label={t('accounting.showZeroAccounts')}
+            />
+            <FormControlLabel
               control={
                 <Switch
                   checked={simulateClosure}
@@ -493,6 +516,7 @@ export function AccountingPage() {
               }
               label={t('accounting.simulateClosureToggle')}
             />
+            </Box>
           </Box>
 
           {simulateClosure && (
@@ -554,6 +578,8 @@ export function AccountingPage() {
                 simulateClosure={simulateClosure}
                 from={effectiveFrom}
                 to={to}
+                alwaysVisibleIds={alwaysVisibleIds}
+                onToggleAlwaysVisible={handleToggleAlwaysVisible}
               />
             )}
           </Box>

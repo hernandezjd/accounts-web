@@ -29,6 +29,8 @@ interface AccountTreeProps {
   simulateClosure?: boolean
   from: string
   to: string
+  alwaysVisibleIds?: ReadonlySet<string>
+  onToggleAlwaysVisible?: (accountId: string, next: boolean) => void
 }
 
 /**
@@ -78,6 +80,8 @@ export function AccountTree({
   highlightedAccountId,
   simulateClosure,
   from,
+  alwaysVisibleIds,
+  onToggleAlwaysVisible,
 }: AccountTreeProps) {
   const { t } = useTranslation()
 
@@ -150,6 +154,8 @@ export function AccountTree({
                 onToggle={onToggle}
                 onDrillDown={onDrillDown}
                 highlightedAccountId={highlightedAccountId}
+                alwaysVisibleIds={alwaysVisibleIds}
+                onToggleAlwaysVisible={onToggleAlwaysVisible}
               />
             ))}
           </TableBody>

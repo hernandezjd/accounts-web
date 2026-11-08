@@ -704,3 +704,46 @@ describe('AccountingPage', () => {
     })
   })
 })
+
+describe('AccountingPage: zero-balance accounts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    mockUseSummary.mockReturnValue({
+      data: { fromDate: '2026-01-01', toDate: '2026-01-31', accounts: [] },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+    mockUseTxns.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+    mockUseSearch.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useUnifiedSearch>)
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as unknown as ReturnType<typeof useWorkspaceConfig>)
+  })
+
+  it('hides zero-balance accounts by default and requests them when the toggle is on', async () => {
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
+    })
+
+    const includeZeroArg = () => mockUseSummary.mock.calls.at(-1)?.[4]
+    expect(includeZeroArg()).toBe(false)
+
+    await userEvent.click(screen.getByRole('checkbox', { name: /show zero-balance accounts/i }))
+
+    expect(includeZeroArg()).toBe(true)
+  })
+})

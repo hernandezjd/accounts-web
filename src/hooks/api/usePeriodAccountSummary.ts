@@ -52,15 +52,17 @@ export function usePeriodAccountSummary(
   fromDate: string,
   toDate: string,
   simulateClosure?: boolean,
+  includeZeroAccounts?: boolean,
 ) {
   const query: Record<string, string | boolean> = {
     fromDate,
     toDate,
   }
   if (simulateClosure) query.simulateClosure = simulateClosure
+  if (includeZeroAccounts) query.includeZeroAccounts = includeZeroAccounts
 
   return useApiQuery<PeriodAccountSummary>(
-    queryKeys.reports.periodAccountSummary(workspaceId!, { fromDate, toDate, simulateClosure }),
+    queryKeys.reports.periodAccountSummary(workspaceId!, { fromDate, toDate, simulateClosure, includeZeroAccounts }),
     async () => {
       const response = await apiClient.query.GET('/reports/period-account-summary', {
         params: { query },

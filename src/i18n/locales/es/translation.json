@@ -99,6 +99,7 @@
     },
     "tree": {
       "levelFilter": "Nivel",
+      "alwaysVisible": "Mostrar siempre esta cuenta",
       "allLevels": "Todos",
       "expandAll": "Expandir Todo",
       "collapseAll": "Colapsar Todo",
@@ -146,6 +147,7 @@
       "loading": "Buscando..."
     },
     "simulateClosureToggle": "Simular Cierre",
+    "showZeroAccounts": "Mostrar cuentas en cero",
     "simulateModeActive": "La simulación de cierre está activa",
     "closureSimulationInfo": "Los valores mostrados en azul representan entradas de cierre simuladas: cierres de cuentas nominales (establecidos a cero) y la transferencia resultante de ganancias/pérdidas a la cuenta de P&L.",
     "closureMissingBoth": "La simulación de cierre requiere que se configuren las cuentas nominales y una cuenta de P&L.",

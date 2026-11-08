@@ -16,12 +16,15 @@ export function useWorkspaceConfigMutations(workspaceId: string) {
    * Patch the workspace config cache immediately with response data,
    * then schedule a background refetch for consistency verification.
    */
-  const patchCache = (patch: Partial<WorkspaceConfig>) => {
+  const patchCache = (patch: Partial<WorkspaceConfig>, { refetchConfig = true } = {}) => {
     qc.cancelQueries({ queryKey: queryKeys.workspaceConfig.all() })
     qc.setQueryData<WorkspaceConfig>(configKey, (old) => (old ? { ...old, ...patch } : old))
     // Background refetch after delay to verify consistency
     setTimeout(() => {
-      qc.invalidateQueries({ queryKey: queryKeys.workspaceConfig.all() })
+      // The read side can lag behind the command side; refetching it right after a
+      // write can briefly return the previous value. Callers whose response already
+      // carries the authoritative state opt out of this refetch.
+      if (refetchConfig) qc.invalidateQueries({ queryKey: queryKeys.workspaceConfig.all() })
       // Config changes may affect reports, so invalidate those too
       qc.invalidateQueries({ queryKey: queryKeys.reports.all() })
       qc.invalidateQueries({ queryKey: queryKeys.transactions.all() })
@@ -92,11 +95,27 @@ export function useWorkspaceConfigMutations(workspaceId: string) {
     }
   )
 
+  const setAlwaysVisibleAccounts = useApiMutation(
+    (accountIds: string[]) =>
+      apiClient.command.PUT<WorkspaceConfigResponse>('/config/always-visible-accounts', {
+        params: { header: headers },
+        body: { accountIds },
+      }),
+    {
+      onSuccess: (data, accountIds) =>
+        patchCache(
+          { alwaysVisibleAccountIds: data?.alwaysVisibleAccountIds ?? accountIds },
+          { refetchConfig: false },
+        ),
+    }
+  )
+
   return {
     setInitialDate,
     setLockedPeriodDate,
     setMinimumAccountLevel,
     setNominalAccountsConfig,
     setClosingTransactionType,
+    setAlwaysVisibleAccounts,
   }
 }

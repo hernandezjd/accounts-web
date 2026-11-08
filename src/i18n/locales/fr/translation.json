@@ -99,6 +99,7 @@
     },
     "tree": {
       "levelFilter": "Niveau",
+      "alwaysVisible": "Toujours afficher ce compte",
       "allLevels": "Tous",
       "expandAll": "Développer tout",
       "collapseAll": "Réduire tout",
@@ -146,6 +147,7 @@
       "loading": "Recherche en cours..."
     },
     "simulateClosureToggle": "Simuler la clôture",
+    "showZeroAccounts": "Afficher les comptes à solde nul",
     "simulateModeActive": "La simulation de clôture est active",
     "closureSimulationInfo": "Les valeurs affichées en bleu représentent les entrées de clôture simulées: fermetures de comptes nominatifs (définies à zéro) et le transfert de profit/perte résultant vers le compte de résultat.",
     "closureMissingBoth": "La simulation de clôture nécessite la configuration des comptes nominatifs et d'un compte de résultat.",
