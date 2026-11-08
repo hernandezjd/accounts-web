@@ -426,6 +426,51 @@ describe('TransactionView', () => {
     })
   })
 
+  it('sums the debit of every item inside the account scope, including child accounts', async () => {
+    // Drilling down into a parent account: items posted to its children count toward its amounts
+    const parentData: AccountTransactionDetail = {
+      accountId: 'parent-1',
+      fromDate: '2026-01-01',
+      toDate: '2026-01-31',
+      thirdPartyId: null,
+      openingBalance: 150,
+      transactions: [
+        {
+          transactionId: 'txn-1',
+          transactionNumber: 'JRN-001',
+          transactionTypeName: 'Journal',
+          date: '2026-01-15',
+          description: 'Transfer',
+          items: [
+            { accountId: 'child-1', accountCode: '1100', accountName: 'Cash', thirdPartyId: null, thirdPartyName: null, debitAmount: 100, creditAmount: 0 },
+            { accountId: 'child-2', accountCode: '1200', accountName: 'Bank', thirdPartyId: null, thirdPartyName: null, debitAmount: 20, creditAmount: 0 },
+          ],
+          runningBalance: 270,
+        },
+      ],
+    }
+    mockUseQuery.mockReturnValue({
+      data: parentData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(
+      <TransactionView
+        {...defaultProps}
+        accountId="parent-1"
+        accountName="Assets"
+        accountCode="1000"
+        accountScopeIds={['parent-1', 'child-1', 'child-2']}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('120.00')).toBeInTheDocument()
+    })
+  })
+
   it('displays line items with third-party names when applicable', async () => {
     const dataWithThirdParty: AccountTransactionDetail = {
       ...sampleData,

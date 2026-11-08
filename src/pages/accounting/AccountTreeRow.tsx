@@ -5,6 +5,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import PushPinIcon from '@mui/icons-material/PushPin'
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined'
+import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import Tooltip from '@mui/material/Tooltip'
 import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
@@ -110,6 +111,7 @@ export function AccountTreeRow({
   const isAlwaysVisible = alwaysVisibleIds?.has(node.accountId) ?? false
   const canConfigureAlwaysVisible = node.level > ALWAYS_VISIBLE_MAX_LEVEL && onToggleAlwaysVisible !== undefined
   const pinLabel = t('accounting.tree.alwaysVisible')
+  const viewTransactionsLabel = t('accounting.tree.viewTransactions')
 
   function handleActivate() {
     onDrillDown(node.accountId)
@@ -163,8 +165,9 @@ export function AccountTreeRow({
         <TableCell sx={{ py: 0.75, fontWeight: node.level === 1 ? 600 : 400 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
             <span>{node.accountName}</span>
-            {canConfigureAlwaysVisible && (
-              <Tooltip title={pinLabel}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+              {canConfigureAlwaysVisible && (
+                <Tooltip title={pinLabel}>
                 <IconButton
                   size="small"
                   aria-label={pinLabel}
@@ -188,7 +191,23 @@ export function AccountTreeRow({
                   )}
                 </IconButton>
               </Tooltip>
-            )}
+              )}
+              <Tooltip title={viewTransactionsLabel}>
+                <IconButton
+                  size="small"
+                  aria-label={viewTransactionsLabel}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleActivate()
+                  }}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  sx={{ p: 0.25, color: 'text.secondary', opacity: 0.6, '&:hover': { opacity: 1 } }}
+                >
+                  <ReceiptLongOutlinedIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Box>
         </TableCell>
         <TableCell align="right" sx={{ py: 0.75, color: simColor(node.openingBalance, node.originalOpeningBalance) }}>

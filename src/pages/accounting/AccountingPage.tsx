@@ -55,6 +55,11 @@ function findAccount(
   return undefined
 }
 
+/** Collect the id of a node and of every account below it. */
+function collectSubtreeAccountIds(node: AccountPeriodNode): string[] {
+  return [node.accountId, ...node.children.flatMap(collectSubtreeAccountIds)]
+}
+
 /** Walk the tree and collect IDs of all ancestors of the target node. */
 function collectAncestorIds(
   nodes: AccountPeriodNode[],
@@ -458,6 +463,11 @@ export function AccountingPage() {
           accountId={selectedAccountId}
           accountName={selectedAccount?.accountName ?? selectedAccountId}
           accountCode={selectedAccount?.accountCode ?? ''}
+          accountScopeIds={
+            selectedAccount && !selectedThirdPartyId
+              ? collectSubtreeAccountIds(selectedAccount)
+              : undefined
+          }
           thirdPartyId={selectedThirdPartyId ?? undefined}
           thirdPartyName={selectedTP?.thirdPartyName}
           from={from}

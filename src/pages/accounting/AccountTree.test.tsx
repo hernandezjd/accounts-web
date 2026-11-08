@@ -206,6 +206,24 @@ describe('AccountTree', () => {
     expect(onDrillDown).toHaveBeenCalledWith('T', 'tp-T')
   })
 
+  it('each account row has a "view transactions" button that drills down without double-click', () => {
+    const onDrillDown = vi.fn()
+    renderWithProviders(
+      <AccountTree {...defaultProps} nodes={[leafA]} onDrillDown={onDrillDown} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /view transactions/i }))
+    expect(onDrillDown).toHaveBeenCalledWith('A')
+  })
+
+  it('"view transactions" button does not toggle the row', () => {
+    const onToggle = vi.fn()
+    renderWithProviders(
+      <AccountTree {...defaultProps} nodes={[nodeWithChild]} onToggle={onToggle} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /view transactions/i }))
+    expect(onToggle).not.toHaveBeenCalled()
+  })
+
   it('indentation increases by level (level-2 row has more padding than level-1)', () => {
     renderWithProviders(
       <AccountTree

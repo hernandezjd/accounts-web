@@ -35,6 +35,11 @@ interface TransactionViewProps {
   accountId: string
   accountName: string
   accountCode: string
+  /**
+   * Ids of every account whose items count toward this view: the account itself plus its descendants
+   * when a parent account is drilled into. Defaults to the account alone.
+   */
+  accountScopeIds?: readonly string[]
   thirdPartyId?: string
   thirdPartyName?: string
   from: string
@@ -62,6 +67,7 @@ export function TransactionView({
   accountId,
   accountName,
   accountCode,
+  accountScopeIds,
   thirdPartyId,
   thirdPartyName,
   from,
@@ -72,6 +78,7 @@ export function TransactionView({
   onNextPeriod,
   onGranularityChange,
 }: TransactionViewProps) {
+  const scopeIds = accountScopeIds ?? [accountId]
   const { t } = useTranslation()
   const { data, isLoading, isError, error: apiError, refetch } = useAccountTransactionsInPeriod(
     workspaceId,
@@ -254,13 +261,14 @@ export function TransactionView({
                   </TableHead>
                   <TableBody>
                     {data.transactions.map((txn, _) => {
-                      const matchingItem = txn.items.find(
+                      // A transaction can post several items inside the scope (e.g. two child accounts of a parent)
+                      const matchingItems = txn.items.filter(
                         (item) =>
-                          item.accountId === accountId &&
+                          scopeIds.includes(item.accountId ?? '') &&
                           (!thirdPartyId || item.thirdPartyId === thirdPartyId),
                       )
-                      const debit = matchingItem?.debitAmount ?? 0
-                      const credit = matchingItem?.creditAmount ?? 0
+                      const debit = matchingItems.reduce((sum, item) => sum + (item.debitAmount ?? 0), 0)
+                      const credit = matchingItems.reduce((sum, item) => sum + (item.creditAmount ?? 0), 0)
 
                       return (
                         <Fragment key={txn.transactionId}>

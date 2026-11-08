@@ -100,6 +100,7 @@
     "tree": {
       "levelFilter": "Level",
       "alwaysVisible": "Always show this account",
+      "viewTransactions": "View transactions",
       "allLevels": "All",
       "expandAll": "Expand All",
       "collapseAll": "Collapse All",

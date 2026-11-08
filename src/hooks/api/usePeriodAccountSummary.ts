@@ -1,3 +1,4 @@
+import { keepPreviousData } from '@tanstack/react-query'
 import { useApiQuery } from '@/hooks/api/useApiQuery'
 import { apiClient } from '@/api/apiClient'
 import { queryKeys } from '@/api/queryKeys'
@@ -88,6 +89,11 @@ export function usePeriodAccountSummary(
         response,
       }
     },
-    { enabled: Boolean(workspaceId) && Boolean(fromDate) && Boolean(toDate) },
+    {
+      enabled: Boolean(workspaceId) && Boolean(fromDate) && Boolean(toDate),
+      // Keep the previous period on screen while the new one loads, so views that read
+      // account names from the summary (e.g. the transaction header) do not lose them
+      placeholderData: keepPreviousData,
+    },
   )
 }

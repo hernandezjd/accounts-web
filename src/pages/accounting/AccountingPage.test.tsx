@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, fireEvent } from '@testing-library/react'
+import { screen, waitFor, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { AccountingPage } from './AccountingPage'
@@ -283,6 +283,87 @@ describe('AccountingPage', () => {
       expect(screen.getByRole('heading', { name: /1000 Cash/ })).toBeInTheDocument()
       // Back button appears
       expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
+    })
+  })
+
+  it('double-click on a parent account shows the transactions and amounts of its children', async () => {
+    const parentSummary: PeriodAccountSummary = {
+      fromDate: '2026-01-01',
+      toDate: '2026-01-31',
+      accounts: [
+        {
+          accountId: 'acc-parent',
+          accountCode: '1000',
+          accountName: 'Assets',
+          level: 1,
+          openingBalance: 150,
+          totalDebits: 120,
+          totalCredits: 0,
+          closingBalance: 270,
+          thirdPartyChildren: [],
+          children: [
+            {
+              accountId: 'acc-child',
+              accountCode: '1100',
+              accountName: 'Cash',
+              level: 2,
+              openingBalance: 150,
+              totalDebits: 120,
+              totalCredits: 0,
+              closingBalance: 270,
+              thirdPartyChildren: [],
+              children: [],
+            },
+          ],
+        },
+      ],
+    }
+    // The parent has no items of its own; the period activity is posted to its child
+    const parentTransactions: AccountTransactionDetail = {
+      accountId: 'acc-parent',
+      fromDate: '2026-01-01',
+      toDate: '2026-01-31',
+      thirdPartyId: null,
+      openingBalance: 150,
+      transactions: [
+        {
+          transactionId: 'txn-child',
+          transactionNumber: 'INV-002',
+          transactionTypeName: 'Invoice',
+          date: '2026-01-12',
+          description: 'Child activity',
+          items: [
+            { accountId: 'acc-child', accountCode: '1100', accountName: 'Cash', thirdPartyId: null, thirdPartyName: null, debitAmount: 120, creditAmount: 0 },
+          ],
+          runningBalance: 270,
+        },
+      ],
+    }
+    mockUseSummary.mockReturnValue({
+      data: parentSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+    mockUseTxns.mockReturnValue({
+      data: parentTransactions,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
+    })
+
+    await waitFor(() => expect(screen.getByText('Assets')).toBeInTheDocument())
+    fireEvent.dblClick(screen.getByRole('row', { name: /1000 Assets/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /1000 Assets/ })).toBeInTheDocument()
+      // The transaction summary row must show the child's debit as the parent's debit
+      const summaryRow = screen.getByText('INV-002').closest('tr') as HTMLElement
+      expect(within(summaryRow).getByText('120.00')).toBeInTheDocument()
     })
   })
 
