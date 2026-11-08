@@ -32,6 +32,8 @@ import { useUserActions } from '@/hooks/useUserActions'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { FormattedError } from '@accounts/error-handling-web'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
+import { CurrencyMultiSelect } from '@/components/CurrencyMultiSelect'
 
 // ─── AccountFormDialog ─────────────────────────────────────────────────────────
 
@@ -53,6 +55,8 @@ function AccountFormDialog({
   const { t } = useTranslation()
   const { createAccount, updateAccount } = useAccountMutations(workspaceId)
   const { data: codeStructureConfig } = useCodeStructureConfig(workspaceId)
+  const { data: config } = useWorkspaceConfig(workspaceId)
+  const enabledCurrencies = config?.enabledCurrencies ?? []
 
   const isEdit = Boolean(editAccount)
 
@@ -63,6 +67,8 @@ function AccountFormDialog({
   )
   const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [hasThirdParties, setHasThirdParties] = useState(false)
+  // Empty on create = the base currency (REQ-CUR-03); on edit it starts from the currencies of the account
+  const [currencies, setCurrencies] = useState<string[]>(isEdit ? (editAccount?.currencies ?? []) : [])
   const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
@@ -71,6 +77,7 @@ function AccountFormDialog({
     setParentAccount(null)
     setParentId(isEdit ? editAccount?.parentId ?? null : null)
     setHasThirdParties(false)
+    setCurrencies(isEdit ? (editAccount?.currencies ?? []) : [])
     setErrorMsg(null)
     onClose()
   }
@@ -97,7 +104,10 @@ function AccountFormDialog({
     if (isEdit) {
       // Note: parentId is a valid field per FR-094, but the generated API types may not include it yet
       updateAccount.mutate(
-        { id: editAccount!.id!, body: { code, name, parentId: parentId ?? undefined } as any },
+        {
+          id: editAccount!.id!,
+          body: { code, name, parentId: parentId ?? undefined, ...(currencies.length > 0 ? { currencies } : {}) } as any,
+        },
         {
           onSuccess: handleClose,
           onError: (err) => setErrorMsg(err),
@@ -105,7 +115,7 @@ function AccountFormDialog({
       )
     } else {
       createAccount.mutate(
-        { code, name, hasThirdParties, parentId: parentAccount?.id },
+        { code, name, hasThirdParties, parentId: parentAccount?.id, ...(currencies.length > 0 ? { currencies } : {}) },
         {
           onSuccess: handleClose,
           onError: (err) => setErrorMsg(err),
@@ -173,6 +183,16 @@ function AccountFormDialog({
               />
             }
             label={t('accounts.hasThirdParties')}
+          />
+        )}
+        {enabledCurrencies.length > 1 && (
+          <CurrencyMultiSelect
+            label={t('currency.trackedCurrencies')}
+            value={currencies.length > 0 ? currencies : config?.baseCurrency ? [config.baseCurrency] : []}
+            onChange={setCurrencies}
+            options={enabledCurrencies}
+            helperText={t('currency.trackedCurrenciesHelp')}
+            testId="account-currencies-input"
           />
         )}
       </DialogContent>
@@ -445,6 +465,7 @@ export function AccountsPage() {
               <TableCell>{t('accounts.level')}</TableCell>
               <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('accounts.parentCode')}</TableCell>
               <TableCell>{t('accounts.hasThirdParties')}</TableCell>
+              <TableCell>{t('currency.currency')}</TableCell>
               <TableCell>{t('accounts.status')}</TableCell>
               <TableCell>{t('accounts.actions')}</TableCell>
             </TableRow>
@@ -452,7 +473,7 @@ export function AccountsPage() {
           <TableBody>
             {(accounts ?? []).length === 0 && (
               <TableRow>
-                <TableCell colSpan={7}>{t('accounts.noAccounts')}</TableCell>
+                <TableCell colSpan={8}>{t('accounts.noAccounts')}</TableCell>
               </TableRow>
             )}
             {(accounts ?? []).map((account) => (
@@ -468,6 +489,7 @@ export function AccountsPage() {
                   {account.parentId ? (idToCode[account.parentId] ?? '—') : '—'}
                 </TableCell>
                 <TableCell>{account.hasThirdParties ? '✓' : ''}</TableCell>
+                <TableCell>{(account.currencies ?? []).join(', ')}</TableCell>
                 <TableCell data-testid={`account-status-${account.id}`}>
                   {account.active === false ? t('accounts.inactive') : t('accounts.active')}
                 </TableCell>

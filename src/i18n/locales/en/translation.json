@@ -574,5 +574,26 @@
     "statusExpired": "Expired",
     "statusCancelled": "Cancelled",
     "statusSuspended": "Suspended"
+  },
+  "currency": {
+    "view": "Currency",
+    "base": "base",
+    "allInBase": "All in {{currency}} (base amounts)",
+    "baseCurrency": "Base currency",
+    "baseCurrencyHelp": "The currency of the books. It cannot be changed once the workspace has been created.",
+    "enabledCurrencies": "Enabled currencies",
+    "enabledCurrenciesHelp": "Currencies the workspace can use. The base currency is always enabled; one that an account tracks cannot be removed.",
+    "trackedCurrencies": "Tracked currencies",
+    "trackedCurrenciesHelp": "Currencies this account holds a balance in. Currencies can be added at any time; once the account has transactions, none can be removed.",
+    "currency": "Currency",
+    "rate": "Rate",
+    "rateHelp": "{{base}} per 1 {{currency}}",
+    "baseAmount": "Base amount",
+    "baseEquivalent": "Equivalent in {{currency}}",
+    "baseNotSet": "Set the base currency first (Setup > Currencies).",
+    "balances": "Balances",
+    "saved": "Currencies saved",
+    "unbalancedBase": "Debits and credits must balance in {{currency}}: difference {{difference}}",
+    "sectionTitle": "Currencies"
   }
 }

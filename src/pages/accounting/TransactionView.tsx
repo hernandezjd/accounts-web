@@ -29,6 +29,7 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { PeriodControls } from './PeriodControls'
 import { TransactionForm, type TransactionFormInitialData, type FormMode } from './TransactionForm'
+import { formatAmount } from '@/utils/money'
 
 interface TransactionViewProps {
   workspaceId: string
@@ -55,11 +56,6 @@ interface FormConfig {
   mode: FormMode
   transactionId?: string
   initialData?: TransactionFormInitialData
-}
-
-function formatAmount(n: number | null | undefined): string {
-  if (n == null) return '—'
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 export function TransactionView({
@@ -120,6 +116,9 @@ export function TransactionView({
           thirdPartyName: item.thirdPartyName ?? null,
           debitAmount: item.debitAmount ?? 0,
           creditAmount: item.creditAmount ?? 0,
+          currency: item.currency ?? undefined,
+          rate: item.rate ?? undefined,
+          baseAmount: item.baseAmount ?? undefined,
         })),
       }
       setFormConfig({ mode: 'edit', transactionId: editingTxnId, initialData })

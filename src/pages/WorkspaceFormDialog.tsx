@@ -6,11 +6,14 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
+import Autocomplete from '@mui/material/Autocomplete'
 import { useTranslation } from 'react-i18next'
 import { useWorkspaceMutations } from '@/hooks/api/useWorkspaceMutations'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { formatError, type FormattedError } from '@accounts/error-handling-web'
 import { useAppStore } from '@/store/appStore'
+import { apiClient } from '@/api/apiClient'
+import { allCurrencyCodes } from '@/utils/money'
 
 export interface WorkspaceFormData {
   id: string
@@ -49,15 +52,41 @@ export function WorkspaceFormDialog({ open, onClose, editWorkspace, onCreated }:
   const [state, setState] = useState(editWorkspace?.address?.state ?? '')
   const [postalCode, setPostalCode] = useState(editWorkspace?.address?.postalCode ?? '')
   const [country, setCountry] = useState(editWorkspace?.address?.country ?? '')
+  // The base currency is chosen once, when the workspace is created, and never changes (REQ-CUR-01)
+  const [baseCurrency, setBaseCurrency] = useState<string | null>('USD')
+  // Set when the workspace exists but its base currency could not be saved yet: Save retries only that step
+  const [createdId, setCreatedId] = useState<string | null>(null)
+  const [savingCurrency, setSavingCurrency] = useState(false)
   const [error, setError] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
     setError(null)
+    setCreatedId(null)
     onClose()
+  }
+
+  const saveBaseCurrency = async (workspaceId: string) => {
+    setSavingCurrency(true)
+    const result = await apiClient.command.PUT('/config/base-currency', {
+      params: { header: { 'X-Workspace-Id': workspaceId } },
+      body: { baseCurrency },
+    })
+    setSavingCurrency(false)
+    if (result.error) {
+      setCreatedId(workspaceId)
+      setError(result.error)
+      return
+    }
+    onCreated?.(workspaceId)
+    handleClose()
   }
 
   const handleSubmit = () => {
     setError(null)
+    if (createdId) {
+      void saveBaseCurrency(createdId)
+      return
+    }
     const body = {
       organizationId: selectedOrgId ?? '',
       name,
@@ -82,8 +111,7 @@ export function WorkspaceFormDialog({ open, onClose, editWorkspace, onCreated }:
       createWorkspace.mutate(body, {
         onSuccess: (data) => {
           if (data?.id) {
-            onCreated?.(data.id)
-            handleClose()
+            void saveBaseCurrency(data.id)
           }
         },
         onError: (err) => setError(formatError(err)),
@@ -91,9 +119,9 @@ export function WorkspaceFormDialog({ open, onClose, editWorkspace, onCreated }:
     }
   }
 
-  const canSave = name.trim()
+  const canSave = name.trim() && (isEdit || baseCurrency)
 
-  const isPending = createWorkspace.isPending || updateWorkspace.isPending
+  const isPending = createWorkspace.isPending || updateWorkspace.isPending || savingCurrency
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth data-testid="workspace-form-dialog">
@@ -110,6 +138,23 @@ export function WorkspaceFormDialog({ open, onClose, editWorkspace, onCreated }:
           size="small"
           inputProps={{ 'data-testid': 'workspace-name-input' }}
         />
+        {!isEdit && (
+          <Autocomplete
+            size="small"
+            options={allCurrencyCodes()}
+            value={baseCurrency}
+            onChange={(_e, value) => setBaseCurrency(value)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={t('currency.baseCurrency')}
+                helperText={t('currency.baseCurrencyHelp')}
+                required
+                inputProps={{ ...params.inputProps, 'data-testid': 'workspace-base-currency-input' }}
+              />
+            )}
+          />
+        )}
         <TextField
           label={t('setup.workspaces.contactName')}
           value={contactName}

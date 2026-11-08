@@ -575,5 +575,26 @@
     "statusExpired": "Expiré",
     "statusCancelled": "Annulé",
     "statusSuspended": "Suspendu"
+  },
+  "currency": {
+    "view": "Devise",
+    "base": "base",
+    "allInBase": "Tout en {{currency}} (montants de base)",
+    "baseCurrency": "Devise de base",
+    "baseCurrencyHelp": "La devise de la comptabilité. Elle ne peut plus être modifiée une fois l'espace de travail créé.",
+    "enabledCurrencies": "Devises activées",
+    "enabledCurrenciesHelp": "Devises que l'espace de travail peut utiliser. La devise de base est toujours activée ; une devise suivie par un compte ne peut pas être retirée.",
+    "trackedCurrencies": "Devises suivies",
+    "trackedCurrenciesHelp": "Devises dans lesquelles ce compte tient un solde. On peut en ajouter à tout moment ; une fois le compte mouvementé, aucune ne peut être retirée.",
+    "currency": "Devise",
+    "rate": "Taux",
+    "rateHelp": "{{base}} pour 1 {{currency}}",
+    "baseAmount": "Montant de base",
+    "baseEquivalent": "Équivalent en {{currency}}",
+    "baseNotSet": "Définissez d'abord la devise de base (Configuration > Devises).",
+    "balances": "Soldes",
+    "saved": "Devises enregistrées",
+    "unbalancedBase": "Les débits et crédits doivent s'équilibrer en {{currency}} : écart {{difference}}",
+    "sectionTitle": "Devises"
   }
 }

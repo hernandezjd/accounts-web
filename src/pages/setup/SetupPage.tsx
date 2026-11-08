@@ -32,6 +32,7 @@ import { useWorkspaces } from '@/hooks/api/useWorkspaces'
 import { useWorkspaceMutations } from '@/hooks/api/useWorkspaceMutations'
 import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useWorkspaceConfigMutations } from '@/hooks/api/useWorkspaceConfigMutations'
+import { CurrenciesSection } from './CurrenciesSection'
 import { useCodeStructureConfig } from '@/hooks/api/useCodeStructureConfig'
 import { useCodeStructureConfigMutations } from '@/hooks/api/useCodeStructureConfigMutations'
 import { useUserActions } from '@/hooks/useUserActions'
@@ -867,6 +868,9 @@ function AccountingConfigTab({ workspaceId, initialEditMode }: { workspaceId: st
 
   return (
     <Box data-testid="accounting-config-panel">
+      {/* Currencies (REQ-CUR-01, REQ-CUR-02) */}
+      <CurrenciesSection workspaceId={workspaceId} />
+
       {/* Main config fields */}
       <Table size="small">
         <TableBody>

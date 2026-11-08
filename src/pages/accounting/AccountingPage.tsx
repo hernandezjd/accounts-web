@@ -26,6 +26,7 @@ import { PeriodControls } from './PeriodControls'
 import { AccountTree } from './AccountTree'
 import { SearchBar, type SearchBarHandle } from './SearchBar'
 import { TransactionView } from './TransactionView'
+import { CurrencyViewSelect } from '@/components/CurrencyViewSelect'
 
 function parseLevel(raw: string | null): number | null {
   if (!raw) return null
@@ -494,6 +495,7 @@ export function AccountingPage() {
               systemInitialDate={systemInitialDate}
             />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 'auto' }}>
+            <CurrencyViewSelect workspaceId={workspaceId} />
             <FormControlLabel
               control={
                 <Switch

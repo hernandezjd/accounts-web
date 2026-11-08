@@ -1,5 +1,6 @@
 import createClient from 'openapi-fetch'
 import { userManager } from '@/auth/oidc-config'
+import { useCurrencyViewStore } from '@/store/currencyViewStore'
 
 let redirectingToLogin = false
 
@@ -24,6 +25,23 @@ const userBaseUrl = import.meta.env.VITE_USER_API_URL ?? defaultApiBase
 function extractWorkspaceIdFromUrl(): string | undefined {
   const match = window.location.pathname.match(/^\/workspaces\/([^/]+)/)
   return match?.[1]
+}
+
+/**
+ * Adds the currency view (REQ-CUR-09) to the report requests: `currency=XXX` reads one currency, `inBase=true` reads
+ * the base-currency amounts of all of them. Without a choice the query service answers in the base currency.
+ */
+function withCurrencyView(input: RequestInfo | URL, init?: RequestInit): RequestInfo | URL {
+  const request = input instanceof Request ? input : undefined
+  const method = (request?.method ?? init?.method ?? 'GET').toUpperCase()
+  const rawUrl = request?.url ?? (input instanceof URL ? input.href : String(input))
+  if (method !== 'GET' || !rawUrl.includes('/reports/')) return input
+  const { view } = useCurrencyViewStore.getState()
+  if (!view.inBase && !view.currency) return input
+  const url = new URL(rawUrl, window.location.origin)
+  if (view.currency) url.searchParams.set('currency', view.currency)
+  if (view.inBase) url.searchParams.set('inBase', 'true')
+  return request ? new Request(url, request) : url.toString()
 }
 
 /**
@@ -70,7 +88,7 @@ function createAuthenticatedFetch() {
     }
 
     // Make the request with the updated headers
-    const response = await fetch(input, {
+    const response = await fetch(withCurrencyView(input, init), {
       ...init,
       headers,
     })

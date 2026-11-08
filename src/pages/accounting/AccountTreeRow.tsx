@@ -10,6 +10,7 @@ import Tooltip from '@mui/material/Tooltip'
 import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
 import type { AccountPeriodNode, ThirdPartyPeriodNode } from '@/types/accounting'
+import { formatAmount } from '@/utils/money'
 
 const INDENT_PX = 24
 // Size of the small IconButton (20px icon + 2px padding per side).
@@ -27,10 +28,6 @@ interface AccountTreeRowProps {
   alwaysVisibleIds?: ReadonlySet<string>
   /** Called with the next state when the pin control is clicked. Omit to hide the control. */
   onToggleAlwaysVisible?: (accountId: string, next: boolean) => void
-}
-
-function formatAmount(n: number): string {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 /** Returns 'primary.main' if the value was changed by closure simulation. */

@@ -10,6 +10,8 @@ import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { useTranslation } from 'react-i18next'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
+import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
+import { CurrencyMultiSelect } from '@/components/CurrencyMultiSelect'
 import { AccountPicker, type AccountPickerOption } from '@/components/AccountPicker'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { FormattedError } from '@accounts/error-handling-web'
@@ -36,17 +38,21 @@ export function AccountCreationDialog({
 }: AccountCreationDialogProps) {
   const { t } = useTranslation()
   const { createAccount } = useAccountMutations(workspaceId)
+  const { data: config } = useWorkspaceConfig(workspaceId)
+  const enabledCurrencies = config?.enabledCurrencies ?? []
 
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [hasThirdParties, setHasThirdParties] = useState(false)
+  // Empty = the base currency, which the server applies by default (REQ-CUR-03)
+  const [currencies, setCurrencies] = useState<string[]>([])
   const [error, setError] = useState<FormattedError | null>(null)
 
   const handleSubmit = () => {
     setError(null)
     createAccount.mutate(
-      { code, name, hasThirdParties, parentId: parentAccount?.id },
+      { code, name, hasThirdParties, parentId: parentAccount?.id, ...(currencies.length > 0 ? { currencies } : {}) },
       {
         onSuccess: (data) => {
           onCreated({ id: data.accountId!, code: data.code!, name: data.name!, hasThirdParties })
@@ -54,6 +60,7 @@ export function AccountCreationDialog({
           setName('')
           setParentAccount(null)
           setHasThirdParties(false)
+          setCurrencies([])
           onClose()
         },
         onError: (err) => setError(err),
@@ -66,6 +73,7 @@ export function AccountCreationDialog({
     setName('')
     setParentAccount(null)
     setHasThirdParties(false)
+    setCurrencies([])
     setError(null)
     onClose()
   }
@@ -108,6 +116,15 @@ export function AccountCreationDialog({
             }
             label={t('accountForm.hasThirdParties')}
           />
+          {enabledCurrencies.length > 1 && (
+            <CurrencyMultiSelect
+              label={t('currency.trackedCurrencies')}
+              value={currencies.length > 0 ? currencies : config?.baseCurrency ? [config.baseCurrency] : []}
+              onChange={setCurrencies}
+              options={enabledCurrencies}
+              testId="account-currencies-input"
+            />
+          )}
         </Stack>
       </DialogContent>
       <DialogActions>

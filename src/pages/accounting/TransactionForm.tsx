@@ -23,6 +23,8 @@ import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { PREFERENCE_KEYS } from '@/utils/preferences'
+import { currencyDecimals, formatMoney } from '@/utils/money'
+import MenuItem from '@mui/material/MenuItem'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { useErrorHandler } from '@accounts/error-handling-web'
@@ -41,6 +43,12 @@ interface FormItem {
   thirdParty: ThirdPartyOption | null
   debitAmount: string
   creditAmount: string
+  /** ISO 4217 currency of the amount; empty = the base currency (REQ-CUR-05). */
+  currency: string
+  /** Base units per unit of `currency`; only used when the currency is not the base one. */
+  rate: string
+  /** Optional base amount typed by the user; empty = amount x rate (REQ-CUR-06). */
+  baseAmount: string
 }
 
 export interface TransactionFormInitialData {
@@ -58,6 +66,9 @@ export interface TransactionFormInitialData {
     thirdPartyName?: string | null
     debitAmount?: number
     creditAmount?: number
+    currency?: string
+    rate?: number
+    baseAmount?: number
   }>
 }
 
@@ -88,6 +99,9 @@ interface FormDraft {
     thirdPartyName: string | null
     debitAmount: string
     creditAmount: string
+    currency?: string
+    rate?: string
+    baseAmount?: string
   }>
 }
 
@@ -103,12 +117,27 @@ const EMPTY_DRAFT: FormDraft = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeEmptyItem(): FormItem {
-  return { id: crypto.randomUUID(), account: null, thirdParty: null, debitAmount: '', creditAmount: '' }
+  return {
+    id: crypto.randomUUID(),
+    account: null,
+    thirdParty: null,
+    debitAmount: '',
+    creditAmount: '',
+    currency: '',
+    rate: '',
+    baseAmount: '',
+  }
 }
 
 function parseAmount(s: string): number {
   const n = parseFloat(s.replace(',', '.'))
   return isNaN(n) ? 0 : n
+}
+
+/** Rounds to the decimals of a currency, working in minor units to avoid float noise (2.675 x 100). */
+function roundTo(n: number, decimals: number): number {
+  const factor = 10 ** decimals
+  return Math.round((n + Number.EPSILON * Math.sign(n)) * factor) / factor
 }
 
 /** Normalise comma decimal separator to dot before storing in state. */
@@ -147,9 +176,9 @@ export function TransactionForm({
   onCancel,
 }: TransactionFormProps) {
   const { t } = useTranslation()
-  const { data: workspaceConfig } = useWorkspaceConfig(
-    mode === 'create' || mode === 'createInitialBalance' || mode === 'editInitialBalance' ? workspaceId : undefined,
-  )
+  const { data: workspaceConfig } = useWorkspaceConfig(workspaceId)
+  const baseCurrency = workspaceConfig?.baseCurrency ?? ''
+  const baseDecimals = currencyDecimals(baseCurrency)
   const { data: accounts } = useAccounts(workspaceId)
   const { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance } =
     useTransactionMutations(workspaceId)
@@ -210,6 +239,9 @@ export function TransactionForm({
             : null,
         debitAmount: (item.debitAmount ?? 0) > 0 ? String(item.debitAmount) : '',
         creditAmount: (item.creditAmount ?? 0) > 0 ? String(item.creditAmount) : '',
+        currency: item.currency ?? '',
+        rate: item.currency && item.rate && item.rate !== 1 ? String(item.rate) : '',
+        baseAmount: item.currency && item.baseAmount ? String(item.baseAmount) : '',
       }))
     }
     return [makeEmptyItem()]
@@ -243,6 +275,9 @@ export function TransactionForm({
           thirdParty: item.thirdPartyId ? { id: item.thirdPartyId, name: item.thirdPartyName ?? '' } : null,
           debitAmount: item.debitAmount,
           creditAmount: item.creditAmount,
+          currency: item.currency ?? '',
+          rate: item.rate ?? '',
+          baseAmount: item.baseAmount ?? '',
         })),
       )
     }
@@ -275,6 +310,9 @@ export function TransactionForm({
         thirdPartyName: item.thirdParty?.name ?? null,
         debitAmount: item.debitAmount,
         creditAmount: item.creditAmount,
+        currency: item.currency,
+        rate: item.rate,
+        baseAmount: item.baseAmount,
       })),
     }
     try {
@@ -309,9 +347,28 @@ export function TransactionForm({
     isRegularMode && !!date && !!systemInitialDate && date < systemInitialDate
 
   // ── Totals ──
-  const totalDebits = items.reduce((sum, item) => sum + parseAmount(item.debitAmount), 0)
-  const totalCredits = items.reduce((sum, item) => sum + parseAmount(item.creditAmount), 0)
-  const isBalanced = totalDebits > 0 && Math.abs(totalDebits - totalCredits) < 0.001
+  // A transaction balances in base currency (REQ-TXN-09): every item counts with its base amount
+  const accountCurrencies = (accountId: string | undefined): string[] =>
+    (accounts?.find((a) => a.id === accountId)?.currencies ?? []).slice()
+  const isForeign = (item: FormItem) => !!item.currency && !!baseCurrency && item.currency !== baseCurrency
+  const amountOf = (item: FormItem) => parseAmount(item.debitAmount) || parseAmount(item.creditAmount)
+  /** Base amount of an item: the one typed by the user, or amount x rate rounded to the base decimals. */
+  const baseAmountOf = (item: FormItem): number => {
+    const amount = amountOf(item)
+    if (!isForeign(item)) return amount
+    const typed = parseAmount(item.baseAmount)
+    if (typed > 0) return typed
+    return roundTo(amount * parseAmount(item.rate), baseDecimals)
+  }
+  const totalDebits = roundTo(
+    items.reduce((sum, item) => sum + (parseAmount(item.debitAmount) > 0 ? baseAmountOf(item) : 0), 0),
+    baseDecimals,
+  )
+  const totalCredits = roundTo(
+    items.reduce((sum, item) => sum + (parseAmount(item.creditAmount) > 0 ? baseAmountOf(item) : 0), 0),
+    baseDecimals,
+  )
+  const isBalanced = totalDebits > 0 && Math.abs(totalDebits - totalCredits) < 0.5 * 10 ** -baseDecimals
 
   // ── Item mutations ──
   const addItem = () => setItems((prev) => [...prev, makeEmptyItem()])
@@ -344,8 +401,8 @@ export function TransactionForm({
           ? {
               ...item,
               ...patch,
-              // Clear third party when account changes
-              ...('account' in patch && { thirdParty: null }),
+              // Clear third party and currency choice when account changes
+              ...('account' in patch && { thirdParty: null, currency: '', rate: '', baseAmount: '' }),
             }
           : item,
       ),
@@ -358,6 +415,10 @@ export function TransactionForm({
       thirdPartyId: item.thirdParty?.id ?? undefined,
       debitAmount: parseAmount(item.debitAmount) > 0 ? parseAmount(item.debitAmount) : undefined,
       creditAmount: parseAmount(item.creditAmount) > 0 ? parseAmount(item.creditAmount) : undefined,
+      // Items in the base currency go without currency and rate: the server defaults them (REQ-CUR-06)
+      ...(isForeign(item)
+        ? { currency: item.currency, rate: parseAmount(item.rate), baseAmount: baseAmountOf(item) }
+        : {}),
     }))
 
   // ── Save ──
@@ -369,7 +430,8 @@ export function TransactionForm({
     number.trim() &&
     description.trim() &&
     (isInitialBalanceMode || (selectedType && date)) &&
-    items.every((item) => item.account && (parseAmount(item.debitAmount) > 0 || parseAmount(item.creditAmount) > 0))
+    items.every((item) => item.account && (parseAmount(item.debitAmount) > 0 || parseAmount(item.creditAmount) > 0)) &&
+    items.every((item) => !isForeign(item) || parseAmount(item.rate) > 0)
 
   const handleSave = () => {
     clearError()
@@ -571,6 +633,9 @@ export function TransactionForm({
           <Typography variant="body2" sx={{ fontWeight: 600, flex: '1 1 240px' }}>
             {t('transactionForm.items')}
           </Typography>
+          <Typography variant="body2" sx={{ width: 90, textAlign: 'center', color: 'text.secondary' }}>
+            {t('currency.currency')}
+          </Typography>
           <Typography variant="body2" sx={{ width: 110, textAlign: 'center', color: 'text.secondary' }}>
             {t('transactionForm.debit')}
           </Typography>
@@ -603,6 +668,26 @@ export function TransactionForm({
                 />
               </Box>
             )}
+
+            <TextField
+              select
+              value={item.currency || baseCurrency}
+              onChange={(e) => updateItem(item.id, { currency: e.target.value, rate: '', baseAmount: '' })}
+              size="small"
+              sx={{ width: 90 }}
+              disabled={!baseCurrency || accountCurrencies(item.account?.id).length < 2}
+              inputProps={{ 'aria-label': t('currency.currency') }}
+              data-testid="currency-select"
+            >
+              {(accountCurrencies(item.account?.id).length > 0
+                ? accountCurrencies(item.account?.id)
+                : [baseCurrency]
+              ).map((code) => (
+                <MenuItem key={code} value={code}>
+                  {code}
+                </MenuItem>
+              ))}
+            </TextField>
 
             <TextField
               value={item.debitAmount}
@@ -644,6 +729,36 @@ export function TransactionForm({
               data-testid="credit-input"
             />
 
+            {isForeign(item) && (
+              <>
+                <TextField
+                  value={item.rate}
+                  onChange={(e) => updateItem(item.id, { rate: normaliseAmountInput(e.target.value) })}
+                  onKeyDown={handleAmountKeyDown}
+                  label={t('currency.rate')}
+                  helperText={t('currency.rateHelp', { base: baseCurrency, currency: item.currency })}
+                  size="small"
+                  sx={{ width: 130 }}
+                  inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
+                  data-testid="rate-input"
+                />
+                <TextField
+                  value={item.baseAmount}
+                  onChange={(e) => updateItem(item.id, { baseAmount: normaliseAmountInput(e.target.value) })}
+                  onKeyDown={handleAmountKeyDown}
+                  label={t('currency.baseAmount')}
+                  placeholder={formatMoney(
+                    roundTo(amountOf(item) * parseAmount(item.rate), baseDecimals),
+                    baseCurrency,
+                  )}
+                  size="small"
+                  sx={{ width: 130 }}
+                  inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
+                  data-testid="base-amount-input"
+                />
+              </>
+            )}
+
             <Tooltip title={t('transactionForm.insertAbove')}>
               <IconButton size="small" onClick={() => insertAbove(item.id)}
                 aria-label={t('transactionForm.insertAbove')} data-testid="insert-above-btn">
@@ -683,12 +798,12 @@ export function TransactionForm({
         <Box sx={{ flex: '1 1 240px' }} />
         <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
           <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
-            {parseFloat(totalDebits.toFixed(2))}
+            {formatMoney(totalDebits, baseCurrency)}
           </Typography>
         </Box>
         <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
           <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
-            {parseFloat(totalCredits.toFixed(2))}
+            {formatMoney(totalCredits, baseCurrency)}
           </Typography>
         </Box>
         <Box sx={{ width: 106 }} />

@@ -29,6 +29,7 @@ import { useWorkspaceAccess } from '@/hooks/useWorkspaceAccess'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData } from '../accounting/TransactionForm'
+import { formatMoney } from '@/utils/money'
 
 const DEFAULT_ROWS_PER_PAGE = 50
 const ROWS_PER_PAGE_OPTIONS = [25, 50, 100, 200]
@@ -52,6 +53,7 @@ export function TransactionsPage() {
   const [storedPeriodTo] = useLocalStorage<string | null>(PREFERENCE_KEYS.ACCOUNTING_PERIOD_TO, null)
 
   const { data: workspaceConfig } = useWorkspaceConfig(workspaceId || null)
+  const baseCurrency = workspaceConfig?.baseCurrency ?? null
   const defaultPeriod = resolveDefaultListPeriod(
     storedPeriodFrom,
     storedPeriodTo,
@@ -100,15 +102,19 @@ export function TransactionsPage() {
   const typeOptions = (transactionTypes ?? []).map((tt) => ({ id: tt.id!, name: tt.name! }))
   const accountOptions = (accounts ?? []).map((a) => ({ id: a.id!, label: `${a.code} — ${a.name}` }))
 
-  function formatAmount(n: number): string {
-    return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  // A transaction balances in base currency (REQ-TXN-09), so its totals are the base amounts of its items
+  function getTransactionTotals(txn: Transaction): { debit: number; credit: number } {
+    const items = txn.items ?? []
+    return {
+      debit: items.reduce((sum, item) => sum + (item.debitAmount ? (item.baseAmount ?? item.debitAmount) : 0), 0),
+      credit: items.reduce((sum, item) => sum + (item.creditAmount ? (item.baseAmount ?? item.creditAmount) : 0), 0),
+    }
   }
 
-  function getTransactionTotals(txn: Transaction): { debit: number; credit: number } {
-    return {
-      debit: (txn.items ?? []).reduce((sum, item) => sum + (item.debitAmount ?? 0), 0),
-      credit: (txn.items ?? []).reduce((sum, item) => sum + (item.creditAmount ?? 0), 0),
-    }
+  // Item amounts are in the currency of the item; the currency code is shown when it is not the base currency
+  function formatItemAmount(amount: number, currency?: string | null): string {
+    const text = formatMoney(amount, currency ?? baseCurrency)
+    return currency && currency !== baseCurrency ? `${text} ${currency}` : text
   }
 
   const updateFilterForm = (patch: Partial<FilterForm>) => {
@@ -146,6 +152,9 @@ export function TransactionsPage() {
       thirdPartyName: item.thirdPartyName ?? null,
       debitAmount: item.debitAmount ?? 0,
       creditAmount: item.creditAmount ?? 0,
+      currency: item.currency ?? undefined,
+      rate: item.rate ?? undefined,
+      baseAmount: item.baseAmount ?? undefined,
     })),
   })
 
@@ -296,10 +305,10 @@ export function TransactionsPage() {
                     <TableCell sx={{ py: 0.75 }}>{txn.transactionNumber}</TableCell>
                     <TableCell sx={{ py: 0.75 }}>{txn.description}</TableCell>
                     <TableCell align="right" sx={{ py: 0.75 }}>
-                      {debit > 0 ? formatAmount(debit) : ''}
+                      {debit > 0 ? formatMoney(debit, baseCurrency) : ''}
                     </TableCell>
                     <TableCell align="right" sx={{ py: 0.75 }}>
-                      {credit > 0 ? formatAmount(credit) : ''}
+                      {credit > 0 ? formatMoney(credit, baseCurrency) : ''}
                     </TableCell>
                     <TableCell sx={{ py: 0.5 }}>
                       <IconButton
@@ -321,10 +330,10 @@ export function TransactionsPage() {
                         {item.thirdPartyName && ` / ${item.thirdPartyName}`}
                       </TableCell>
                       <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em' }}>
-                        {item.debitAmount && item.debitAmount !== 0 ? formatAmount(item.debitAmount) : ''}
+                        {item.debitAmount && item.debitAmount !== 0 ? formatItemAmount(item.debitAmount, item.currency) : ''}
                       </TableCell>
                       <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em' }}>
-                        {item.creditAmount && item.creditAmount !== 0 ? formatAmount(item.creditAmount) : ''}
+                        {item.creditAmount && item.creditAmount !== 0 ? formatItemAmount(item.creditAmount, item.currency) : ''}
                       </TableCell>
                       <TableCell sx={{ py: 0.5 }} />
                     </TableRow>

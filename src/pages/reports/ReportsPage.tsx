@@ -27,6 +27,8 @@ import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { useReportPeriodPreference } from '@/hooks/useReportPeriodPreference'
 import { getMonthlyPeriod, getQuarterlyPeriod, getYearlyPeriod } from '@/utils/reportPeriodUtils'
 import { ExternalReportDataForm } from '@/components/ExternalReportDataForm'
+import { formatAmount } from '@/utils/money'
+import { CurrencyViewSelect } from '@/components/CurrencyViewSelect'
 
 // ─── Type guards & Helpers ──────────────────────────────────────────────────
 
@@ -35,11 +37,6 @@ function isPeriodReportWithClosure(data: PeriodReportResponse | PeriodReportWith
 }
 
 // Helper to format amounts
-function formatAmount(n: number | null | undefined): string {
-  if (n === null || n === undefined) return '—'
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
-
 // Helper to determine if a simulated value should be highlighted in blue (closure-related)
 function isNominalOrPLAccount(
   accountId: string | undefined,
@@ -699,9 +696,12 @@ export function ReportsPage() {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        {t('reports.title')}
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <Typography variant="h4" sx={{ flexGrow: 1 }}>
+          {t('reports.title')}
+        </Typography>
+        <CurrencyViewSelect workspaceId={workspaceId} />
+      </Box>
 
       {simulateClosure && (
         <Box sx={{ mb: 2 }}>

@@ -574,5 +574,26 @@
     "statusExpired": "Vencido",
     "statusCancelled": "Cancelado",
     "statusSuspended": "Suspendido"
+  },
+  "currency": {
+    "view": "Moneda",
+    "base": "base",
+    "allInBase": "Todo en {{currency}} (importes base)",
+    "baseCurrency": "Moneda base",
+    "baseCurrencyHelp": "La moneda de la contabilidad. No se puede cambiar una vez creado el espacio de trabajo.",
+    "enabledCurrencies": "Monedas habilitadas",
+    "enabledCurrenciesHelp": "Monedas que el espacio de trabajo puede usar. La moneda base siempre está habilitada; no se puede quitar una que alguna cuenta maneje.",
+    "trackedCurrencies": "Monedas que maneja",
+    "trackedCurrenciesHelp": "Monedas en las que esta cuenta tiene saldo. Se pueden agregar en cualquier momento; cuando la cuenta tenga transacciones no se podrá quitar ninguna.",
+    "currency": "Moneda",
+    "rate": "Tasa",
+    "rateHelp": "{{base}} por 1 {{currency}}",
+    "baseAmount": "Importe base",
+    "baseEquivalent": "Equivalente en {{currency}}",
+    "baseNotSet": "Defina primero la moneda base (Configuración > Monedas).",
+    "balances": "Saldos",
+    "saved": "Monedas guardadas",
+    "unbalancedBase": "Débitos y créditos deben cuadrar en {{currency}}: diferencia {{difference}}",
+    "sectionTitle": "Monedas"
   }
 }

@@ -44,6 +44,29 @@ export function useWorkspaceConfigMutations(workspaceId: string) {
     }
   )
 
+  const setBaseCurrency = useApiMutation(
+    (baseCurrency: string) =>
+      apiClient.command.PUT<WorkspaceConfigResponse>('/config/base-currency', {
+        params: { header: headers },
+        body: { baseCurrency },
+      }),
+    {
+      // Setting the base currency also enables it
+      onSuccess: (_data, baseCurrency) => patchCache({ baseCurrency, enabledCurrencies: [baseCurrency] }),
+    }
+  )
+
+  const setEnabledCurrencies = useApiMutation(
+    (enabledCurrencies: string[]) =>
+      apiClient.command.PUT<WorkspaceConfigResponse>('/config/enabled-currencies', {
+        params: { header: headers },
+        body: { enabledCurrencies },
+      }),
+    {
+      onSuccess: (_data, enabledCurrencies) => patchCache({ enabledCurrencies }),
+    }
+  )
+
   const setLockedPeriodDate = useApiMutation(
     (lockedPeriodDate: string) =>
       apiClient.command.PUT<WorkspaceConfigResponse>('/config/locked-period-date', {
@@ -112,6 +135,8 @@ export function useWorkspaceConfigMutations(workspaceId: string) {
 
   return {
     setInitialDate,
+    setBaseCurrency,
+    setEnabledCurrencies,
     setLockedPeriodDate,
     setMinimumAccountLevel,
     setNominalAccountsConfig,

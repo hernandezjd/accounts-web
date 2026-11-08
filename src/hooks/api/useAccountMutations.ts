@@ -48,6 +48,8 @@ export function useAccountMutations(workspaceId: string) {
           code: data.code ?? variables.code,
           name: data.name ?? variables.name,
           hasThirdParties: variables.hasThirdParties ?? false,
+          currencies: variables.currencies ?? [],
+          balances: [],
           parentId: variables.parentId ?? undefined,
           level: parent?.level != null ? parent.level + 1 : 1,
           active: true,

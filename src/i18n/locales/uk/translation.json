@@ -575,5 +575,26 @@
     "statusExpired": "Закінчився",
     "statusCancelled": "Скасовано",
     "statusSuspended": "Призупинено"
+  },
+  "currency": {
+    "view": "Валюта",
+    "base": "базова",
+    "allInBase": "Усе в {{currency}} (базові суми)",
+    "baseCurrency": "Базова валюта",
+    "baseCurrencyHelp": "Валюта обліку. Її не можна змінити після створення робочого простору.",
+    "enabledCurrencies": "Увімкнені валюти",
+    "enabledCurrenciesHelp": "Валюти, які може використовувати робочий простір. Базова валюта завжди ввімкнена; валюту, яку веде рахунок, вимкнути не можна.",
+    "trackedCurrencies": "Валюти рахунку",
+    "trackedCurrenciesHelp": "Валюти, у яких рахунок має залишок. Їх можна додавати будь-коли; коли в рахунку з'являться проводки, жодну не можна прибрати.",
+    "currency": "Валюта",
+    "rate": "Курс",
+    "rateHelp": "{{base}} за 1 {{currency}}",
+    "baseAmount": "Базова сума",
+    "baseEquivalent": "Еквівалент у {{currency}}",
+    "baseNotSet": "Спершу задайте базову валюту (Налаштування > Валюти).",
+    "balances": "Залишки",
+    "saved": "Валюти збережено",
+    "unbalancedBase": "Дебет і кредит мають збігатися в {{currency}}: різниця {{difference}}",
+    "sectionTitle": "Валюти"
   }
 }

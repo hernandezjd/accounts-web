@@ -13,6 +13,10 @@ vi.mock('@/api/apiClient', () => ({
       GET: vi.fn(),
       POST: vi.fn(),
     },
+    // The base currency of a new workspace is set on the command service (REQ-CUR-01)
+    command: {
+      PUT: vi.fn(),
+    },
   },
 }))
 
@@ -42,6 +46,10 @@ function mockPost(data: unknown) {
 }
 
 beforeEach(() => {
+  vi.mocked((apiClient.command as unknown as { PUT: ReturnType<typeof vi.fn> }).PUT).mockResolvedValue({
+    data: {},
+    response: new Response(),
+  })
   sessionStorage.clear()
   vi.clearAllMocks()
   // Reset language to English before each test
@@ -161,6 +169,14 @@ describe('WorkspacePickerPage', () => {
     await waitFor(() => {
       expect(sessionStorage.getItem('lastWorkspaceId')).toBe('new-workspace-id')
     })
+    // The base currency chosen in the dialog (USD by default) is set once the workspace exists
+    expect((apiClient.command as unknown as { PUT: ReturnType<typeof vi.fn> }).PUT).toHaveBeenCalledWith(
+      '/config/base-currency',
+      expect.objectContaining({
+        params: { header: { 'X-Workspace-Id': 'new-workspace-id' } },
+        body: { baseCurrency: 'USD' },
+      }),
+    )
   })
 
   it('renders language selector dropdown', async () => {
