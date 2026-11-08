@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.build.json && vite build",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "npm run typecheck && vitest run",
     "test:watch": "vitest",
-    "generate:api": "bash scripts/generate-api-types.sh"
+    "generate:api": "bash scripts/generate-api-types.sh",
+    "typecheck": "npm run generate:api && tsc -p tsconfig.build.json --noEmit"
   },
   "dependencies": {
     "@accounts/error-handling-web": "file:../error-handling-web",

@@ -484,6 +484,7 @@
     "executeClosing": "Ejecutar Cierre",
     "closingDate": "Fecha de Cierre",
     "description": "Descripción",
+    "lockPeriod": "Bloquear el periodo hasta la fecha de cierre antes de cerrar",
     "preview": "Vista Previa",
     "previewClosing": "Vista Previa de Transacción de Cierre",
     "closingDetails": "Detalles del Cierre",

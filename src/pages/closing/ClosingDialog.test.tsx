@@ -294,4 +294,72 @@ describe('ClosingDialog', () => {
       expect(previewButton).toBeDisabled()
     })
   })
+
+  describe('Lock period option (REQ-CLOSE-12)', () => {
+    beforeEach(async () => {
+      // An earlier test overrides the preview mock; restore the successful preview here.
+      const { useClosingPreview } = await import('@/hooks/api/useClosingPreview')
+      vi.mocked(useClosingPreview).mockImplementation((_workspaceId, _date, _desc, enabled) =>
+        ({
+          data: enabled ? mockPreviewData : undefined,
+          isLoading: false,
+          error: null,
+        }) as unknown as ReturnType<typeof useClosingPreview>,
+      )
+    })
+
+    function mockExecuteWithSpy() {
+      const mutate = vi.fn((_body, callbacks) => {
+        callbacks.onSuccess?.()
+      })
+      mockUseExecuteClosingMutation.mockReturnValue({
+        executeClosing: { mutate, isPending: false },
+      } as unknown as ReturnType<typeof useExecuteClosingMutation>)
+      return mutate
+    }
+
+    async function fillAndPreview(lock: boolean) {
+      renderComponent()
+      fireEvent.change(screen.getByTestId('closing-date-input'), { target: { value: '2024-12-31' } })
+      fireEvent.change(screen.getByTestId('closing-description-input'), { target: { value: 'Year-end closing' } })
+      if (lock) {
+        fireEvent.click(screen.getByRole('checkbox', { name: 'closing.lockPeriod' }))
+      }
+      fireEvent.click(screen.getByTestId('closing-preview-button'))
+      await waitFor(() => {
+        expect(screen.getByTestId('closing-execute-button')).toBeInTheDocument()
+      })
+    }
+
+    it('offers the lock option unchecked by default', () => {
+      renderComponent()
+
+      const checkbox = screen.getByRole('checkbox', { name: 'closing.lockPeriod' }) as HTMLInputElement
+      expect(checkbox.checked).toBe(false)
+    })
+
+    it('sends lockPeriod false when the option is left unchecked', async () => {
+      const mutate = mockExecuteWithSpy()
+      await fillAndPreview(false)
+
+      fireEvent.click(screen.getByTestId('closing-execute-button'))
+
+      expect(mutate).toHaveBeenCalledWith(
+        { date: '2024-12-31', description: 'Year-end closing', lockPeriod: false },
+        expect.anything(),
+      )
+    })
+
+    it('sends lockPeriod true when the option is checked', async () => {
+      const mutate = mockExecuteWithSpy()
+      await fillAndPreview(true)
+
+      fireEvent.click(screen.getByTestId('closing-execute-button'))
+
+      expect(mutate).toHaveBeenCalledWith(
+        { date: '2024-12-31', description: 'Year-end closing', lockPeriod: true },
+        expect.anything(),
+      )
+    })
+  })
 })

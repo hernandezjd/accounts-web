@@ -484,6 +484,7 @@
     "executeClosing": "Execute Closing",
     "closingDate": "Closing Date",
     "description": "Description",
+    "lockPeriod": "Lock the period up to the closing date before closing",
     "preview": "Preview",
     "previewClosing": "Preview Closing Transaction",
     "closingDetails": "Closing Details",

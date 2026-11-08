@@ -5,6 +5,8 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
+import Checkbox from '@mui/material/Checkbox'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 import Table from '@mui/material/Table'
@@ -44,6 +46,8 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
   const [stage, setStage] = useState<DialogStage>('input')
   const [closingDate, setClosingDate] = useState('')
   const [description, setDescription] = useState('')
+  // REQ-CLOSE-12: lock the period up to the closing date before the closing is computed
+  const [lockPeriod, setLockPeriod] = useState(false)
   const { error, setError, clearError } = useErrorHandler()
   const [showPreviewFetch, setShowPreviewFetch] = useState(false)
 
@@ -74,6 +78,7 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
     setStage('input')
     setClosingDate('')
     setDescription('')
+    setLockPeriod(false)
     clearError()
     setShowPreviewFetch(false)
     onClose()
@@ -117,12 +122,13 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
   const handleExecute = async () => {
     clearError()
     executeClosing.mutate(
-      { date: closingDate, description },
+      { date: closingDate, description, lockPeriod },
       {
         onSuccess: () => {
           setStage('input')
           setClosingDate('')
           setDescription('')
+          setLockPeriod(false)
           setShowPreviewFetch(false)
           onSuccess()
           handleInputClose()
@@ -164,6 +170,15 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
               required
               size="small"
               inputProps={{ 'data-testid': 'closing-description-input' }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={lockPeriod}
+                  onChange={(e) => setLockPeriod(e.target.checked)}
+                />
+              }
+              label={t('closing.lockPeriod')}
             />
           </DialogContent>
           <DialogActions>

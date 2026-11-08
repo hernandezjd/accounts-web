@@ -485,6 +485,7 @@
     "executeClosing": "Exécuter la clôture",
     "closingDate": "Date de clôture",
     "description": "Description",
+    "lockPeriod": "Verrouiller la période jusqu'à la date de clôture avant la clôture",
     "preview": "Aperçu",
     "previewClosing": "Aperçu de la transaction de clôture",
     "closingDetails": "Détails de clôture",
