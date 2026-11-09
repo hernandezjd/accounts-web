@@ -102,12 +102,17 @@ export function TransactionsPage() {
   const typeOptions = (transactionTypes ?? []).map((tt) => ({ id: tt.id!, name: tt.name! }))
   const accountOptions = (accounts ?? []).map((a) => ({ id: a.id!, label: `${a.code} — ${a.name}` }))
 
-  // A transaction balances in base currency (REQ-TXN-09), so its totals are the base amounts of its items
+  // A transaction balances in base currency (MC-11): an item counts with its own amount when it is in the base
+  // currency and with its base equivalent otherwise
+  const baseAmountOf = (item: NonNullable<Transaction['items']>[number], amount: number): number =>
+    !item.currency || item.currency === baseCurrency
+      ? amount
+      : (item.equivalents?.find((e) => e.currency === baseCurrency)?.amount ?? 0)
   function getTransactionTotals(txn: Transaction): { debit: number; credit: number } {
     const items = txn.items ?? []
     return {
-      debit: items.reduce((sum, item) => sum + (item.debitAmount ? (item.baseAmount ?? item.debitAmount) : 0), 0),
-      credit: items.reduce((sum, item) => sum + (item.creditAmount ? (item.baseAmount ?? item.creditAmount) : 0), 0),
+      debit: items.reduce((sum, item) => sum + (item.debitAmount ? baseAmountOf(item, item.debitAmount) : 0), 0),
+      credit: items.reduce((sum, item) => sum + (item.creditAmount ? baseAmountOf(item, item.creditAmount) : 0), 0),
     }
   }
 
@@ -143,6 +148,7 @@ export function TransactionsPage() {
     transactionNumber: txn.transactionNumber ?? '',
     date: txn.date ?? '',
     description: txn.description ?? '',
+    valuation: txn.valuation ? { mode: txn.valuation.mode === 'CLIENT_RATES' ? 'RATES' : txn.valuation.mode, rates: txn.valuation.rates.map((r) => ({ currency: r.currency, rate: r.rate })) } : null,
     items: (txn.items ?? []).map((item) => ({
       accountId: item.accountId ?? '',
       accountCode: item.accountCode ?? '',
@@ -152,9 +158,7 @@ export function TransactionsPage() {
       thirdPartyName: item.thirdPartyName ?? null,
       debitAmount: item.debitAmount ?? 0,
       creditAmount: item.creditAmount ?? 0,
-      currency: item.currency ?? undefined,
-      rate: item.rate ?? undefined,
-      baseAmount: item.baseAmount ?? undefined,
+      equivalents: (item.equivalents ?? []).map((e) => ({ currency: e.currency, amount: e.amount })),
     })),
   })
 

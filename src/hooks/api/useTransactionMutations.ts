@@ -94,6 +94,11 @@ export function useTransactionMutations(workspaceId: string) {
     }
   )
 
+  /** Runs the checks and the valuation of a create without saving anything (MC-14, MC-18). */
+  const previewValuation = useApiMutation((body: CreateTransactionRequest) =>
+    apiClient.command.POST('/transactions/valuation-preview', { body }),
+  )
+
   const editTransaction = useApiMutation(
     ({ id, body }: { id: string; body: EditTransactionRequest }) =>
       apiClient.command.PUT('/transactions/{id}', {
@@ -158,5 +163,5 @@ export function useTransactionMutations(workspaceId: string) {
     }
   )
 
-  return { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance }
+  return { createTransaction, previewValuation, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance }
 }

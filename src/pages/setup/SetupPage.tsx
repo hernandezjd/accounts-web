@@ -39,6 +39,7 @@ import { useUserActions } from '@/hooks/useUserActions'
 import { TransactionTypesContent } from '@/pages/transaction-types/TransactionTypesPage'
 import { ThemeEditorTab } from './ThemeEditorTab'
 import { PrefilledChartsTab } from './PrefilledChartsTab'
+import { RatesTab } from './RatesTab'
 import { useErrorHandler } from '@accounts/error-handling-web'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { FormattedError } from '@accounts/error-handling-web'
@@ -1144,6 +1145,7 @@ export function SetupPage() {
         <Tab label={t('setup.tabs.transactionTypes')} data-testid="tab-transaction-types" />
         <Tab label={t('setup.tabs.theme')} data-testid="tab-theme" />
         <Tab label={t('setup.tabs.prefilledCharts')} data-testid="tab-prefilled-charts" />
+        <Tab label={t('setup.tabs.rates')} data-testid="tab-rates" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0} testId="tabpanel-workspaces">
@@ -1160,6 +1162,9 @@ export function SetupPage() {
       </TabPanel>
       <TabPanel value={activeTab} index={4} testId="tabpanel-prefilled-charts">
         <PrefilledChartsTab />
+      </TabPanel>
+      <TabPanel value={activeTab} index={5} testId="tabpanel-rates">
+        <RatesTab />
       </TabPanel>
     </Box>
   )

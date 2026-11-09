@@ -11,6 +11,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import type { AccountPeriodNode } from '@/types/accounting'
+import type { ExtraCurrencyColumn } from '@/hooks/api/useExtraCurrencySummaries'
 import { AccountTreeRow } from './AccountTreeRow'
 import type { ReactNode } from 'react'
 
@@ -31,6 +32,8 @@ interface AccountTreeProps {
   to: string
   alwaysVisibleIds?: ReadonlySet<string>
   onToggleAlwaysVisible?: (accountId: string, next: boolean) => void
+  /** Closing balance in other currencies, one column each (MC-22). */
+  extraColumns?: ExtraCurrencyColumn[]
 }
 
 /**
@@ -82,6 +85,7 @@ export function AccountTree({
   from,
   alwaysVisibleIds,
   onToggleAlwaysVisible,
+  extraColumns = [],
 }: AccountTreeProps) {
   const { t } = useTranslation()
 
@@ -126,7 +130,7 @@ export function AccountTree({
 
       {/* Account tree table */}
       <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size="small" stickyHeader sx={{ tableLayout: 'fixed', minWidth: 920 }}>
+        <Table size="small" stickyHeader sx={{ tableLayout: 'fixed', minWidth: 920 + extraColumns.length * 140 }}>
           <TableHead>
             <TableRow sx={{ height: 80 }}>
               <TableCell sx={{ fontWeight: 700, width: 140 }}>{t('accounting.tree.code')}</TableCell>
@@ -143,6 +147,11 @@ export function AccountTree({
               <TableCell align="right" sx={{ fontWeight: 700, width: 120 }}>
                 {simulateClosure ? t('accounting.tree.closingBalanceSim') : t('accounting.tree.closingBalance')}
               </TableCell>
+              {extraColumns.map((column) => (
+                <TableCell key={column.currency} align="right" sx={{ fontWeight: 700, width: 140 }}>
+                  {t('accounting.tree.closingBalanceIn', { currency: column.currency })}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -156,6 +165,7 @@ export function AccountTree({
                 highlightedAccountId={highlightedAccountId}
                 alwaysVisibleIds={alwaysVisibleIds}
                 onToggleAlwaysVisible={onToggleAlwaysVisible}
+                extraColumns={extraColumns}
               />
             ))}
           </TableBody>

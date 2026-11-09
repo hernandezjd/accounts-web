@@ -6,6 +6,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { useTranslation } from 'react-i18next'
@@ -45,14 +46,15 @@ export function AccountCreationDialog({
   const [name, setName] = useState('')
   const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [hasThirdParties, setHasThirdParties] = useState(false)
-  // Empty = the base currency, which the server applies by default (REQ-CUR-03)
+  // Empty = the base currency, which the server applies by default (MC-05, MC-06)
   const [currencies, setCurrencies] = useState<string[]>([])
+  const [nativeCurrency, setNativeCurrency] = useState('')
   const [error, setError] = useState<FormattedError | null>(null)
 
   const handleSubmit = () => {
     setError(null)
     createAccount.mutate(
-      { code, name, hasThirdParties, parentId: parentAccount?.id, ...(currencies.length > 0 ? { currencies } : {}) },
+      { code, name, hasThirdParties, parentId: parentAccount?.id, ...(currencies.length > 0 ? { currencies } : {}), ...(nativeCurrency ? { nativeCurrency } : {}) },
       {
         onSuccess: (data) => {
           onCreated({ id: data.accountId!, code: data.code!, name: data.name!, hasThirdParties })
@@ -61,6 +63,7 @@ export function AccountCreationDialog({
           setParentAccount(null)
           setHasThirdParties(false)
           setCurrencies([])
+          setNativeCurrency('')
           onClose()
         },
         onError: (err) => setError(err),
@@ -74,6 +77,7 @@ export function AccountCreationDialog({
     setParentAccount(null)
     setHasThirdParties(false)
     setCurrencies([])
+    setNativeCurrency('')
     setError(null)
     onClose()
   }
@@ -116,6 +120,23 @@ export function AccountCreationDialog({
             }
             label={t('accountForm.hasThirdParties')}
           />
+          {enabledCurrencies.length > 1 && (
+            <TextField
+              select
+              size="small"
+              label={t('currency.nativeCurrency')}
+              helperText={t('currency.nativeCurrencyHelp')}
+              value={nativeCurrency || config?.baseCurrency || ''}
+              onChange={(e) => setNativeCurrency(e.target.value)}
+              inputProps={{ 'data-testid': 'account-native-currency-input' }}
+            >
+              {enabledCurrencies.map((code) => (
+                <MenuItem key={code} value={code}>
+                  {code}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
           {enabledCurrencies.length > 1 && (
             <CurrencyMultiSelect
               label={t('currency.trackedCurrencies')}

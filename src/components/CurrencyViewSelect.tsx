@@ -7,10 +7,8 @@ import { useTranslation } from 'react-i18next'
 import { queryKeys } from '@/api/queryKeys'
 import { useCurrencyView } from '@/hooks/useCurrencyView'
 
-const ALL_IN_BASE = '__all_in_base__'
-
 /**
- * Chooses the money the reports show (REQ-CUR-09): one currency, or the base-currency amounts of all of them.
+ * Chooses the currency the reports show (MC-21, MC-28).
  * Hidden while the workspace has only its base currency, since there is nothing to choose.
  */
 export function CurrencyViewSelect({ workspaceId }: { workspaceId?: string | null }) {
@@ -20,14 +18,10 @@ export function CurrencyViewSelect({ workspaceId }: { workspaceId?: string | nul
 
   if (!baseCurrency || enabledCurrencies.length < 2) return null
 
-  const value = view.inBase ? ALL_IN_BASE : (view.currency ?? baseCurrency)
+  const value = view.currency ?? baseCurrency
 
   const handleChange = (next: string) => {
-    if (next === ALL_IN_BASE) {
-      setView({ currency: null, inBase: true })
-    } else {
-      setView({ currency: next === baseCurrency ? null : next, inBase: false })
-    }
+    setView({ currency: next === baseCurrency ? null : next })
     // Every report answers in the currency view, so none of the cached ones is still right
     void qc.resetQueries({ queryKey: queryKeys.reports.all() })
   }
@@ -48,7 +42,6 @@ export function CurrencyViewSelect({ workspaceId }: { workspaceId?: string | nul
             {code === baseCurrency ? ` (${t('currency.base')})` : ''}
           </MenuItem>
         ))}
-        <MenuItem value={ALL_IN_BASE}>{t('currency.allInBase', { currency: baseCurrency })}</MenuItem>
       </Select>
     </FormControl>
   )

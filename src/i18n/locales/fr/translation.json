@@ -112,7 +112,8 @@
       "debits": "Débits",
       "credits": "Crédits",
       "closingBalance": "Clôture",
-      "closingBalanceSim": "Solde de clôture"
+      "closingBalanceSim": "Solde de clôture",
+      "closingBalanceIn": "Solde final ({{currency}})"
     },
     "shortcuts": {
       "prevPeriod": "Période précédente",
@@ -137,7 +138,13 @@
       "description": "Description",
       "debit": "Débit",
       "credit": "Crédit",
-      "runningBalance": "Solde"
+      "runningBalance": "Solde",
+      "totalDebits": "Total débits",
+      "totalCredits": "Total crédits",
+      "closingBalance": "Solde final",
+      "untrackedCurrency": "{{account}} n'a aucun mouvement en {{currency}}. Choisissez {{base}} ou une autre devise dans le sélecteur, ou revenez en arrière.",
+      "balanceIn": "Solde ({{currency}})",
+      "closingBalanceIn": "Solde final ({{currency}})"
     },
     "search": {
       "placeholder": "Rechercher des comptes et des transactions...",
@@ -324,7 +331,8 @@
       "accountingConfig": "Config. comptabilité",
       "transactionTypes": "Types de transactions",
       "theme": "Thème",
-      "prefilledCharts": "Plans pré-remplis"
+      "prefilledCharts": "Plans pré-remplis",
+      "rates": "Taux de change"
     },
     "workspaces": {
       "newWorkspace": "Nouveau client",
@@ -577,9 +585,9 @@
     "statusSuspended": "Suspendu"
   },
   "currency": {
+    "extraColumns": "Colonnes d'autres devises",
     "view": "Devise",
     "base": "base",
-    "allInBase": "Tout en {{currency}} (montants de base)",
     "baseCurrency": "Devise de base",
     "baseCurrencyHelp": "La devise de la comptabilité. Elle ne peut plus être modifiée une fois l'espace de travail créé.",
     "enabledCurrencies": "Devises activées",
@@ -595,6 +603,51 @@
     "balances": "Soldes",
     "saved": "Devises enregistrées",
     "unbalancedBase": "Les débits et crédits doivent s'équilibrer en {{currency}} : écart {{difference}}",
-    "sectionTitle": "Devises"
+    "sectionTitle": "Devises",
+    "nativeCurrency": "Devise native",
+    "nativeCurrencyHelp": "La devise du relevé de ce compte. Les lignes ne sont saisies que dans celle-ci ; elle ne peut changer que tant que le compte n'a ni transactions ni soldes.",
+    "balancedCurrencies": "Devises à équilibrer",
+    "balancedCurrenciesHelp": "Outre {{base}}, qui s'équilibre toujours, toute transaction doit s'équilibrer dans ces devises. Tout compte actif doit les suivre."
+  },
+  "valuation": {
+    "title": "Valorisation",
+    "mode": "Comment les équivalents sont valorisés",
+    "modeTable": "Table des taux",
+    "modeRates": "Taux de cette transaction",
+    "modeExact": "Montants exacts",
+    "storedRates": "Taux enregistrés avec la transaction (conservés à la modification)",
+    "exactHelp": "Saisissez le montant exact dans chaque autre devise, comme sur le relevé",
+    "preview": "Vérifier la valorisation",
+    "notChecked": "Valorisation non vérifiée",
+    "equivalents": "Équivalents",
+    "rounding": "arrondi",
+    "ratesUsed": "Taux utilisés",
+    "nativeCurrency": "Devise native"
+  },
+  "rates": {
+    "rates": "Taux",
+    "base": "Base",
+    "date": "Date",
+    "source": "Source",
+    "superseded": "remplacé",
+    "showSuperseded": "Voir l'historique",
+    "hideSuperseded": "Masquer l'historique",
+    "runNow": "Lancer le job des taux maintenant",
+    "enterRate": "Saisir ou corriger un taux",
+    "rateHelp": "Unités de la base pour 1 unité de la devise (jusqu'à 14 décimales)",
+    "sources": "Sources de taux",
+    "name": "Nom",
+    "url": "Modèle d'URL",
+    "urlHelp": "Variables : {base}, {currency}, {date}",
+    "jsonPath": "Chemin JSON",
+    "priority": "Priorité",
+    "addSource": "Ajouter une source",
+    "jobRuns": "Dernières exécutions",
+    "startedAt": "Début",
+    "status": "Statut",
+    "pairsOk": "Paires ok",
+    "pairsFailed": "Paires en échec",
+    "message": "Message",
+    "jobFailed": "La dernière exécution du job des taux a échoué ({{date}}) : les taux précédents sont conservés. Vérifiez les sources ou saisissez les taux à la main."
   }
 }

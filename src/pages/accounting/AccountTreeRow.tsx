@@ -10,7 +10,8 @@ import Tooltip from '@mui/material/Tooltip'
 import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
 import type { AccountPeriodNode, ThirdPartyPeriodNode } from '@/types/accounting'
-import { formatAmount } from '@/utils/money'
+import { formatAmount, formatMoney } from '@/utils/money'
+import { thirdPartyKey, type ExtraCurrencyColumn } from '@/hooks/api/useExtraCurrencySummaries'
 
 const INDENT_PX = 24
 // Size of the small IconButton (20px icon + 2px padding per side).
@@ -28,6 +29,7 @@ interface AccountTreeRowProps {
   alwaysVisibleIds?: ReadonlySet<string>
   /** Called with the next state when the pin control is clicked. Omit to hide the control. */
   onToggleAlwaysVisible?: (accountId: string, next: boolean) => void
+  extraColumns?: ExtraCurrencyColumn[]
 }
 
 /** Returns 'primary.main' if the value was changed by closure simulation. */
@@ -35,16 +37,47 @@ function simColor(current: number, original: number | undefined): string | undef
   return original !== undefined && current !== original ? 'primary.main' : undefined
 }
 
+/** The closing balance of one account in each extra currency; a dash while a column is not ready. */
+function ExtraCells({
+  columns,
+  lookup,
+  dim,
+}: {
+  columns: ExtraCurrencyColumn[]
+  lookup: (column: ExtraCurrencyColumn) => number | undefined
+  dim?: boolean
+}) {
+  return (
+    <>
+      {columns.map((column) => {
+        const value = column.ready ? (lookup(column) ?? 0) : undefined
+        return (
+          <TableCell
+            key={column.currency}
+            align="right"
+            data-testid={`extra-${column.currency}`}
+            sx={{ py: dim ? 0.5 : 0.75, fontSize: dim ? '0.85em' : undefined, color: dim ? 'text.secondary' : undefined }}
+          >
+            {value === undefined ? '—' : formatMoney(value, column.currency)}
+          </TableCell>
+        )
+      })}
+    </>
+  )
+}
+
 function ThirdPartyRow({
   tp,
   accountId,
   indent,
   onDrillDown,
+  extraColumns,
 }: {
   tp: ThirdPartyPeriodNode
   accountId: string
   indent: number
   onDrillDown: (accountId: string, thirdPartyId?: string) => void
+  extraColumns: ExtraCurrencyColumn[]
 }) {
   function handleActivate() {
     onDrillDown(accountId, tp.thirdPartyId)
@@ -87,6 +120,11 @@ function ThirdPartyRow({
       <TableCell align="right" sx={{ py: 0.5, fontSize: '0.85em', color: simColor(tp.closingBalance, tp.originalClosingBalance) ?? 'text.secondary' }}>
         {formatAmount(tp.closingBalance)}
       </TableCell>
+      <ExtraCells
+        columns={extraColumns}
+        lookup={(c) => c.closingByThirdParty.get(thirdPartyKey(accountId, tp.thirdPartyId))}
+        dim
+      />
     </TableRow>
   )
 }
@@ -99,6 +137,7 @@ export function AccountTreeRow({
   highlightedAccountId,
   alwaysVisibleIds,
   onToggleAlwaysVisible,
+  extraColumns = [],
 }: AccountTreeRowProps) {
   const { t } = useTranslation()
   const indent = (node.level - 1) * INDENT_PX
@@ -219,6 +258,7 @@ export function AccountTreeRow({
         <TableCell align="right" sx={{ py: 0.75, color: simColor(node.closingBalance, node.originalClosingBalance) }}>
           {formatAmount(node.closingBalance)}
         </TableCell>
+        <ExtraCells columns={extraColumns} lookup={(c) => c.closingByAccount.get(node.accountId)} />
       </TableRow>
 
       {isExpanded && (
@@ -230,6 +270,7 @@ export function AccountTreeRow({
               accountId={node.accountId}
               indent={indent + INDENT_PX}
               onDrillDown={onDrillDown}
+              extraColumns={extraColumns}
             />
           ))}
           {node.children.map((child) => (
@@ -242,6 +283,7 @@ export function AccountTreeRow({
               highlightedAccountId={highlightedAccountId}
               alwaysVisibleIds={alwaysVisibleIds}
               onToggleAlwaysVisible={onToggleAlwaysVisible}
+              extraColumns={extraColumns}
             />
           ))}
         </>

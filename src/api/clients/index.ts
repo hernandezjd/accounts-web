@@ -28,8 +28,8 @@ function extractWorkspaceIdFromUrl(): string | undefined {
 }
 
 /**
- * Adds the currency view (REQ-CUR-09) to the report requests: `currency=XXX` reads one currency, `inBase=true` reads
- * the base-currency amounts of all of them. Without a choice the query service answers in the base currency.
+ * Adds the currency view (MC-21, MC-28) to the report requests: `currency=XXX` reads one currency. Without a choice
+ * the query service answers in the base currency.
  */
 function withCurrencyView(input: RequestInfo | URL, init?: RequestInit): RequestInfo | URL {
   const request = input instanceof Request ? input : undefined
@@ -37,10 +37,10 @@ function withCurrencyView(input: RequestInfo | URL, init?: RequestInit): Request
   const rawUrl = request?.url ?? (input instanceof URL ? input.href : String(input))
   if (method !== 'GET' || !rawUrl.includes('/reports/')) return input
   const { view } = useCurrencyViewStore.getState()
-  if (!view.inBase && !view.currency) return input
   const url = new URL(rawUrl, window.location.origin)
-  if (view.currency) url.searchParams.set('currency', view.currency)
-  if (view.inBase) url.searchParams.set('inBase', 'true')
+  // A request that names its own currency (an extra column) keeps it
+  if (url.searchParams.has('currency') || !view.currency) return input
+  url.searchParams.set('currency', view.currency)
   return request ? new Request(url, request) : url.toString()
 }
 

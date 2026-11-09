@@ -112,7 +112,8 @@
       "debits": "Débitos",
       "credits": "Créditos",
       "closingBalance": "Cierre",
-      "closingBalanceSim": "Saldo de Cierre"
+      "closingBalanceSim": "Saldo de Cierre",
+      "closingBalanceIn": "Saldo final ({{currency}})"
     },
     "shortcuts": {
       "prevPeriod": "Período anterior",
@@ -137,7 +138,13 @@
       "description": "Descripción",
       "debit": "Débito",
       "credit": "Crédito",
-      "runningBalance": "Saldo"
+      "runningBalance": "Saldo",
+      "totalDebits": "Total débitos",
+      "totalCredits": "Total créditos",
+      "closingBalance": "Saldo final",
+      "untrackedCurrency": "{{account}} no tiene movimientos en {{currency}}. Elige {{base}} u otra moneda en el selector de moneda, o vuelve atrás.",
+      "balanceIn": "Saldo ({{currency}})",
+      "closingBalanceIn": "Saldo final ({{currency}})"
     },
     "search": {
       "placeholder": "Buscar cuentas y transacciones...",
@@ -324,7 +331,8 @@
       "accountingConfig": "Config. Contable",
       "transactionTypes": "Tipos de Transacción",
       "theme": "Tema",
-      "prefilledCharts": "Planes Predefinidos"
+      "prefilledCharts": "Planes Predefinidos",
+      "rates": "Tasas de cambio"
     },
     "workspaces": {
       "newWorkspace": "Nuevo Espacio de trabajo",
@@ -576,9 +584,9 @@
     "statusSuspended": "Suspendido"
   },
   "currency": {
+    "extraColumns": "Columnas de otras monedas",
     "view": "Moneda",
     "base": "base",
-    "allInBase": "Todo en {{currency}} (importes base)",
     "baseCurrency": "Moneda base",
     "baseCurrencyHelp": "La moneda de la contabilidad. No se puede cambiar una vez creado el espacio de trabajo.",
     "enabledCurrencies": "Monedas habilitadas",
@@ -594,6 +602,51 @@
     "balances": "Saldos",
     "saved": "Monedas guardadas",
     "unbalancedBase": "Débitos y créditos deben cuadrar en {{currency}}: diferencia {{difference}}",
-    "sectionTitle": "Monedas"
+    "sectionTitle": "Monedas",
+    "nativeCurrency": "Moneda nativa",
+    "nativeCurrencyHelp": "La moneda del extracto de esta cuenta. Los apuntes se registran solo en ella; solo puede cambiar mientras la cuenta no tenga transacciones ni saldos.",
+    "balancedCurrencies": "Monedas que deben cuadrar",
+    "balancedCurrenciesHelp": "Además de {{base}}, que siempre cuadra, toda transacción debe cuadrar en estas monedas. Toda cuenta activa debe tenerlas."
+  },
+  "valuation": {
+    "title": "Valoración",
+    "mode": "Cómo se valoran los equivalentes",
+    "modeTable": "Tabla de tasas",
+    "modeRates": "Tasas de esta transacción",
+    "modeExact": "Importes exactos",
+    "storedRates": "Tasas guardadas con la transacción (se conservan al editar)",
+    "exactHelp": "Ingrese el importe exacto en cada otra moneda, como en el extracto",
+    "preview": "Verificar valoración",
+    "notChecked": "Valoración sin verificar",
+    "equivalents": "Equivalentes",
+    "rounding": "redondeo",
+    "ratesUsed": "Tasas usadas",
+    "nativeCurrency": "Moneda nativa"
+  },
+  "rates": {
+    "rates": "Tasas",
+    "base": "Base",
+    "date": "Fecha",
+    "source": "Fuente",
+    "superseded": "reemplazada",
+    "showSuperseded": "Ver historial",
+    "hideSuperseded": "Ocultar historial",
+    "runNow": "Ejecutar el job de tasas ahora",
+    "enterRate": "Ingresar o corregir una tasa",
+    "rateHelp": "Unidades de la base por 1 unidad de la moneda (hasta 14 decimales)",
+    "sources": "Fuentes de tasas",
+    "name": "Nombre",
+    "url": "Plantilla de URL",
+    "urlHelp": "Marcadores: {base}, {currency}, {date}",
+    "jsonPath": "Ruta JSON",
+    "priority": "Prioridad",
+    "addSource": "Agregar fuente",
+    "jobRuns": "Últimas ejecuciones",
+    "startedAt": "Inicio",
+    "status": "Estado",
+    "pairsOk": "Pares ok",
+    "pairsFailed": "Pares fallidos",
+    "message": "Mensaje",
+    "jobFailed": "La última ejecución del job de tasas falló ({{date}}): se conservaron las tasas anteriores. Revise las fuentes o ingrese las tasas a mano."
   }
 }

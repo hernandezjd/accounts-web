@@ -15,6 +15,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogActions from '@mui/material/DialogActions'
 import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Alert from '@mui/material/Alert'
@@ -67,8 +68,9 @@ function AccountFormDialog({
   )
   const [parentAccount, setParentAccount] = useState<AccountPickerOption | null>(null)
   const [hasThirdParties, setHasThirdParties] = useState(false)
-  // Empty on create = the base currency (REQ-CUR-03); on edit it starts from the currencies of the account
+  // Empty on create = the base currency (MC-05, MC-06); on edit it starts from the account's own currencies
   const [currencies, setCurrencies] = useState<string[]>(isEdit ? (editAccount?.currencies ?? []) : [])
+  const [nativeCurrency, setNativeCurrency] = useState<string>(isEdit ? (editAccount?.nativeCurrency ?? '') : '')
   const [errorMsg, setErrorMsg] = useState<FormattedError | null>(null)
 
   const handleClose = () => {
@@ -78,6 +80,7 @@ function AccountFormDialog({
     setParentId(isEdit ? editAccount?.parentId ?? null : null)
     setHasThirdParties(false)
     setCurrencies(isEdit ? (editAccount?.currencies ?? []) : [])
+    setNativeCurrency(isEdit ? (editAccount?.nativeCurrency ?? '') : '')
     setErrorMsg(null)
     onClose()
   }
@@ -106,7 +109,7 @@ function AccountFormDialog({
       updateAccount.mutate(
         {
           id: editAccount!.id!,
-          body: { code, name, parentId: parentId ?? undefined, ...(currencies.length > 0 ? { currencies } : {}) } as any,
+          body: { code, name, parentId: parentId ?? undefined, ...(currencies.length > 0 ? { currencies } : {}), ...(nativeCurrency && nativeCurrency !== editAccount?.nativeCurrency ? { nativeCurrency } : {}) } as any,
         },
         {
           onSuccess: handleClose,
@@ -115,7 +118,7 @@ function AccountFormDialog({
       )
     } else {
       createAccount.mutate(
-        { code, name, hasThirdParties, parentId: parentAccount?.id, ...(currencies.length > 0 ? { currencies } : {}) },
+        { code, name, hasThirdParties, parentId: parentAccount?.id, ...(currencies.length > 0 ? { currencies } : {}), ...(nativeCurrency ? { nativeCurrency } : {}) },
         {
           onSuccess: handleClose,
           onError: (err) => setErrorMsg(err),
@@ -184,6 +187,23 @@ function AccountFormDialog({
             }
             label={t('accounts.hasThirdParties')}
           />
+        )}
+        {enabledCurrencies.length > 1 && (
+          <TextField
+            select
+            size="small"
+            label={t('currency.nativeCurrency')}
+            helperText={t('currency.nativeCurrencyHelp')}
+            value={nativeCurrency || config?.baseCurrency || ''}
+            onChange={(e) => setNativeCurrency(e.target.value)}
+            inputProps={{ 'data-testid': 'account-native-currency-input' }}
+          >
+            {enabledCurrencies.map((code) => (
+              <MenuItem key={code} value={code}>
+                {code}
+              </MenuItem>
+            ))}
+          </TextField>
         )}
         {enabledCurrencies.length > 1 && (
           <CurrencyMultiSelect
@@ -489,7 +509,10 @@ export function AccountsPage() {
                   {account.parentId ? (idToCode[account.parentId] ?? '—') : '—'}
                 </TableCell>
                 <TableCell>{account.hasThirdParties ? '✓' : ''}</TableCell>
-                <TableCell>{(account.currencies ?? []).join(', ')}</TableCell>
+                <TableCell>
+                  {account.nativeCurrency ? <strong>{account.nativeCurrency}</strong> : null}
+                  {(account.currencies ?? []).filter((c) => c !== account.nativeCurrency).map((c) => ` ${c}`)}
+                </TableCell>
                 <TableCell data-testid={`account-status-${account.id}`}>
                   {account.active === false ? t('accounts.inactive') : t('accounts.active')}
                 </TableCell>

@@ -34,7 +34,7 @@ describe('formatMoney', () => {
 
 describe('formatAmount', () => {
   beforeEach(() => {
-    useCurrencyViewStore.setState({ view: { currency: null, inBase: false }, baseCurrency: 'USD' })
+    useCurrencyViewStore.setState({ view: { currency: null }, baseCurrency: 'USD' })
   })
 
   it('formats in the base currency by default', () => {
@@ -42,12 +42,7 @@ describe('formatAmount', () => {
   })
 
   it('formats in the currency of the view', () => {
-    useCurrencyViewStore.setState({ view: { currency: 'JPY', inBase: false } })
-    expect(formatAmount(5)).toBe('5')
-  })
-
-  it('formats in the base currency when the view adds up everything in base', () => {
-    useCurrencyViewStore.setState({ view: { currency: null, inBase: true }, baseCurrency: 'JPY' })
+    useCurrencyViewStore.setState({ view: { currency: 'JPY' } })
     expect(formatAmount(5)).toBe('5')
   })
 })

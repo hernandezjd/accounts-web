@@ -28,24 +28,31 @@ const mockUseExecuteClosingMutation = vi.mocked(useExecuteClosingMutation)
 const mockPreviewData = {
   closingDate: '2024-12-31',
   description: 'Year-end closing',
+  baseCurrency: 'USD',
   nominalAccountLines: [
     {
       accountId: '1',
       accountCode: '4000',
       accountName: 'Revenue',
-      debitAmount: null,
-      creditAmount: 1000.00,
+      nativeCurrency: 'USD',
+      amounts: [
+        { currency: 'USD', debitAmount: 1000.0, creditAmount: 0 },
+        { currency: 'EUR', debitAmount: 900.0, creditAmount: 0 },
+      ],
     },
   ],
-  profitLossLine: {
-    accountId: '2',
-    accountCode: '3000',
-    accountName: 'Retained Earnings',
-    debitAmount: 1000.00,
-    creditAmount: null,
-  },
-  totalDebits: 1000.00,
-  totalCredits: 1000.00,
+  profitLossLines: [
+    {
+      accountId: '2',
+      accountCode: '3000',
+      accountName: 'Retained Earnings',
+      nativeCurrency: 'USD',
+      amounts: [
+        { currency: 'USD', debitAmount: 0, creditAmount: 1000.0 },
+        { currency: 'EUR', debitAmount: 0, creditAmount: 900.0 },
+      ],
+    },
+  ],
 }
 
 vi.mock('@/hooks/api/useClosingPreview', () => ({

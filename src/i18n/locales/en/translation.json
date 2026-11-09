@@ -112,7 +112,8 @@
       "debits": "Debits",
       "credits": "Credits",
       "closingBalance": "Closing",
-      "closingBalanceSim": "Closing Balance"
+      "closingBalanceSim": "Closing Balance",
+      "closingBalanceIn": "Closing balance ({{currency}})"
     },
     "shortcuts": {
       "prevPeriod": "Previous period",
@@ -137,7 +138,13 @@
       "description": "Description",
       "debit": "Debit",
       "credit": "Credit",
-      "runningBalance": "Balance"
+      "runningBalance": "Balance",
+      "totalDebits": "Total debits",
+      "totalCredits": "Total credits",
+      "closingBalance": "Closing balance",
+      "untrackedCurrency": "{{account}} has no movements in {{currency}}. Choose {{base}} or another currency in the currency selector, or go back.",
+      "balanceIn": "Balance ({{currency}})",
+      "closingBalanceIn": "Closing balance ({{currency}})"
     },
     "search": {
       "placeholder": "Search accounts and transactions...",
@@ -324,7 +331,8 @@
       "accountingConfig": "Accounting Config",
       "transactionTypes": "Transaction Types",
       "theme": "Theme",
-      "prefilledCharts": "Pre-filled Charts"
+      "prefilledCharts": "Pre-filled Charts",
+      "rates": "Exchange rates"
     },
     "workspaces": {
       "newWorkspace": "New Workspace",
@@ -576,9 +584,9 @@
     "statusSuspended": "Suspended"
   },
   "currency": {
+    "extraColumns": "Extra currency columns",
     "view": "Currency",
     "base": "base",
-    "allInBase": "All in {{currency}} (base amounts)",
     "baseCurrency": "Base currency",
     "baseCurrencyHelp": "The currency of the books. It cannot be changed once the workspace has been created.",
     "enabledCurrencies": "Enabled currencies",
@@ -594,6 +602,51 @@
     "balances": "Balances",
     "saved": "Currencies saved",
     "unbalancedBase": "Debits and credits must balance in {{currency}}: difference {{difference}}",
-    "sectionTitle": "Currencies"
+    "sectionTitle": "Currencies",
+    "nativeCurrency": "Native currency",
+    "nativeCurrencyHelp": "The currency of this account's statement. Lines are entered only in it; it can change only while the account has no transactions or balances.",
+    "balancedCurrencies": "Balanced currencies",
+    "balancedCurrenciesHelp": "Besides {{base}}, which always balances, every transaction must balance in these currencies. Every active account must track them."
+  },
+  "valuation": {
+    "title": "Valuation",
+    "mode": "How equivalents are valued",
+    "modeTable": "Rate table",
+    "modeRates": "Rates for this transaction",
+    "modeExact": "Exact amounts",
+    "storedRates": "Rates stored with the transaction (kept on edit)",
+    "exactHelp": "Enter the exact amount in each other currency, as on the statement",
+    "preview": "Check valuation",
+    "notChecked": "Valuation not checked",
+    "equivalents": "Equivalents",
+    "rounding": "rounding",
+    "ratesUsed": "Rates used",
+    "nativeCurrency": "Native currency"
+  },
+  "rates": {
+    "rates": "Rates",
+    "base": "Base",
+    "date": "Date",
+    "source": "Source",
+    "superseded": "superseded",
+    "showSuperseded": "Show history",
+    "hideSuperseded": "Hide history",
+    "runNow": "Run the rate job now",
+    "enterRate": "Enter or correct a rate",
+    "rateHelp": "Base units per 1 unit of the currency (up to 14 decimals)",
+    "sources": "Rate sources",
+    "name": "Name",
+    "url": "URL template",
+    "urlHelp": "Placeholders: {base}, {currency}, {date}",
+    "jsonPath": "JSON path",
+    "priority": "Priority",
+    "addSource": "Add source",
+    "jobRuns": "Latest job runs",
+    "startedAt": "Started",
+    "status": "Status",
+    "pairsOk": "Pairs ok",
+    "pairsFailed": "Pairs failed",
+    "message": "Message",
+    "jobFailed": "The last run of the rate job failed ({{date}}): the previous rates were kept. Check the sources or enter the rates by hand."
   }
 }

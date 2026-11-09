@@ -324,7 +324,11 @@ describe('AccountingPage', () => {
       fromDate: '2026-01-01',
       toDate: '2026-01-31',
       thirdPartyId: null,
+      currency: 'USD',
       openingBalance: 150,
+      totalDebits: 120,
+      totalCredits: 0,
+      closingBalance: 270,
       transactions: [
         {
           transactionId: 'txn-child',
@@ -335,6 +339,8 @@ describe('AccountingPage', () => {
           items: [
             { accountId: 'acc-child', accountCode: '1100', accountName: 'Cash', thirdPartyId: null, thirdPartyName: null, debitAmount: 120, creditAmount: 0 },
           ],
+          debitAmount: 120,
+          creditAmount: 0,
           runningBalance: 270,
         },
       ],

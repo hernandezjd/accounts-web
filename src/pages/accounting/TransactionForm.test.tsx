@@ -70,6 +70,7 @@ function setupDefaultMocks() {
 
   mockUseTransactionMutations.mockReturnValue({
     createTransaction: { ...noOpMutation },
+    previewValuation: { ...noOpMutation },
     editTransaction: { ...noOpMutation },
     deleteTransaction: { ...noOpMutation },
     createInitialBalance: { ...noOpMutation },

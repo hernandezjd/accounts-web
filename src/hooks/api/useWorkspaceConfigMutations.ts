@@ -67,6 +67,18 @@ export function useWorkspaceConfigMutations(workspaceId: string) {
     }
   )
 
+  /** The currencies besides the base in which every transaction must balance (MC-12). */
+  const setBalancedCurrencies = useApiMutation(
+    (balancedCurrencies: string[]) =>
+      apiClient.command.PUT<WorkspaceConfigResponse>('/config/balanced-currencies', {
+        params: { header: headers },
+        body: { balancedCurrencies },
+      }),
+    {
+      onSuccess: (_data, balancedCurrencies) => patchCache({ balancedCurrencies }),
+    }
+  )
+
   const setLockedPeriodDate = useApiMutation(
     (lockedPeriodDate: string) =>
       apiClient.command.PUT<WorkspaceConfigResponse>('/config/locked-period-date', {
@@ -137,6 +149,7 @@ export function useWorkspaceConfigMutations(workspaceId: string) {
     setInitialDate,
     setBaseCurrency,
     setEnabledCurrencies,
+    setBalancedCurrencies,
     setLockedPeriodDate,
     setMinimumAccountLevel,
     setNominalAccountsConfig,

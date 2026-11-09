@@ -27,6 +27,10 @@ import { AccountTree } from './AccountTree'
 import { SearchBar, type SearchBarHandle } from './SearchBar'
 import { TransactionView } from './TransactionView'
 import { CurrencyViewSelect } from '@/components/CurrencyViewSelect'
+import { ExtraCurrenciesSelect } from '@/components/ExtraCurrenciesSelect'
+import { useExtraCurrencySummaries } from '@/hooks/api/useExtraCurrencySummaries'
+import { useCurrencyView } from '@/hooks/useCurrencyView'
+import { useCurrencyViewStore } from '@/store/currencyViewStore'
 
 function parseLevel(raw: string | null): number | null {
   if (!raw) return null
@@ -54,11 +58,6 @@ function findAccount(
     if (found) return found
   }
   return undefined
-}
-
-/** Collect the id of a node and of every account below it. */
-function collectSubtreeAccountIds(node: AccountPeriodNode): string[] {
-  return [node.accountId, ...node.children.flatMap(collectSubtreeAccountIds)]
 }
 
 /** Walk the tree and collect IDs of all ancestors of the target node. */
@@ -195,6 +194,12 @@ export function AccountingPage() {
 
   // Format error for display with classification
   const formattedError = apiError ?? null
+
+  // Extra currency columns: one more request per chosen currency (MC-22)
+  const { displayCurrency, enabledCurrencies } = useCurrencyView(workspaceId)
+  const chosenExtra = useCurrencyViewStore((s) => s.extraCurrencies)
+  const extraCurrencies = chosenExtra.filter((c) => c !== displayCurrency && enabledCurrencies.includes(c))
+  const extraColumns = useExtraCurrencySummaries(workspaceId, effectiveFrom, to, extraCurrencies)
 
   // ── Snap period forward if it ends before systemInitialDate ──────────────
   // Use `to < systemInitialDate` (not `from`) so a yearly period that straddles
@@ -464,11 +469,6 @@ export function AccountingPage() {
           accountId={selectedAccountId}
           accountName={selectedAccount?.accountName ?? selectedAccountId}
           accountCode={selectedAccount?.accountCode ?? ''}
-          accountScopeIds={
-            selectedAccount && !selectedThirdPartyId
-              ? collectSubtreeAccountIds(selectedAccount)
-              : undefined
-          }
           thirdPartyId={selectedThirdPartyId ?? undefined}
           thirdPartyName={selectedTP?.thirdPartyName}
           from={from}
@@ -496,6 +496,7 @@ export function AccountingPage() {
             />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 'auto' }}>
             <CurrencyViewSelect workspaceId={workspaceId} />
+            <ExtraCurrenciesSelect workspaceId={workspaceId} />
             <FormControlLabel
               control={
                 <Switch
@@ -592,6 +593,7 @@ export function AccountingPage() {
                 to={to}
                 alwaysVisibleIds={alwaysVisibleIds}
                 onToggleAlwaysVisible={handleToggleAlwaysVisible}
+                extraColumns={extraColumns}
               />
             )}
           </Box>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, within, fireEvent } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { TransactionForm } from './TransactionForm'
@@ -75,6 +75,7 @@ function setupDefaultMocks() {
 
   mockUseTransactionMutations.mockReturnValue({
     createTransaction: { ...noOpMutation },
+    previewValuation: { ...noOpMutation },
     editTransaction: { ...noOpMutation },
     deleteTransaction: { ...noOpMutation },
     createInitialBalance: { ...noOpMutation },
@@ -92,6 +93,7 @@ function setupDefaultMocks() {
         hasThirdParties: false,
         level: 2,
         parentId: null,
+        nativeCurrency: 'EUR',
         currencies: ['EUR', 'USD'],
         balances: [],
       },
@@ -103,6 +105,7 @@ function setupDefaultMocks() {
         hasThirdParties: false,
         level: 2,
         parentId: null,
+        nativeCurrency: 'USD',
         currencies: ['USD'],
         balances: [],
       },
@@ -136,7 +139,7 @@ const defaultProps = {
   onCancel: vi.fn(),
 }
 
-// ─── Multi-currency tests (REQ-CUR-05 to REQ-CUR-07) ──────────────────────────
+// ─── Multi-currency tests (MC-01, MC-06, MC-15, MC-26) ────────────────────────
 
 const editMutate = vi.fn()
 
@@ -162,6 +165,7 @@ describe('TransactionForm multi-currency', () => {
     setupDefaultMocks()
     mockUseTransactionMutations.mockReturnValue({
       createTransaction: { ...noOpMutation },
+      previewValuation: { ...noOpMutation },
       editTransaction: { ...noOpMutation, mutate: editMutate },
       deleteTransaction: { ...noOpMutation },
       createInitialBalance: { ...noOpMutation },
@@ -171,58 +175,109 @@ describe('TransactionForm multi-currency', () => {
   })
 
   const fxItems = [
-    { accountId: 'acc-1', accountCode: '1000', accountName: 'Cash', debitAmount: 100, currency: 'EUR', rate: 1.1, baseAmount: 110 },
-    { accountId: 'acc-2', accountCode: '2000', accountName: 'Payables', creditAmount: 110, currency: 'USD', rate: 1, baseAmount: 110 },
+    { accountId: 'acc-1', accountCode: '1000', accountName: 'Cash', debitAmount: 100 },
+    { accountId: 'acc-2', accountCode: '2000', accountName: 'Payables', creditAmount: 110 },
   ]
 
-  it('shows rate and base amount only for an item that is not in the base currency', () => {
+  it('shows the native currency of each line, not a currency choice', () => {
     renderWithProviders(<TransactionForm {...editProps(fxItems)} />)
 
     const rows = screen.getAllByTestId('form-item-row')
-    expect(within(rows[0]).getByTestId('rate-input')).toBeInTheDocument()
-    expect(within(rows[0]).getByTestId('base-amount-input')).toBeInTheDocument()
-    expect(within(rows[1]).queryByTestId('rate-input')).not.toBeInTheDocument()
+    expect(within(rows[0]).getByTestId('native-currency')).toHaveTextContent('EUR')
+    expect(within(rows[1]).getByTestId('native-currency')).toHaveTextContent('USD')
+    expect(within(rows[0]).queryByTestId('currency-select')).not.toBeInTheDocument()
   })
 
-  it('balances on the base amounts, not on the amounts of different currencies', () => {
+  it('totals each native currency on its own and leaves the balance to the valuation', () => {
     renderWithProviders(<TransactionForm {...editProps(fxItems)} />)
 
-    // 100 EUR debit and 110 USD credit are not equal, but both are 110.00 in base currency
+    const totals = screen.getAllByTestId('currency-totals')
+    expect(totals).toHaveLength(2)
+    expect(screen.getByTestId('valuation-section')).toBeInTheDocument()
+    // 100 EUR and 110 USD are never added together: the chip waits for the valuation check
+    expect(screen.getByTestId('balance-chip')).toHaveTextContent(/not checked/i)
+  })
+
+  it('has no valuation section when every account is in the base currency', () => {
+    renderWithProviders(
+      <TransactionForm
+        {...editProps([
+          { accountId: 'acc-2', accountCode: '2000', accountName: 'Payables', debitAmount: 5 },
+          { accountId: 'acc-2', accountCode: '2000', accountName: 'Payables', creditAmount: 5 },
+        ])}
+      />,
+    )
+
+    expect(screen.queryByTestId('valuation-section')).not.toBeInTheDocument()
     expect(screen.getByTestId('balance-chip')).toHaveTextContent(/^balanced$/i)
   })
 
-  it('is unbalanced when the base amounts differ', async () => {
+  it('keeps the stored rates on edit: sends no valuation and no equivalents (MC-26)', async () => {
     renderWithProviders(
-      <TransactionForm {...editProps([{ ...fxItems[0], rate: 1.2, baseAmount: undefined }, fxItems[1]])} />,
+      <TransactionForm
+        {...editProps(fxItems)}
+        initialData={{
+          ...editProps(fxItems).initialData,
+          valuation: { mode: 'RATES', rates: [{ currency: 'EUR', rate: 1.1 }] },
+        }}
+      />,
     )
 
-    // rate 1.2 gives 120.00 against a credit of 110.00
-    expect(screen.getByTestId('balance-chip')).toHaveTextContent(/unbalanced/i)
-  })
-
-  it('sends currency, rate and base amount of foreign items and none for base items', async () => {
-    renderWithProviders(<TransactionForm {...editProps(fxItems)} />)
-
+    expect(screen.getByText(/EUR 1.1/)).toBeInTheDocument()
+    expect(screen.queryByTestId('rate-input')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
 
-    expect(editMutate).toHaveBeenCalledOnce()
     const body = editMutate.mock.calls[0][0].body
-    expect(body.items[0]).toMatchObject({ accountId: 'acc-1', debitAmount: 100, currency: 'EUR', rate: 1.1, baseAmount: 110 })
-    expect(body.items[1]).not.toHaveProperty('currency')
-    expect(body.items[1]).not.toHaveProperty('rate')
+    expect(body.valuation).toBeUndefined()
+    expect(body.items[0]).not.toHaveProperty('equivalents')
   })
 
-  it('does not allow saving a foreign item without a rate', async () => {
+  it('sends the exact amounts typed for each equivalent in mode EXACT_AMOUNTS', async () => {
     renderWithProviders(
-      <TransactionForm {...editProps([{ ...fxItems[0], rate: undefined, baseAmount: undefined }, fxItems[1]])} />,
+      <TransactionForm
+        {...editProps([
+          { ...fxItems[0], equivalents: [{ currency: 'USD', amount: 110 }] },
+          fxItems[1],
+        ])}
+        initialData={{
+          ...editProps(fxItems).initialData,
+          valuation: { mode: 'EXACT_AMOUNTS', rates: [] },
+          items: [
+            { ...fxItems[0], equivalents: [{ currency: 'USD', amount: 110 }] },
+            fxItems[1],
+          ] as never,
+        }}
+      />,
+    )
+
+    const input = screen.getByTestId('equivalent-input').querySelector('input') as HTMLInputElement
+    expect(input.value).toBe('110')
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    const body = editMutate.mock.calls[0][0].body
+    expect(body.valuation).toEqual({ mode: 'EXACT_AMOUNTS' })
+    expect(body.items[0].equivalents).toEqual([{ currency: 'USD', amount: 110 }])
+  })
+
+  it('does not allow saving exact amounts while an equivalent is empty', async () => {
+    renderWithProviders(
+      <TransactionForm
+        {...editProps(fxItems)}
+        initialData={{
+          ...editProps(fxItems).initialData,
+          valuation: { mode: 'EXACT_AMOUNTS', rates: [] },
+        }}
+      />,
     )
 
     expect(screen.getByRole('button', { name: /^save$/i })).toBeDisabled()
   })
 
-  it('totals are shown with the decimals of the base currency', () => {
+  it('asks for the rate table when a transaction without stored valuation is edited', async () => {
     renderWithProviders(<TransactionForm {...editProps(fxItems)} />)
 
-    expect(screen.getAllByText('110.00').length).toBeGreaterThanOrEqual(2)
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    expect(editMutate.mock.calls[0][0].body.valuation).toEqual({ mode: 'RATE_TABLE' })
   })
 })

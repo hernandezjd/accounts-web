@@ -25,6 +25,7 @@ import type { components as Reporting } from '@/api/generated/reporting-api'
 import type { FormattedError } from '@accounts/error-handling-web'
 
 type ClosingAccountLine = Reporting['schemas']['ClosingAccountLine']
+type ClosingPreview = Reporting['schemas']['ClosingPreviewResponse']
 
 interface ClosingDialogProps {
   workspaceId: string
@@ -34,6 +35,21 @@ interface ClosingDialogProps {
 }
 
 type DialogStage = 'input' | 'preview'
+
+/** Debits and credits of the whole closing in each currency; the closing balances in every one (MC-25). */
+function closingTotals(preview: ClosingPreview) {
+  const totals = new Map<string, { currency: string; debits: number; credits: number }>()
+  const lines = [...(preview.nominalAccountLines ?? []), ...(preview.profitLossLines ?? [])]
+  for (const line of lines) {
+    for (const amount of line.amounts) {
+      const total = totals.get(amount.currency) ?? { currency: amount.currency, debits: 0, credits: 0 }
+      total.debits += amount.debitAmount
+      total.credits += amount.creditAmount
+      totals.set(amount.currency, total)
+    }
+  }
+  return [...totals.values()]
+}
 
 export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: ClosingDialogProps) {
   const { t } = useTranslation()
@@ -223,15 +239,17 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {preview.nominalAccountLines?.map((line: ClosingAccountLine) => (
-                        <TableRow key={`${line.accountId}-${line.currency}`}>
-                          <TableCell>{line.accountCode}</TableCell>
-                          <TableCell>{line.accountName}</TableCell>
-                          <TableCell>{line.currency}</TableCell>
-                          <TableCell align="right">{formatMoney(line.debitAmount, line.currency)}</TableCell>
-                          <TableCell align="right">{formatMoney(line.creditAmount, line.currency)}</TableCell>
-                        </TableRow>
-                      ))}
+                      {preview.nominalAccountLines?.flatMap((line: ClosingAccountLine) =>
+                        line.amounts.map((amount) => (
+                          <TableRow key={`${line.accountId}-${amount.currency}`}>
+                            <TableCell>{line.accountCode}</TableCell>
+                            <TableCell>{line.accountName}</TableCell>
+                            <TableCell>{amount.currency}</TableCell>
+                            <TableCell align="right">{formatMoney(amount.debitAmount, amount.currency)}</TableCell>
+                            <TableCell align="right">{formatMoney(amount.creditAmount, amount.currency)}</TableCell>
+                          </TableRow>
+                        )),
+                      )}
                     </TableBody>
                   </Table>
                 </Box>
@@ -251,15 +269,17 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {preview.profitLossLines?.map((line) => (
-                        <TableRow key={line.currency}>
-                          <TableCell>{line.accountCode}</TableCell>
-                          <TableCell>{line.accountName}</TableCell>
-                          <TableCell>{line.currency}</TableCell>
-                          <TableCell align="right">{formatMoney(line.debitAmount, line.currency)}</TableCell>
-                          <TableCell align="right">{formatMoney(line.creditAmount, line.currency)}</TableCell>
-                        </TableRow>
-                      ))}
+                      {preview.profitLossLines?.flatMap((line) =>
+                        line.amounts.map((amount) => (
+                          <TableRow key={`${line.accountId}-${amount.currency}`}>
+                            <TableCell>{line.accountCode}</TableCell>
+                            <TableCell>{line.accountName}</TableCell>
+                            <TableCell>{amount.currency}</TableCell>
+                            <TableCell align="right">{formatMoney(amount.debitAmount, amount.currency)}</TableCell>
+                            <TableCell align="right">{formatMoney(amount.creditAmount, amount.currency)}</TableCell>
+                          </TableRow>
+                        )),
+                      )}
                     </TableBody>
                   </Table>
                 </Box>
@@ -268,12 +288,13 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                     {t('closing.totals')}:
                   </Typography>
-                  <Typography variant="body2">
-                    {t('closing.totalDebits')}: {formatMoney(preview.totalDebits, preview.baseCurrency, { withCode: true })}
-                  </Typography>
-                  <Typography variant="body2">
-                    {t('closing.totalCredits')}: {formatMoney(preview.totalCredits, preview.baseCurrency, { withCode: true })}
-                  </Typography>
+                  {closingTotals(preview).map((total) => (
+                    <Typography variant="body2" key={total.currency}>
+                      {total.currency} — {t('closing.totalDebits')}:{' '}
+                      {formatMoney(total.debits, total.currency, { withCode: true })},{' '}
+                      {t('closing.totalCredits')}: {formatMoney(total.credits, total.currency, { withCode: true })}
+                    </Typography>
+                  ))}
                 </Box>
               </>
             )}

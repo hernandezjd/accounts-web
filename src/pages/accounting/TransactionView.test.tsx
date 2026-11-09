@@ -10,6 +10,9 @@ import type { AccountTransactionDetail } from '@/types/accounting'
 vi.mock('@/hooks/api/useAccountTransactionsInPeriod', () => ({
   useAccountTransactionsInPeriod: vi.fn(),
 }))
+vi.mock('@/hooks/api/useExtraCurrencyStatements', () => ({
+  useExtraCurrencyStatements: vi.fn(() => []),
+}))
 vi.mock('@/hooks/api/useTransactionById', () => ({
   useTransactionById: vi.fn(),
 }))
@@ -35,6 +38,9 @@ const mockUseQuery = vi.mocked(useAccountTransactionsInPeriod)
 const mockUseTransactionById = vi.mocked(useTransactionById)
 const mockUseTransactionMutations = vi.mocked(useTransactionMutations)
 
+import { useCurrencyViewStore } from '@/store/currencyViewStore'
+import { useExtraCurrencyStatements } from '@/hooks/api/useExtraCurrencyStatements'
+
 // ─── Sample data ──────────────────────────────────────────────────────────────
 
 const sampleData: AccountTransactionDetail = {
@@ -42,7 +48,11 @@ const sampleData: AccountTransactionDetail = {
   fromDate: '2026-01-01',
   toDate: '2026-01-31',
   thirdPartyId: null,
+  currency: 'USD',
   openingBalance: 5000,
+  totalDebits: 100,
+  totalCredits: 0,
+  closingBalance: 5100,
   transactions: [
     {
       transactionId: 'txn-1',
@@ -61,6 +71,8 @@ const sampleData: AccountTransactionDetail = {
           creditAmount: 0,
         },
       ],
+      debitAmount: 100,
+      creditAmount: 0,
       runningBalance: 5100,
     },
   ],
@@ -426,14 +438,18 @@ describe('TransactionView', () => {
     })
   })
 
-  it('sums the debit of every item inside the account scope, including child accounts', async () => {
-    // Drilling down into a parent account: items posted to its children count toward its amounts
+  it('shows the amounts the backend computed, with native amounts and equivalents on the items', async () => {
+    // 1,000,000 COP posted to a child, worth 250.00 USD: the statement is in USD
     const parentData: AccountTransactionDetail = {
       accountId: 'parent-1',
       fromDate: '2026-01-01',
       toDate: '2026-01-31',
       thirdPartyId: null,
+      currency: 'USD',
       openingBalance: 150,
+      totalDebits: 250,
+      totalCredits: 0,
+      closingBalance: 400,
       transactions: [
         {
           transactionId: 'txn-1',
@@ -442,10 +458,11 @@ describe('TransactionView', () => {
           date: '2026-01-15',
           description: 'Transfer',
           items: [
-            { accountId: 'child-1', accountCode: '1100', accountName: 'Cash', thirdPartyId: null, thirdPartyName: null, debitAmount: 100, creditAmount: 0 },
-            { accountId: 'child-2', accountCode: '1200', accountName: 'Bank', thirdPartyId: null, thirdPartyName: null, debitAmount: 20, creditAmount: 0 },
+            { accountId: 'child-1', accountCode: '1100', accountName: 'Cash', thirdPartyId: null, thirdPartyName: null, debitAmount: 1000000, creditAmount: 0, currency: 'COP', equivalents: [{ currency: 'USD', amount: 250 }] },
           ],
-          runningBalance: 270,
+          debitAmount: 250,
+          creditAmount: 0,
+          runningBalance: 400,
         },
       ],
     }
@@ -462,13 +479,31 @@ describe('TransactionView', () => {
         accountId="parent-1"
         accountName="Assets"
         accountCode="1000"
-        accountScopeIds={['parent-1', 'child-1', 'child-2']}
       />,
     )
 
     await waitFor(() => {
-      expect(screen.getByText('120.00')).toBeInTheDocument()
+      expect(screen.getAllByText('250.00').length).toBeGreaterThan(1)
     })
+    expect(screen.getByText(/1,000,000\.00 COP/)).toBeInTheDocument()
+    expect(screen.getByText(/≈ 250\.00 USD/)).toBeInTheDocument()
+    expect(screen.getByTestId('statement-summary')).toHaveTextContent('400.00 USD')
+  })
+
+  it('explains, instead of showing an error screen, that the account does not track the chosen currency', async () => {
+    useCurrencyViewStore.setState({ view: { currency: 'COP' }, baseCurrency: 'CAD' })
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: { errorCode: 'VALIDATION_ERROR', userMessage: 'Account 1100 does not track COP' },
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    expect(await screen.findByTestId('untracked-currency-message')).toHaveTextContent('no movements in COP')
+    useCurrencyViewStore.setState({ view: { currency: null }, baseCurrency: null })
   })
 
   it('displays line items with third-party names when applicable', async () => {
@@ -504,5 +539,30 @@ describe('TransactionView', () => {
     await waitFor(() => {
       expect(screen.getByText(/1000 Cash \/ ACME Corp/)).toBeInTheDocument()
     })
+  })
+
+  it('adds a balance column per extra currency, lined up by transaction, and a dash where a transaction has none', async () => {
+    // 100.00 USD debit is 125.00 CAD at 1.25; the CAD statement closes at 6,375.00
+    vi.mocked(useExtraCurrencyStatements).mockReturnValue([
+      {
+        currency: 'CAD',
+        ready: true,
+        closingBalance: 6375,
+        runningBalanceByTransaction: new Map([['txn-1', 6375]]),
+      },
+    ])
+    mockUseQuery.mockReturnValue({
+      data: sampleData,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+
+    renderWithProviders(<TransactionView {...defaultProps} />)
+
+    expect(await screen.findByText('Balance (CAD)')).toBeInTheDocument()
+    expect(screen.getByTestId('extra-balance-CAD')).toHaveTextContent('6,375.00')
+    expect(screen.getByTestId('extra-closing-CAD')).toHaveTextContent('6,375.00')
+    vi.mocked(useExtraCurrencyStatements).mockReturnValue([])
   })
 })

@@ -3,6 +3,7 @@ import { screen, fireEvent } from '@testing-library/react'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { AccountTree } from './AccountTree'
 import type { AccountPeriodNode } from '@/types/accounting'
+import type { ExtraCurrencyColumn } from '@/hooks/api/useExtraCurrencySummaries'
 
 function makeNode(
   id: string,
@@ -315,5 +316,35 @@ describe('AccountTree: always-visible accounts', () => {
     fireEvent.click(screen.getByRole('button', { name: /always show this account/i }))
 
     expect(onToggleAlwaysVisible).toHaveBeenCalledWith('L3', false)
+  })
+
+  describe('extra currency columns', () => {
+    function column(currency: string, ready: boolean, closing: [string, number][]): ExtraCurrencyColumn {
+      return {
+        currency,
+        ready,
+        closingByAccount: new Map(closing),
+        closingByThirdParty: new Map(),
+      }
+    }
+
+    it('adds one closing-balance column per extra currency, with the amounts of that currency', () => {
+      // Account A closes at 250 in the main currency and 1,000,000 COP; B has no COP movements
+      renderWithProviders(
+        <AccountTree
+          {...defaultProps}
+          nodes={[leafA, makeNode('B', 1)]}
+          extraColumns={[column('COP', true, [['A', 1000000]])]}
+        />,
+      )
+      expect(screen.getByText('Closing balance (COP)')).toBeInTheDocument()
+      const cells = screen.getAllByTestId('extra-COP')
+      expect(cells.map((c) => c.textContent)).toEqual(['1,000,000.00', '0.00'])
+    })
+
+    it('shows a dash, not a zero, while the extra currency has not loaded', () => {
+      renderWithProviders(<AccountTree {...defaultProps} extraColumns={[column('COP', false, [])]} />)
+      expect(screen.getByTestId('extra-COP')).toHaveTextContent('—')
+    })
   })
 })

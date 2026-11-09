@@ -112,7 +112,8 @@
       "debits": "Дебети",
       "credits": "Кредити",
       "closingBalance": "Закриття",
-      "closingBalanceSim": "Кінцевий залишок"
+      "closingBalanceSim": "Кінцевий залишок",
+      "closingBalanceIn": "Кінцеве сальдо ({{currency}})"
     },
     "shortcuts": {
       "prevPeriod": "Попередній період",
@@ -137,7 +138,13 @@
       "description": "Опис",
       "debit": "Дебет",
       "credit": "Кредит",
-      "runningBalance": "Залишок"
+      "runningBalance": "Залишок",
+      "totalDebits": "Усього дебет",
+      "totalCredits": "Усього кредит",
+      "closingBalance": "Кінцеве сальдо",
+      "untrackedCurrency": "{{account}} не має руху в {{currency}}. Оберіть {{base}} або іншу валюту у виборі валюти, або поверніться назад.",
+      "balanceIn": "Сальдо ({{currency}})",
+      "closingBalanceIn": "Кінцеве сальдо ({{currency}})"
     },
     "search": {
       "placeholder": "Пошук рахунків і операцій...",
@@ -324,7 +331,8 @@
       "accountingConfig": "Конфігурація бухгалтерії",
       "transactionTypes": "Типи операцій",
       "theme": "Тема",
-      "prefilledCharts": "Попередньо заповнені діаграми"
+      "prefilledCharts": "Попередньо заповнені діаграми",
+      "rates": "Курси валют"
     },
     "workspaces": {
       "newWorkspace": "Новий орендар",
@@ -577,9 +585,9 @@
     "statusSuspended": "Призупинено"
   },
   "currency": {
+    "extraColumns": "Колонки інших валют",
     "view": "Валюта",
     "base": "базова",
-    "allInBase": "Усе в {{currency}} (базові суми)",
     "baseCurrency": "Базова валюта",
     "baseCurrencyHelp": "Валюта обліку. Її не можна змінити після створення робочого простору.",
     "enabledCurrencies": "Увімкнені валюти",
@@ -595,6 +603,51 @@
     "balances": "Залишки",
     "saved": "Валюти збережено",
     "unbalancedBase": "Дебет і кредит мають збігатися в {{currency}}: різниця {{difference}}",
-    "sectionTitle": "Валюти"
+    "sectionTitle": "Валюти",
+    "nativeCurrency": "Рідна валюта",
+    "nativeCurrencyHelp": "Валюта виписки цього рахунку. Проводки вводяться лише в ній; її можна змінити, лише поки немає транзакцій чи залишків.",
+    "balancedCurrencies": "Валюти, що мають збігатися",
+    "balancedCurrenciesHelp": "Крім {{base}}, що збігається завжди, кожна транзакція має збігатися в цих валютах. Кожен активний рахунок має їх відстежувати."
+  },
+  "valuation": {
+    "title": "Оцінка",
+    "mode": "Як оцінюються еквіваленти",
+    "modeTable": "Таблиця курсів",
+    "modeRates": "Курси цієї транзакції",
+    "modeExact": "Точні суми",
+    "storedRates": "Курси, збережені з транзакцією (зберігаються при редагуванні)",
+    "exactHelp": "Введіть точну суму в кожній іншій валюті, як у виписці",
+    "preview": "Перевірити оцінку",
+    "notChecked": "Оцінку не перевірено",
+    "equivalents": "Еквіваленти",
+    "rounding": "округлення",
+    "ratesUsed": "Використані курси",
+    "nativeCurrency": "Рідна валюта"
+  },
+  "rates": {
+    "rates": "Курси",
+    "base": "Базова",
+    "date": "Дата",
+    "source": "Джерело",
+    "superseded": "замінено",
+    "showSuperseded": "Показати історію",
+    "hideSuperseded": "Сховати історію",
+    "runNow": "Запустити завдання курсів зараз",
+    "enterRate": "Ввести або виправити курс",
+    "rateHelp": "Одиниць базової за 1 одиницю валюти (до 14 знаків)",
+    "sources": "Джерела курсів",
+    "name": "Назва",
+    "url": "Шаблон URL",
+    "urlHelp": "Змінні: {base}, {currency}, {date}",
+    "jsonPath": "JSON-шлях",
+    "priority": "Пріоритет",
+    "addSource": "Додати джерело",
+    "jobRuns": "Останні запуски",
+    "startedAt": "Початок",
+    "status": "Статус",
+    "pairsOk": "Пар успішно",
+    "pairsFailed": "Пар з помилкою",
+    "message": "Повідомлення",
+    "jobFailed": "Останній запуск завдання курсів завершився помилкою ({{date}}): попередні курси збережено. Перевірте джерела або введіть курси вручну."
   }
 }

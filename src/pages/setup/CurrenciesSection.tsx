@@ -14,22 +14,31 @@ import { useWorkspaceConfigMutations } from '@/hooks/api/useWorkspaceConfigMutat
 import { allCurrencyCodes } from '@/utils/money'
 
 /**
- * Base and enabled currencies of a workspace (REQ-CUR-01, REQ-CUR-02). The base currency is chosen once and never
+ * Base, enabled and balanced currencies of a workspace (MC-12). The base currency is chosen once and never
  * changes; the enabled currencies are the ones accounts can track.
  */
 export function CurrenciesSection({ workspaceId }: { workspaceId: string }) {
   const { t } = useTranslation()
   const { data: config } = useWorkspaceConfig(workspaceId)
-  const { setBaseCurrency, setEnabledCurrencies } = useWorkspaceConfigMutations(workspaceId)
+  const { setBaseCurrency, setEnabledCurrencies, setBalancedCurrencies } = useWorkspaceConfigMutations(workspaceId)
   const { error, setError, clearError } = useErrorHandler()
   const baseCurrency = config?.baseCurrency ?? null
   const [baseChoice, setBaseChoice] = useState<string | null>(null)
   const [enabled, setEnabled] = useState<string[]>(config?.enabledCurrencies ?? [])
+  const [balanced, setBalanced] = useState<string[]>(config?.balancedCurrencies ?? [])
   const catalog = allCurrencyCodes()
 
   useEffect(() => {
     setEnabled(config?.enabledCurrencies ?? [])
   }, [config?.enabledCurrencies])
+
+  useEffect(() => {
+    setBalanced(config?.balancedCurrencies ?? [])
+  }, [config?.balancedCurrencies])
+
+  const balancedChanged =
+    balanced.length !== (config?.balancedCurrencies ?? []).length ||
+    balanced.some((code) => !(config?.balancedCurrencies ?? []).includes(code))
 
   const enabledChanged =
     enabled.length !== (config?.enabledCurrencies ?? []).length ||
@@ -98,6 +107,32 @@ export function CurrenciesSection({ workspaceId }: { workspaceId: string }) {
               setEnabledCurrencies.mutate(enabled, { onError: (err) => setError(err as never) })
             }}
             data-testid="save-enabled-currencies-btn"
+          >
+            {t('common.save')}
+          </Button>
+        </Box>
+      )}
+
+      {baseCurrency && (
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', maxWidth: 640, mt: 2 }}>
+          <Box sx={{ flexGrow: 1 }}>
+            <CurrencyMultiSelect
+              label={t('currency.balancedCurrencies')}
+              value={balanced}
+              onChange={setBalanced}
+              options={enabled.filter((code) => code !== baseCurrency)}
+              helperText={t('currency.balancedCurrenciesHelp', { base: baseCurrency })}
+              testId="balanced-currencies-input"
+            />
+          </Box>
+          <Button
+            variant="contained"
+            disabled={!balancedChanged || setBalancedCurrencies.isPending}
+            onClick={() => {
+              clearError()
+              setBalancedCurrencies.mutate(balanced, { onError: (err) => setError(err as never) })
+            }}
+            data-testid="save-balanced-currencies-btn"
           >
             {t('common.save')}
           </Button>

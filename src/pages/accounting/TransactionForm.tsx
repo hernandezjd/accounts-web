@@ -23,17 +23,25 @@ import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { PREFERENCE_KEYS } from '@/utils/preferences'
-import { currencyDecimals, formatMoney } from '@/utils/money'
+import { formatMoney } from '@/utils/money'
 import MenuItem from '@mui/material/MenuItem'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { useErrorHandler } from '@accounts/error-handling-web'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
+import type { components as TxnCmd } from '@/api/generated/transaction-command-api'
 import { AccountSearchField, type AccountOption } from './AccountSearchField'
 import { ThirdPartySearchField, type ThirdPartyOption } from './ThirdPartySearchField'
 import { TransactionTypeSearchField, type TransactionTypeOption } from './TransactionTypeSearchField'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+type ValuationPreview = TxnCmd['schemas']['ValuationPreviewResponse']
 
 export type FormMode = 'create' | 'createInitialBalance' | 'edit' | 'editInitialBalance'
 
@@ -43,12 +51,16 @@ interface FormItem {
   thirdParty: ThirdPartyOption | null
   debitAmount: string
   creditAmount: string
-  /** ISO 4217 currency of the amount; empty = the base currency (REQ-CUR-05). */
-  currency: string
-  /** Base units per unit of `currency`; only used when the currency is not the base one. */
-  rate: string
-  /** Optional base amount typed by the user; empty = amount x rate (REQ-CUR-06). */
-  baseAmount: string
+  /** Exact amounts typed for the other tracked currencies (mode EXACT_AMOUNTS, MC-15), by currency. */
+  equivalents: Record<string, string>
+}
+
+type ValuationMode = 'RATES' | 'RATE_TABLE' | 'EXACT_AMOUNTS'
+
+/** What a stored transaction was valued with (MC-18): an edit reuses it (MC-26). */
+export interface StoredValuation {
+  mode: ValuationMode
+  rates: Array<{ currency: string; rate: number }>
 }
 
 export interface TransactionFormInitialData {
@@ -66,10 +78,9 @@ export interface TransactionFormInitialData {
     thirdPartyName?: string | null
     debitAmount?: number
     creditAmount?: number
-    currency?: string
-    rate?: number
-    baseAmount?: number
+    equivalents?: Array<{ currency: string; amount: number }>
   }>
+  valuation?: StoredValuation | null
 }
 
 interface TransactionFormProps {
@@ -99,10 +110,10 @@ interface FormDraft {
     thirdPartyName: string | null
     debitAmount: string
     creditAmount: string
-    currency?: string
-    rate?: string
-    baseAmount?: string
+    equivalents?: Record<string, string>
   }>
+  valuationMode?: ValuationMode
+  rates?: Record<string, string>
 }
 
 const EMPTY_DRAFT: FormDraft = {
@@ -123,21 +134,13 @@ function makeEmptyItem(): FormItem {
     thirdParty: null,
     debitAmount: '',
     creditAmount: '',
-    currency: '',
-    rate: '',
-    baseAmount: '',
+    equivalents: {},
   }
 }
 
 function parseAmount(s: string): number {
   const n = parseFloat(s.replace(',', '.'))
   return isNaN(n) ? 0 : n
-}
-
-/** Rounds to the decimals of a currency, working in minor units to avoid float noise (2.675 x 100). */
-function roundTo(n: number, decimals: number): number {
-  const factor = 10 ** decimals
-  return Math.round((n + Number.EPSILON * Math.sign(n)) * factor) / factor
 }
 
 /** Normalise comma decimal separator to dot before storing in state. */
@@ -178,9 +181,8 @@ export function TransactionForm({
   const { t } = useTranslation()
   const { data: workspaceConfig } = useWorkspaceConfig(workspaceId)
   const baseCurrency = workspaceConfig?.baseCurrency ?? ''
-  const baseDecimals = currencyDecimals(baseCurrency)
   const { data: accounts } = useAccounts(workspaceId)
-  const { createTransaction, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance } =
+  const { createTransaction, previewValuation, editTransaction, deleteTransaction, createInitialBalance, editInitialBalance, deleteInitialBalance } =
     useTransactionMutations(workspaceId)
 
   // ── UI Preferences persistence (localStorage) ──────────────────────────────
@@ -239,13 +241,19 @@ export function TransactionForm({
             : null,
         debitAmount: (item.debitAmount ?? 0) > 0 ? String(item.debitAmount) : '',
         creditAmount: (item.creditAmount ?? 0) > 0 ? String(item.creditAmount) : '',
-        currency: item.currency ?? '',
-        rate: item.currency && item.rate && item.rate !== 1 ? String(item.rate) : '',
-        baseAmount: item.currency && item.baseAmount ? String(item.baseAmount) : '',
+        equivalents: Object.fromEntries((item.equivalents ?? []).map((e) => [e.currency, String(e.amount)])),
       }))
     }
     return [makeEmptyItem()]
   })
+
+  // ── Valuation (MC-15): how the equivalents in the other tracked currencies are obtained ──
+  const isEditMode = mode === 'edit' || mode === 'editInitialBalance'
+  const [valuationMode, setValuationMode] = useState<ValuationMode>(initialData?.valuation?.mode ?? 'RATE_TABLE')
+  const [rates, setRates] = useState<Record<string, string>>(() =>
+    Object.fromEntries((initialData?.valuation?.rates ?? []).map((r) => [r.currency, String(r.rate)])),
+  )
+  const [preview, setPreview] = useState<ValuationPreview | null>(null)
 
   const { error, handleError, clearError } = useErrorHandler()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -275,12 +283,12 @@ export function TransactionForm({
           thirdParty: item.thirdPartyId ? { id: item.thirdPartyId, name: item.thirdPartyName ?? '' } : null,
           debitAmount: item.debitAmount,
           creditAmount: item.creditAmount,
-          currency: item.currency ?? '',
-          rate: item.rate ?? '',
-          baseAmount: item.baseAmount ?? '',
+          equivalents: item.equivalents ?? {},
         })),
       )
     }
+    if (storedDraft.valuationMode) setValuationMode(storedDraft.valuationMode)
+    if (storedDraft.rates) setRates(storedDraft.rates)
     setShowRestoreBanner(false)
     setDraftDecided(true)
   }, [storedDraft])
@@ -310,17 +318,17 @@ export function TransactionForm({
         thirdPartyName: item.thirdParty?.name ?? null,
         debitAmount: item.debitAmount,
         creditAmount: item.creditAmount,
-        currency: item.currency,
-        rate: item.rate,
-        baseAmount: item.baseAmount,
+        equivalents: item.equivalents,
       })),
+      valuationMode,
+      rates,
     }
     try {
       sessionStorage.setItem(`form-draft:${draftKey}`, JSON.stringify(draft))
     } catch {
       // ignore storage errors
     }
-  }, [isDraftMode, draftDecided, selectedType, number, date, description, items, draftKey])
+  }, [isDraftMode, draftDecided, selectedType, number, date, description, items, valuationMode, rates, draftKey])
 
   // ── Sync hasThirdParties from accounts list (edit mode) ──
   const accountsSyncedRef = useRef(false)
@@ -346,29 +354,43 @@ export function TransactionForm({
   const dateBeforeInitialDate =
     isRegularMode && !!date && !!systemInitialDate && date < systemInitialDate
 
-  // ── Totals ──
-  // A transaction balances in base currency (REQ-TXN-09): every item counts with its base amount
-  const accountCurrencies = (accountId: string | undefined): string[] =>
-    (accounts?.find((a) => a.id === accountId)?.currencies ?? []).slice()
-  const isForeign = (item: FormItem) => !!item.currency && !!baseCurrency && item.currency !== baseCurrency
-  const amountOf = (item: FormItem) => parseAmount(item.debitAmount) || parseAmount(item.creditAmount)
-  /** Base amount of an item: the one typed by the user, or amount x rate rounded to the base decimals. */
-  const baseAmountOf = (item: FormItem): number => {
-    const amount = amountOf(item)
-    if (!isForeign(item)) return amount
-    const typed = parseAmount(item.baseAmount)
-    if (typed > 0) return typed
-    return roundTo(amount * parseAmount(item.rate), baseDecimals)
+  // ── Currencies of the lines (MC-01, MC-06) ──
+  // A line is always in the native currency of its account; the account's other tracked currencies get derived
+  // equivalents. A transaction needs one rate per non-base currency involved (MC-16).
+  const accountOf = (accountId: string | undefined) => accounts?.find((a) => a.id === accountId)
+  const nativeOf = (item: FormItem): string => accountOf(item.account?.id)?.nativeCurrency || baseCurrency
+  const trackedOf = (item: FormItem): string[] => {
+    const tracked = accountOf(item.account?.id)?.currencies ?? []
+    return tracked.length > 0 ? tracked : [nativeOf(item)]
   }
-  const totalDebits = roundTo(
-    items.reduce((sum, item) => sum + (parseAmount(item.debitAmount) > 0 ? baseAmountOf(item) : 0), 0),
-    baseDecimals,
-  )
-  const totalCredits = roundTo(
-    items.reduce((sum, item) => sum + (parseAmount(item.creditAmount) > 0 ? baseAmountOf(item) : 0), 0),
-    baseDecimals,
-  )
-  const isBalanced = totalDebits > 0 && Math.abs(totalDebits - totalCredits) < 0.5 * 10 ** -baseDecimals
+  const equivalentCurrenciesOf = (item: FormItem): string[] => trackedOf(item).filter((c) => c !== nativeOf(item))
+  const involvedCurrencies = Array.from(
+    new Set(items.flatMap((item) => (item.account ? [nativeOf(item), ...trackedOf(item)] : []))),
+  ).filter((c) => c && c !== baseCurrency)
+  const needsValuation = items.some((item) => item.account && equivalentCurrenciesOf(item).length > 0)
+  // An edit keeps the stored rates (MC-26); only exact amounts are typed again
+  const ratesEditable = !(isEditMode && initialData?.valuation)
+  const showRateInputs = needsValuation && valuationMode === 'RATES' && ratesEditable
+  const showExactGrid = needsValuation && valuationMode === 'EXACT_AMOUNTS'
+
+  // ── Totals: per native currency, as entered. The balance in base and in the required currencies depends on the
+  // valuation, so the server (or the preview) decides it.
+  const amountOf = (item: FormItem) => parseAmount(item.debitAmount) || parseAmount(item.creditAmount)
+  const totalsByCurrency = (() => {
+    const totals = new Map<string, { debit: number; credit: number }>()
+    for (const item of items) {
+      const total = totals.get(nativeOf(item)) ?? { debit: 0, credit: 0 }
+      total.debit += parseAmount(item.debitAmount)
+      total.credit += parseAmount(item.creditAmount)
+      totals.set(nativeOf(item), total)
+    }
+    return [...totals.entries()]
+  })()
+  const anyAmount = items.some((item) => amountOf(item) > 0)
+  // Without equivalents everything is in one currency and the check is local; otherwise the preview answers
+  const isBalanced = needsValuation
+    ? preview !== null
+    : anyAmount && totalsByCurrency.every(([, total]) => Math.abs(total.debit - total.credit) < 0.000001)
 
   // ── Item mutations ──
   const addItem = () => setItems((prev) => [...prev, makeEmptyItem()])
@@ -402,40 +424,83 @@ export function TransactionForm({
               ...item,
               ...patch,
               // Clear third party and currency choice when account changes
-              ...('account' in patch && { thirdParty: null, currency: '', rate: '', baseAmount: '' }),
+              ...('account' in patch && { thirdParty: null, equivalents: {} }),
             }
           : item,
       ),
     )
 
-  // ── Build request items ──
+  // A preview describes the inputs it was made from
+  useEffect(() => {
+    setPreview(null)
+  }, [items, rates, valuationMode, date])
+
+  // ── Build request ──
   const buildRequestItems = () =>
     items.map((item) => ({
       accountId: item.account!.id,
       thirdPartyId: item.thirdParty?.id ?? undefined,
       debitAmount: parseAmount(item.debitAmount) > 0 ? parseAmount(item.debitAmount) : undefined,
       creditAmount: parseAmount(item.creditAmount) > 0 ? parseAmount(item.creditAmount) : undefined,
-      // Items in the base currency go without currency and rate: the server defaults them (REQ-CUR-06)
-      ...(isForeign(item)
-        ? { currency: item.currency, rate: parseAmount(item.rate), baseAmount: baseAmountOf(item) }
+      ...(showExactGrid
+        ? {
+            equivalents: equivalentCurrenciesOf(item).map((currency) => ({
+              currency,
+              amount: parseAmount(item.equivalents[currency] ?? ''),
+            })),
+          }
         : {}),
     }))
+
+  const buildValuation = () => {
+    if (!needsValuation) return undefined
+    if (isEditMode && initialData?.valuation && valuationMode !== 'EXACT_AMOUNTS') return undefined // stored rates are reused
+    if (valuationMode === 'RATES') {
+      return {
+        mode: 'RATES' as const,
+        rates: involvedCurrencies.map((currency) => ({ currency, rate: parseAmount(rates[currency] ?? '') })),
+      }
+    }
+    return { mode: valuationMode }
+  }
+
+  const handlePreview = () => {
+    clearError()
+    setPreview(null)
+    previewValuation.mutate(
+      {
+        transactionTypeId: selectedType!.id,
+        transactionNumber: number,
+        date,
+        description,
+        items: buildRequestItems(),
+        valuation: buildValuation(),
+      },
+      {
+        onSuccess: (data) => setPreview((data ?? { items: [] }) as ValuationPreview),
+        onError: (err) => handleError(err),
+      },
+    )
+  }
 
   // ── Save ──
   const isInitialBalanceMode = mode === 'createInitialBalance' || mode === 'editInitialBalance'
   const canSave =
     !initialDateMissing &&
     !dateBeforeInitialDate &&
-    isBalanced &&
+    (needsValuation || isBalanced) &&
     number.trim() &&
     description.trim() &&
     (isInitialBalanceMode || (selectedType && date)) &&
     items.every((item) => item.account && (parseAmount(item.debitAmount) > 0 || parseAmount(item.creditAmount) > 0)) &&
-    items.every((item) => !isForeign(item) || parseAmount(item.rate) > 0)
+    (!showRateInputs || !ratesEditable || involvedCurrencies.every((c) => parseAmount(rates[c] ?? '') > 0)) &&
+    (!showExactGrid ||
+      items.every((item) => equivalentCurrenciesOf(item).every((c) => parseAmount(item.equivalents[c] ?? '') >= 0 && (item.equivalents[c] ?? '') !== '')))
 
   const handleSave = () => {
     clearError()
     const requestItems = buildRequestItems()
+    const valuation = buildValuation()
 
     if (mode === 'create') {
       createTransaction.mutate(
@@ -445,6 +510,7 @@ export function TransactionForm({
           date,
           description,
           items: requestItems,
+          valuation,
         },
         {
           onSuccess: () => {
@@ -458,7 +524,7 @@ export function TransactionForm({
       )
     } else if (mode === 'createInitialBalance') {
       createInitialBalance.mutate(
-        { transactionNumber: number, description, items: requestItems },
+        { transactionNumber: number, description, items: requestItems, valuation },
         {
           onSuccess: () => onSuccess(),
           onError: (err) => handleError(err),
@@ -468,7 +534,7 @@ export function TransactionForm({
       editInitialBalance.mutate(
         {
           id: transactionId!,
-          body: { transactionNumber: number, description, items: requestItems },
+          body: { transactionNumber: number, description, items: requestItems, valuation },
         },
         {
           onSuccess: () => onSuccess(),
@@ -485,6 +551,7 @@ export function TransactionForm({
             date,
             description,
             items: requestItems,
+            valuation,
           },
         },
         {
@@ -633,7 +700,7 @@ export function TransactionForm({
           <Typography variant="body2" sx={{ fontWeight: 600, flex: '1 1 240px' }}>
             {t('transactionForm.items')}
           </Typography>
-          <Typography variant="body2" sx={{ width: 90, textAlign: 'center', color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ width: 64, textAlign: 'center', color: 'text.secondary' }}>
             {t('currency.currency')}
           </Typography>
           <Typography variant="body2" sx={{ width: 110, textAlign: 'center', color: 'text.secondary' }}>
@@ -669,25 +736,14 @@ export function TransactionForm({
               </Box>
             )}
 
-            <TextField
-              select
-              value={item.currency || baseCurrency}
-              onChange={(e) => updateItem(item.id, { currency: e.target.value, rate: '', baseAmount: '' })}
+            <Chip
+              label={item.account ? nativeOf(item) : '—'}
               size="small"
-              sx={{ width: 90 }}
-              disabled={!baseCurrency || accountCurrencies(item.account?.id).length < 2}
-              inputProps={{ 'aria-label': t('currency.currency') }}
-              data-testid="currency-select"
-            >
-              {(accountCurrencies(item.account?.id).length > 0
-                ? accountCurrencies(item.account?.id)
-                : [baseCurrency]
-              ).map((code) => (
-                <MenuItem key={code} value={code}>
-                  {code}
-                </MenuItem>
-              ))}
-            </TextField>
+              variant="outlined"
+              sx={{ width: 64 }}
+              aria-label={t('valuation.nativeCurrency')}
+              data-testid="native-currency"
+            />
 
             <TextField
               value={item.debitAmount}
@@ -729,36 +785,6 @@ export function TransactionForm({
               data-testid="credit-input"
             />
 
-            {isForeign(item) && (
-              <>
-                <TextField
-                  value={item.rate}
-                  onChange={(e) => updateItem(item.id, { rate: normaliseAmountInput(e.target.value) })}
-                  onKeyDown={handleAmountKeyDown}
-                  label={t('currency.rate')}
-                  helperText={t('currency.rateHelp', { base: baseCurrency, currency: item.currency })}
-                  size="small"
-                  sx={{ width: 130 }}
-                  inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
-                  data-testid="rate-input"
-                />
-                <TextField
-                  value={item.baseAmount}
-                  onChange={(e) => updateItem(item.id, { baseAmount: normaliseAmountInput(e.target.value) })}
-                  onKeyDown={handleAmountKeyDown}
-                  label={t('currency.baseAmount')}
-                  placeholder={formatMoney(
-                    roundTo(amountOf(item) * parseAmount(item.rate), baseDecimals),
-                    baseCurrency,
-                  )}
-                  size="small"
-                  sx={{ width: 130 }}
-                  inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
-                  data-testid="base-amount-input"
-                />
-              </>
-            )}
-
             <Tooltip title={t('transactionForm.insertAbove')}>
               <IconButton size="small" onClick={() => insertAbove(item.id)}
                 aria-label={t('transactionForm.insertAbove')} data-testid="insert-above-btn">
@@ -793,30 +819,173 @@ export function TransactionForm({
         </Button>
       </Box>
 
-      {/* Totals + balance indicator */}
-      <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Box sx={{ flex: '1 1 240px' }} />
-        <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
-          <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
-            {formatMoney(totalDebits, baseCurrency)}
-          </Typography>
+      {/* Totals per native currency + balance indicator */}
+      {totalsByCurrency.map(([currency, total]) => (
+        <Box key={currency} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }} data-testid="currency-totals">
+          <Box sx={{ flex: '1 1 240px', textAlign: 'right', color: 'text.secondary' }}>
+            <Typography variant="body2">{currency}</Typography>
+          </Box>
+          <Box sx={{ width: 64 }} />
+          <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
+            <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
+              {formatMoney(total.debit, currency)}
+            </Typography>
+          </Box>
+          <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
+            <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
+              {formatMoney(total.credit, currency)}
+            </Typography>
+          </Box>
         </Box>
-        <Box sx={{ width: 110, borderTop: 1, borderColor: 'divider', pt: 0.5 }}>
-          <Typography sx={{ fontSize: '1rem', textAlign: 'right', pr: '14px' }}>
-            {formatMoney(totalCredits, baseCurrency)}
-          </Typography>
-        </Box>
-        <Box sx={{ width: 106 }} />
-        {(totalDebits > 0 || totalCredits > 0) && (
+      ))}
+      {anyAmount && (
+        <Box sx={{ mb: 2 }}>
           <Chip
-            label={isBalanced ? t('transactionForm.balanced') : t('transactionForm.unbalanced')}
-            color={isBalanced ? 'success' : 'error'}
+            label={
+              needsValuation && !preview
+                ? t('valuation.notChecked')
+                : isBalanced
+                  ? t('transactionForm.balanced')
+                  : t('transactionForm.unbalanced')
+            }
+            color={needsValuation && !preview ? 'default' : isBalanced ? 'success' : 'error'}
             size="small"
             data-testid="balance-chip"
-            sx={{ position: 'absolute', right: 0 }}
           />
-        )}
-      </Box>
+        </Box>
+      )}
+
+      {/* Valuation (MC-15): how the equivalents in the other tracked currencies are obtained */}
+      {needsValuation && (
+        <Box sx={{ mb: 2, p: 1.5, border: 1, borderColor: 'divider', borderRadius: 1 }} data-testid="valuation-section">
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+            {t('valuation.title')}
+          </Typography>
+          <TextField
+            select
+            size="small"
+            label={t('valuation.mode')}
+            value={valuationMode}
+            onChange={(e) => setValuationMode(e.target.value as ValuationMode)}
+            disabled={isEditMode && !!initialData?.valuation}
+            sx={{ minWidth: 260, mb: 1 }}
+            data-testid="valuation-mode"
+          >
+            <MenuItem value="RATE_TABLE">{t('valuation.modeTable')}</MenuItem>
+            <MenuItem value="RATES">{t('valuation.modeRates')}</MenuItem>
+            <MenuItem value="EXACT_AMOUNTS">{t('valuation.modeExact')}</MenuItem>
+          </TextField>
+
+          {isEditMode && initialData?.valuation && initialData.valuation.mode !== 'EXACT_AMOUNTS' && (
+            <Typography variant="caption" display="block" sx={{ mb: 1 }}>
+              {t('valuation.storedRates')}:{' '}
+              {initialData.valuation.rates.map((r) => `${r.currency} ${r.rate}`).join(', ')}
+            </Typography>
+          )}
+
+          {showRateInputs && (
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+              {involvedCurrencies.map((currency) => (
+                <TextField
+                  key={currency}
+                  value={rates[currency] ?? ''}
+                  onChange={(e) => setRates((prev) => ({ ...prev, [currency]: normaliseAmountInput(e.target.value) }))}
+                  onKeyDown={handleAmountKeyDown}
+                  label={`${t('currency.rate')} ${currency}`}
+                  helperText={t('currency.rateHelp', { base: baseCurrency, currency })}
+                  disabled={!ratesEditable}
+                  size="small"
+                  sx={{ width: 170 }}
+                  inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
+                  data-testid="rate-input"
+                />
+              ))}
+            </Box>
+          )}
+
+          {showExactGrid && (
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="caption" display="block" sx={{ mb: 0.5 }}>
+                {t('valuation.exactHelp')}
+              </Typography>
+              {items.map((item) =>
+                item.account && equivalentCurrenciesOf(item).length > 0 ? (
+                  <Box key={item.id} sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ minWidth: 220 }}>
+                      {item.account.code} — {item.account.name} ({formatMoney(amountOf(item), nativeOf(item))})
+                    </Typography>
+                    {equivalentCurrenciesOf(item).map((currency) => (
+                      <TextField
+                        key={currency}
+                        value={item.equivalents[currency] ?? ''}
+                        onChange={(e) =>
+                          updateItem(item.id, {
+                            equivalents: { ...item.equivalents, [currency]: normaliseAmountInput(e.target.value) },
+                          })
+                        }
+                        onKeyDown={handleAmountKeyDown}
+                        label={currency}
+                        size="small"
+                        sx={{ width: 140 }}
+                        inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
+                        data-testid="equivalent-input"
+                      />
+                    ))}
+                  </Box>
+                ) : null,
+              )}
+            </Box>
+          )}
+
+          {!isInitialBalanceMode && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={handlePreview}
+              disabled={!selectedType || !date || previewValuation.isPending}
+              data-testid="preview-valuation"
+            >
+              {t('valuation.preview')}
+            </Button>
+          )}
+
+          {preview && (
+            <Table size="small" sx={{ mt: 1 }} data-testid="valuation-preview">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('transactionForm.account')}</TableCell>
+                  <TableCell>{t('valuation.equivalents')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(preview.items ?? []).map((line, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      {items[index]?.account ? `${items[index].account!.code} — ${items[index].account!.name}` : line.accountId}
+                    </TableCell>
+                    <TableCell>
+                      {(line.equivalents ?? [])
+                        .map(
+                          (e) =>
+                            `${formatMoney(e.amount, e.currency ?? '')}${e.roundingAdjustment ? ` (${t('valuation.rounding')} ${e.roundingAdjustment})` : ''}`,
+                        )
+                        .join(' · ')}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+          {preview?.valuation?.rates && preview.valuation.rates.length > 0 && (
+            <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+              {t('valuation.ratesUsed')}:{' '}
+              {preview.valuation.rates
+                .map((r) => `${r.currency} ${r.rate}${r.rateDate ? ` (${r.rateDate})` : ''}`)
+                .join(', ')}
+            </Typography>
+          )}
+        </Box>
+      )}
 
       {/* Actions */}
       <Box sx={{ display: 'flex', gap: 1 }}>

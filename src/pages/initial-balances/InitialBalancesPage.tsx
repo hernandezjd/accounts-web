@@ -138,9 +138,7 @@ export function InitialBalancesPage() {
                               thirdPartyName: item.thirdPartyName ?? null,
                               debitAmount: item.debitAmount ?? 0,
                               creditAmount: item.creditAmount ?? 0,
-                              currency: item.currency ?? undefined,
-                              rate: item.rate ?? undefined,
-                              baseAmount: item.baseAmount ?? undefined,
+                              equivalents: (item.equivalents ?? []).map((e) => ({ currency: e.currency, amount: e.amount })),
                             })),
                           }
                           setFormConfig({ mode: 'editInitialBalance', transactionId: ib.id, initialData })

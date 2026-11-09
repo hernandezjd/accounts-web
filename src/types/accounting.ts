@@ -58,6 +58,10 @@ export interface TransactionItemDetail {
   thirdPartyName?: string | null
   debitAmount: number
   creditAmount: number
+  /** Native currency of the line. */
+  currency?: string | null
+  /** Derived value of the line in each other tracked currency. */
+  equivalents?: { currency: string; amount: number }[]
 }
 
 export interface TransactionWithRunningBalance {
@@ -67,6 +71,9 @@ export interface TransactionWithRunningBalance {
   date: string
   description?: string | null
   items: TransactionItemDetail[]
+  /** What this transaction debited / credited to the account, in the currency of the statement. */
+  debitAmount: number
+  creditAmount: number
   runningBalance: number
 }
 
@@ -75,6 +82,11 @@ export interface AccountTransactionDetail {
   fromDate: string
   toDate: string
   thirdPartyId?: string | null
+  /** Currency of every statement amount (the requested one, or the base). */
+  currency: string
   openingBalance: number
+  totalDebits: number
+  totalCredits: number
+  closingBalance: number
   transactions: TransactionWithRunningBalance[]
 }

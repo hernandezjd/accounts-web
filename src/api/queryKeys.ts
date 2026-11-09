@@ -48,6 +48,14 @@ export const queryKeys = {
   // =====================================================================
   // TRANSACTION TYPES (Workspace-scoped)
   // =====================================================================
+  // Exchange-rate table (global, MC-16, MC-17)
+  exchangeRates: {
+    all: () => ['exchange-rates'] as const,
+    list: (filters: Record<string, string | undefined>) => [...queryKeys.exchangeRates.all(), 'list', filters] as const,
+    sources: () => [...queryKeys.exchangeRates.all(), 'sources'] as const,
+    jobRuns: () => [...queryKeys.exchangeRates.all(), 'job-runs'] as const,
+  },
+
   transactionTypes: {
     all: () => ['transaction-types'] as const,
     lists: () => [...queryKeys.transactionTypes.all(), 'list'] as const,
