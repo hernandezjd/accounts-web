@@ -23,6 +23,7 @@ export function ExtraCurrenciesSelect({ workspaceId }: { workspaceId?: string | 
       onChange={setExtra}
       options={options}
       testId="extra-currencies-select"
+      minWidth={220}
     />
   )
 }

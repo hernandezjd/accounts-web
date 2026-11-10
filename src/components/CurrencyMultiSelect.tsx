@@ -13,6 +13,8 @@ interface CurrencyMultiSelectProps {
   disabled?: boolean
   helperText?: string
   testId?: string
+  /** Minimum width in px, so the label fits in the outline when no currency is chosen. */
+  minWidth?: number
 }
 
 /** Chooses several ISO 4217 currencies (REQ-CUR-02, REQ-CUR-03). */
@@ -25,6 +27,7 @@ export function CurrencyMultiSelect({
   disabled,
   helperText,
   testId,
+  minWidth,
 }: CurrencyMultiSelectProps) {
   return (
     <Autocomplete
@@ -33,6 +36,7 @@ export function CurrencyMultiSelect({
       options={options}
       value={value}
       disabled={disabled}
+      sx={minWidth ? { minWidth } : undefined}
       disableCloseOnSelect
       onChange={(_e, next) => onChange([...new Set([...fixed, ...next])].sort())}
       renderTags={(tags, getTagProps) =>
@@ -46,6 +50,7 @@ export function CurrencyMultiSelect({
           {...params}
           label={label}
           helperText={helperText}
+          InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
           inputProps={{ ...params.inputProps, 'data-testid': testId }}
         />
       )}
