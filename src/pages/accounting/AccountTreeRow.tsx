@@ -41,22 +41,29 @@ function simColor(current: number, original: number | undefined): string | undef
 function ExtraCells({
   columns,
   lookup,
+  originalLookup,
   dim,
 }: {
   columns: ExtraCurrencyColumn[]
   lookup: (column: ExtraCurrencyColumn) => number | undefined
+  originalLookup: (column: ExtraCurrencyColumn) => number | undefined
   dim?: boolean
 }) {
   return (
     <>
       {columns.map((column) => {
         const value = column.ready ? (lookup(column) ?? 0) : undefined
+        const color = column.ready ? simColor(value ?? 0, originalLookup(column)) : undefined
         return (
           <TableCell
             key={column.currency}
             align="right"
             data-testid={`extra-${column.currency}`}
-            sx={{ py: dim ? 0.5 : 0.75, fontSize: dim ? '0.85em' : undefined, color: dim ? 'text.secondary' : undefined }}
+            sx={{
+              py: dim ? 0.5 : 0.75,
+              fontSize: dim ? '0.85em' : undefined,
+              color: color ?? (dim ? 'text.secondary' : undefined),
+            }}
           >
             {value === undefined ? '—' : formatMoney(value, column.currency)}
           </TableCell>
@@ -123,6 +130,7 @@ function ThirdPartyRow({
       <ExtraCells
         columns={extraColumns}
         lookup={(c) => c.closingByThirdParty.get(thirdPartyKey(accountId, tp.thirdPartyId))}
+        originalLookup={(c) => c.originalClosingByThirdParty.get(thirdPartyKey(accountId, tp.thirdPartyId))}
         dim
       />
     </TableRow>
@@ -258,7 +266,11 @@ export function AccountTreeRow({
         <TableCell align="right" sx={{ py: 0.75, color: simColor(node.closingBalance, node.originalClosingBalance) }}>
           {formatAmount(node.closingBalance)}
         </TableCell>
-        <ExtraCells columns={extraColumns} lookup={(c) => c.closingByAccount.get(node.accountId)} />
+        <ExtraCells
+          columns={extraColumns}
+          lookup={(c) => c.closingByAccount.get(node.accountId)}
+          originalLookup={(c) => c.originalClosingByAccount.get(node.accountId)}
+        />
       </TableRow>
 
       {isExpanded && (

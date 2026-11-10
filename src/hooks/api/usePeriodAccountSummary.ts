@@ -48,6 +48,14 @@ function convertClosureNode(node: any): AccountPeriodNode {
   }
 }
 
+/**
+ * Normalize the `accounts` of a period summary response: closure responses (with `original`/`simulated`)
+ * are converted to the flat AccountPeriodNode shape, plain responses are returned as they are.
+ */
+export function toAccountNodes(accounts: any[]): AccountPeriodNode[] {
+  return accounts.map((node: any) => (node.original !== undefined ? convertClosureNode(node) : node))
+}
+
 export function usePeriodAccountSummary(
   workspaceId: string | null | undefined,
   fromDate: string,
@@ -75,10 +83,7 @@ export function usePeriodAccountSummary(
       const data = response.data as any
 
       // Handle both PeriodAccountSummaryResponse and PeriodAccountSummaryWithClosureResponse
-      const accounts = (data.accounts ?? []).map((node: any) =>
-        // Check if this is a closure response (has original/simulated fields)
-        node.original !== undefined ? convertClosureNode(node) : node
-      )
+      const accounts = toAccountNodes(data.accounts ?? [])
 
       return {
         data: {

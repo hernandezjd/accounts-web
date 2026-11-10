@@ -199,7 +199,7 @@ export function AccountingPage() {
   const { displayCurrency, enabledCurrencies } = useCurrencyView(workspaceId)
   const chosenExtra = useCurrencyViewStore((s) => s.extraCurrencies)
   const extraCurrencies = chosenExtra.filter((c) => c !== displayCurrency && enabledCurrencies.includes(c))
-  const extraColumns = useExtraCurrencySummaries(workspaceId, effectiveFrom, to, extraCurrencies)
+  const extraColumns = useExtraCurrencySummaries(workspaceId, effectiveFrom, to, extraCurrencies, simulateClosure)
 
   // ── Snap period forward if it ends before systemInitialDate ──────────────
   // Use `to < systemInitialDate` (not `from`) so a yearly period that straddles

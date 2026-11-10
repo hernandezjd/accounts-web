@@ -325,6 +325,8 @@ describe('AccountTree: always-visible accounts', () => {
         ready,
         closingByAccount: new Map(closing),
         closingByThirdParty: new Map(),
+        originalClosingByAccount: new Map(closing),
+        originalClosingByThirdParty: new Map(),
       }
     }
 
@@ -340,6 +342,17 @@ describe('AccountTree: always-visible accounts', () => {
       expect(screen.getByText('Closing balance (COP)')).toBeInTheDocument()
       const cells = screen.getAllByTestId('extra-COP')
       expect(cells.map((c) => c.textContent)).toEqual(['1,000,000.00', '0.00'])
+    })
+
+    it('shows simulated extra currency closings in the simulation color, like the main columns', () => {
+      const simulated: ExtraCurrencyColumn = {
+        ...column('COP', true, [['A', 0]]),
+        originalClosingByAccount: new Map([['A', 1000000]]),
+      }
+      renderWithProviders(<AccountTree {...defaultProps} nodes={[leafA, makeNode('B', 1)]} extraColumns={[simulated]} />)
+      const [changed, unchanged] = screen.getAllByTestId('extra-COP')
+      // The changed closing gets the same primary color as a simulated main column; the unchanged one does not
+      expect(window.getComputedStyle(changed).color).not.toBe(window.getComputedStyle(unchanged).color)
     })
 
     it('shows a dash, not a zero, while the extra currency has not loaded', () => {
