@@ -481,7 +481,7 @@ export function AccountingPage() {
         />
       ) : (
         <>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
             <PeriodControls
               from={from}
               to={to}
@@ -494,12 +494,15 @@ export function AccountingPage() {
               onPeriodChange={handlePeriodChange}
               systemInitialDate={systemInitialDate}
             />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 'auto' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
             <CurrencyViewSelect workspaceId={workspaceId} />
             <ExtraCurrenciesSelect workspaceId={workspaceId} />
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <FormControlLabel
+              sx={{ mx: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem', color: 'text.secondary' } }}
               control={
                 <Switch
+                  size="small"
                   checked={showZeroAccounts}
                   onChange={(e) => setShowZeroAccounts(e.target.checked)}
                   data-testid="show-zero-accounts-toggle"
@@ -508,8 +511,10 @@ export function AccountingPage() {
               label={t('accounting.showZeroAccounts')}
             />
             <FormControlLabel
+              sx={{ mx: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem', color: 'text.secondary' } }}
               control={
                 <Switch
+                  size="small"
                   checked={simulateClosure}
                   onChange={(e) => {
                     const wantOn = e.target.checked
@@ -529,6 +534,7 @@ export function AccountingPage() {
               }
               label={t('accounting.simulateClosureToggle')}
             />
+            </Box>
             </Box>
           </Box>
 

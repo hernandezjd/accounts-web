@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
 import IconButton from '@mui/material/IconButton'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
@@ -119,7 +121,7 @@ export function PeriodControls({
 
   return (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', flexShrink: 0 }}>
         {!isCustomGranularity && (
           <>
             <IconButton
@@ -183,20 +185,23 @@ export function PeriodControls({
           </>
         )}
 
-        <Select
-          native
-          value={granularity}
-          onChange={handleGranularityChange}
-          size="small"
-          sx={{ minWidth: 120 }}
-          data-testid="granularity-selector"
-        >
-          {GRANULARITIES.map((g) => (
-            <option key={g} value={g}>
-              {t(`accounting.period.${g}`)}
-            </option>
-          ))}
-        </Select>
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel id="granularity-label">{t('accounting.period.granularityLabel')}</InputLabel>
+          <Select
+            native
+            label={t('accounting.period.granularityLabel')}
+            value={granularity}
+            onChange={handleGranularityChange}
+            inputProps={{ 'aria-labelledby': 'granularity-label' }}
+            data-testid="granularity-selector"
+          >
+            {GRANULARITIES.map((g) => (
+              <option key={g} value={g}>
+                {t(`accounting.period.${g}`)}
+              </option>
+            ))}
+          </Select>
+        </FormControl>
 
         {isCustomGranularity && customPeriodTypes.length > 0 && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

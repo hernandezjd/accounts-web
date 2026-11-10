@@ -82,6 +82,7 @@
       "prevPeriod": "Previous Period",
       "nextPeriod": "Next Period",
       "selectGranularity": "Select period type",
+      "granularityLabel": "Period type",
       "customType": {
         "saveTitle": "Save Custom Period Type",
         "saveButton": "Save as Custom",

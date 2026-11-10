@@ -82,6 +82,7 @@
       "prevPeriod": "Période précédente",
       "nextPeriod": "Période suivante",
       "selectGranularity": "Sélectionnez le type de période",
+      "granularityLabel": "Type de période",
       "customType": {
         "saveTitle": "Enregistrer le type de période personnalisé",
         "saveButton": "Enregistrer en tant que personnalisé",

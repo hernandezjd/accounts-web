@@ -82,6 +82,7 @@
       "prevPeriod": "Попередній період",
       "nextPeriod": "Наступний період",
       "selectGranularity": "Виберіть тип періоду",
+      "granularityLabel": "Тип періоду",
       "customType": {
         "saveTitle": "Зберегти тип користувацького періоду",
         "saveButton": "Зберегти як користувацький",
