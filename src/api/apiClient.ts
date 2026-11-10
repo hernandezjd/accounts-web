@@ -21,6 +21,12 @@ import { formatError, type FormattedError } from '@accounts/error-handling-web'
  * Structured error response from the API.
  * Matches the format expected by formatError().
  */
+/** The subset of an openapi-fetch client this wrapper relies on. */
+type OpenApiClientLike = Record<
+  string,
+  (url: string, options?: unknown) => Promise<{ data?: unknown; error?: unknown; response: Response }>
+>
+
 export interface StructuredError {
   errorCode: string
   message: string
@@ -84,7 +90,7 @@ async function parseErrorFromResponse(response: Response, requestId: string | un
 
   if (jsonError && typeof jsonError === 'object' && 'errorCode' in jsonError) {
     // If response has errorCode, it's already structured
-    const jsonObj = jsonError as any
+    const jsonObj = jsonError as Partial<StructuredError>
     const structuredError: StructuredError = {
       errorCode: jsonObj.errorCode || 'UNKNOWN_ERROR',
       message: jsonObj.message || '',
@@ -153,24 +159,26 @@ class ApiClient {
    * Create a wrapper around an openapi-fetch client.
    * Intercepts responses and transforms errors.
    */
-  private createClientWrapper(client: any) {
+  private createClientWrapper(rawClient: object) {
+    // The generated clients have path-specific generics; the wrapper only needs this shape.
+    const client = rawClient as OpenApiClientLike
     return {
-      GET: async <T,>(url: string, options?: any): Promise<ApiResponse<T>> => {
+      GET: async <T,>(url: string, options?: unknown): Promise<ApiResponse<T>> => {
         return this.makeRequest<T>(client, 'GET', url, options)
       },
-      POST: async <T,>(url: string, options?: any): Promise<ApiResponse<T>> => {
+      POST: async <T,>(url: string, options?: unknown): Promise<ApiResponse<T>> => {
         return this.makeRequest<T>(client, 'POST', url, options)
       },
-      PUT: async <T,>(url: string, options?: any): Promise<ApiResponse<T>> => {
+      PUT: async <T,>(url: string, options?: unknown): Promise<ApiResponse<T>> => {
         return this.makeRequest<T>(client, 'PUT', url, options)
       },
-      DELETE: async <T,>(url: string, options?: any): Promise<ApiResponse<T>> => {
+      DELETE: async <T,>(url: string, options?: unknown): Promise<ApiResponse<T>> => {
         return this.makeRequest<T>(client, 'DELETE', url, options)
       },
-      PATCH: async <T,>(url: string, options?: any): Promise<ApiResponse<T>> => {
+      PATCH: async <T,>(url: string, options?: unknown): Promise<ApiResponse<T>> => {
         return this.makeRequest<T>(client, 'PATCH', url, options)
       },
-      HEAD: async <T,>(url: string, options?: any): Promise<ApiResponse<T>> => {
+      HEAD: async <T,>(url: string, options?: unknown): Promise<ApiResponse<T>> => {
         return this.makeRequest<T>(client, 'HEAD', url, options)
       },
     }
@@ -182,10 +190,10 @@ class ApiClient {
    * Captures debug info (HTTP status, request URL, response body) when debug mode is enabled.
    */
   private async makeRequest<T,>(
-    client: any,
+    client: OpenApiClientLike,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD',
     url: string,
-    options?: any
+    options?: unknown
   ): Promise<ApiResponse<T>> {
     try {
       // Make the request through openapi-fetch client
@@ -203,12 +211,13 @@ class ApiClient {
 
         if (error && typeof error === 'object' && 'errorCode' in error) {
           // openapi-fetch already parsed the error response
+          const structured = error as Partial<StructuredError>
           const structuredError: StructuredError = {
-            errorCode: (error as any).errorCode || 'UNKNOWN_ERROR',
-            message: (error as any).message || '',
-            timestamp: (error as any).timestamp || new Date().toISOString(),
-            requestId: requestId || (error as any).requestId || 'MISSING_REQUEST_ID',
-            details: (error as any).details,
+            errorCode: structured.errorCode || 'UNKNOWN_ERROR',
+            message: structured.message || '',
+            timestamp: structured.timestamp || new Date().toISOString(),
+            requestId: requestId || structured.requestId || 'MISSING_REQUEST_ID',
+            details: structured.details,
           }
           formattedError = formatError(structuredError, response.status)
         } else {
@@ -229,7 +238,7 @@ class ApiClient {
 
       // Success case
       return {
-        data,
+        data: data as T | undefined,
         response,
       }
     } catch (err) {

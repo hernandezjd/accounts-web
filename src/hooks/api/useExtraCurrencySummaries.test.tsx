@@ -54,9 +54,10 @@ function makeWrapper() {
 
 describe('useExtraCurrencySummaries', () => {
   it('requests the closure simulation and reads the simulated closing balance', async () => {
-    mockGet.mockImplementation((_path: string, init: any) => {
-      expect(init.params.query.currency).toBe('COP')
-      return Promise.resolve(closureResponse()) as any
+    mockGet.mockImplementation((_path: string, init: unknown) => {
+      const { params } = init as { params: { query: Record<string, string> } }
+      expect(params.query.currency).toBe('COP')
+      return Promise.resolve(closureResponse()) as never
     })
 
     const { result } = renderHook(
@@ -72,7 +73,7 @@ describe('useExtraCurrencySummaries', () => {
   })
 
   it('does not request the simulation when the toggle is off', async () => {
-    mockGet.mockImplementation(() => Promise.resolve(plainResponse()) as any)
+    mockGet.mockImplementation(() => Promise.resolve(plainResponse()) as never)
 
     const { result } = renderHook(
       () => useExtraCurrencySummaries('ws-1', '2026-11-01', '2026-11-30', ['COP']),
@@ -80,7 +81,7 @@ describe('useExtraCurrencySummaries', () => {
     )
 
     await waitFor(() => expect(result.current[0].ready).toBe(true))
-    const query = mockGet.mock.calls[mockGet.mock.calls.length - 1][1] as any
+    const query = mockGet.mock.calls[mockGet.mock.calls.length - 1][1] as { params: { query: Record<string, unknown> } }
     expect(query.params.query).not.toHaveProperty('simulateClosure')
     expect(result.current[0].closingByAccount.get('pl')).toBe(-100)
   })

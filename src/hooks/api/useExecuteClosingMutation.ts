@@ -10,7 +10,7 @@ type ExecuteClosingRequest = ClosingCmd['schemas']['ExecuteClosingRequest']
  * Hook for executing account closing transactions
  * Invalidates transaction and report queries on success
  */
-export function useExecuteClosingMutation(_workspaceId: string) {
+export function useExecuteClosingMutation() {
   // workspaceId could be used for workspace-specific query invalidation in the future
   const qc = useQueryClient()
 

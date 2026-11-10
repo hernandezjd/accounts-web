@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
@@ -19,8 +19,8 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
 import Tooltip from '@mui/material/Tooltip'
 import ButtonGroup from '@mui/material/ButtonGroup'
-import { usePeriodReport, type PeriodReportWithClosureResponse, type PeriodReportResponse } from '@/hooks/api/usePeriodReport'
-import { useBalanceAtLevel } from '@/hooks/api/useBalanceAtLevel'
+import { usePeriodReport, type PeriodReportEntry, type PeriodReportWithClosureResponse, type PeriodReportResponse } from '@/hooks/api/usePeriodReport'
+import { useBalanceAtLevel, type AccountBalanceResponse } from '@/hooks/api/useBalanceAtLevel'
 import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useUserActions } from '@/hooks/useUserActions'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
@@ -31,6 +31,16 @@ import { formatAmount } from '@/utils/money'
 import { CurrencyViewSelect } from '@/components/CurrencyViewSelect'
 
 // ─── Type guards & Helpers ──────────────────────────────────────────────────
+
+/** Closure responses wrap the plain entry as `original` next to its `simulated` counterpart. */
+function splitClosureEntry<E>(
+  entry: E | { original?: unknown; simulated?: unknown },
+  isClosureResponse: boolean,
+): { original: E; simulated: E | null } {
+  if (!isClosureResponse) return { original: entry as E, simulated: null }
+  const closure = entry as { original?: unknown; simulated?: unknown }
+  return { original: closure.original as E, simulated: (closure.simulated ?? null) as E | null }
+}
 
 function isPeriodReportWithClosure(data: PeriodReportResponse | PeriodReportWithClosureResponse): data is PeriodReportWithClosureResponse {
   return 'entries' in data && data.entries.length > 0 && 'original' in data.entries[0]
@@ -93,12 +103,15 @@ function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = fal
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
-  useEffect(() => {
+  // Follow the stored preference when it changes (adjusting state while rendering)
+  const [syncedPreference, setSyncedPreference] = useState(preference)
+  if (preference !== syncedPreference) {
+    setSyncedPreference(preference)
     if (preference?.periodStart && preference?.periodEnd) {
       setFromDate(preference.periodStart)
       setToDate(preference.periodEnd)
     }
-  }, [preference])
+  }
 
   const { data, isLoading, isError, error: apiError, refetch } = usePeriodReport(
     workspaceId,
@@ -276,8 +289,7 @@ function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = fal
               </TableHead>
               <TableBody>
                 {data.entries.map((entry) => {
-                  const original = isClosureResponse ? (entry as any).original : entry as any
-                  const simulated = isClosureResponse ? (entry as any).simulated : null
+                  const { original, simulated } = splitClosureEntry<PeriodReportEntry>(entry, isClosureResponse)
                   const hasTransactions = original.periodTransactions?.length > 0
                   const isClosureRelated = isNominalOrPLAccount(original.accountId, nominalAccountIds, plAccountId)
                   const showSimulatedAsBlue = isClosureResponse && simulated !== null && simulated !== undefined && isClosureRelated
@@ -315,7 +327,7 @@ function PeriodReportTab({ workspaceId, systemInitialDate, simulateClosure = fal
                                     </TableRow>
                                   </TableHead>
                                   <TableBody>
-                                    {original.periodTransactions.map((txn: any) => (
+                                    {original.periodTransactions.map((txn) => (
                                       <TableRow key={txn.transactionId}>
                                         <TableCell>{txn.date}</TableCell>
                                         <TableCell>{txn.transactionTypeName}</TableCell>
@@ -363,11 +375,14 @@ function BalanceAtDateTab({ workspaceId, systemInitialDate, simulateClosure = fa
   const [appliedDate, setAppliedDate] = useState('')
   const [enabled, setEnabled] = useState(false)
 
-  useEffect(() => {
+  // Follow the stored preference when it changes (adjusting state while rendering)
+  const [syncedPreference, setSyncedPreference] = useState(preference)
+  if (preference !== syncedPreference) {
+    setSyncedPreference(preference)
     if (preference?.customDate) {
       setDate(preference.customDate)
     }
-  }, [preference])
+  }
 
   const { data, isLoading, isError, error: apiError, refetch } = usePeriodReport(
     workspaceId,
@@ -473,9 +488,8 @@ function BalanceAtDateTab({ workspaceId, systemInitialDate, simulateClosure = fa
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data.entries.map((entry: any) => {
-                  const original = isClosureResponse ? (entry as any).original : (entry as any)
-                  const simulated = isClosureResponse ? (entry as any).simulated : null
+                {data.entries.map((entry) => {
+                  const { original, simulated } = splitClosureEntry<PeriodReportEntry>(entry, isClosureResponse)
                   const isClosureRelated = isNominalOrPLAccount(original.accountId, nominalAccountIds, plAccountId)
                   const showSimulatedAsBlue = isClosureResponse && simulated !== null && isClosureRelated
 
@@ -528,11 +542,14 @@ function BalanceAtLevelTab({ workspaceId, systemInitialDate, simulateClosure = f
     enabled: boolean
   }>({ date: '', level: undefined, enabled: false })
 
-  useEffect(() => {
+  // Follow the stored preference when it changes (adjusting state while rendering)
+  const [syncedPreference, setSyncedPreference] = useState(preference)
+  if (preference !== syncedPreference) {
+    setSyncedPreference(preference)
     if (preference?.customDate) {
       setDate(preference.customDate)
     }
-  }, [preference])
+  }
 
   const { data, isLoading, isError, error: apiError, refetch } = useBalanceAtLevel(
     workspaceId,
@@ -648,9 +665,8 @@ function BalanceAtLevelTab({ workspaceId, systemInitialDate, simulateClosure = f
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data.map((entry: any) => {
-                  const original = isClosureResponse ? (entry as any).original : (entry as any)
-                  const simulated = isClosureResponse ? (entry as any).simulated : null
+                {data.map((entry) => {
+                  const { original, simulated } = splitClosureEntry<AccountBalanceResponse>(entry, isClosureResponse)
                   const isClosureRelated = isNominalOrPLAccount(original.accountId, nominalAccountIds, plAccountId)
                   const showSimulatedAsBlue = isClosureResponse && simulated !== null && isClosureRelated
 

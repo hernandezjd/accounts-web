@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import FormControl from '@mui/material/FormControl'
@@ -50,22 +50,18 @@ export function PeriodControls({
   systemInitialDate,
 }: PeriodControlsProps) {
   const { t, i18n } = useTranslation()
-  const [customPeriodTypes, setCustomPeriodTypes] = useState<CustomPeriodType[]>([])
+  const [customPeriodTypes, setCustomPeriodTypes] = useState<CustomPeriodType[]>(() => {
+    try {
+      const stored = window.localStorage.getItem(PREFERENCE_KEYS.ACCOUNTING_CUSTOM_PERIOD_TYPES)
+      return stored ? JSON.parse(stored) : []
+    } catch (error) {
+      console.warn('Error loading custom period types:', error)
+      return []
+    }
+  })
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>('')
-
-  // Load custom period types from localStorage
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(PREFERENCE_KEYS.ACCOUNTING_CUSTOM_PERIOD_TYPES)
-      if (stored) {
-        setCustomPeriodTypes(JSON.parse(stored))
-      }
-    } catch (error) {
-      console.warn('Error loading custom period types:', error)
-    }
-  }, [])
 
   const label = formatPeriodLabel(from, to, granularity, i18n.language)
   const isPrevDisabled = !!(systemInitialDate && from <= systemInitialDate)

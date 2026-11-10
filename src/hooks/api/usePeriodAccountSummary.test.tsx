@@ -46,13 +46,14 @@ function makeWrapper() {
 
 describe('usePeriodAccountSummary', () => {
   it('keeps the previous period summary while the next period loads', async () => {
-    mockGet.mockImplementation((_path: string, init: any) => {
-      const query = init.params.query
+    mockGet.mockImplementation((_path: string, init: unknown) => {
+      const { params } = init as { params: { query: Record<string, string> } }
+      const query = params.query
       if (query.fromDate === '2026-08-01') {
         // The August request stays pending for the whole assertion
-        return new Promise(() => {}) as any
+        return new Promise(() => {}) as never
       }
-      return Promise.resolve(summaryResponse(query.fromDate, query.toDate)) as any
+      return Promise.resolve(summaryResponse(query.fromDate, query.toDate)) as never
     })
 
     const { result, rerender } = renderHook(

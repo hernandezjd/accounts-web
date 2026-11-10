@@ -431,9 +431,16 @@ export function TransactionForm({
     )
 
   // A preview describes the inputs it was made from
-  useEffect(() => {
+  const [previewInputs, setPreviewInputs] = useState({ items, rates, valuationMode, date })
+  if (
+    previewInputs.items !== items ||
+    previewInputs.rates !== rates ||
+    previewInputs.valuationMode !== valuationMode ||
+    previewInputs.date !== date
+  ) {
+    setPreviewInputs({ items, rates, valuationMode, date })
     setPreview(null)
-  }, [items, rates, valuationMode, date])
+  }
 
   // ── Build request ──
   const buildRequestItems = () =>

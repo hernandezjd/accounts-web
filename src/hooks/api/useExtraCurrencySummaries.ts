@@ -65,7 +65,7 @@ export function useExtraCurrencySummaries(
           headers: { 'X-Workspace-Id': workspaceId! },
         })
         if (response.error) throw response.error
-        return toAccountNodes((response.data as { accounts?: any[] }).accounts ?? [])
+        return toAccountNodes((response.data as { accounts?: Parameters<typeof toAccountNodes>[0] }).accounts ?? [])
       },
     })),
     combine: (results) =>

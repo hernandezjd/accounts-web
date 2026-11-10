@@ -16,7 +16,7 @@ function mockWithWorkspace(profile: Record<string, unknown>) {
     user: { profile },
     isAuthenticated: true,
     isLoading: false,
-  } as any)
+  } as never)
 }
 
 function mockWithoutWorkspace(profile: Record<string, unknown>) {
@@ -25,7 +25,7 @@ function mockWithoutWorkspace(profile: Record<string, unknown>) {
     user: { profile },
     isAuthenticated: true,
     isLoading: false,
-  } as any)
+  } as never)
 }
 
 describe('useUserActions', () => {
@@ -101,7 +101,7 @@ describe('useUserActions', () => {
       user: undefined,
       isAuthenticated: false,
       isLoading: false,
-    } as any)
+    } as never)
     const { result } = renderHook(() => useUserActions())
     expect(result.current.hasAction('create_account')).toBe(false)
   })
@@ -112,7 +112,7 @@ describe('useUserActions', () => {
       user: { profile: { global_actions: new Set(['manage_workspaces']), workspace_actions: {} } },
       isAuthenticated: true,
       isLoading: false,
-    } as any)
+    } as never)
     const { result } = renderHook(() => useUserActions())
     expect(result.current.hasAction('manage_workspaces')).toBe(true)
   })

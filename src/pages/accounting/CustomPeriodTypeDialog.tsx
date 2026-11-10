@@ -52,7 +52,7 @@ export function CustomPeriodTypeDialog({
         requestId: 'local-validation',
         timestamp: new Date().toISOString(),
         showSupportContact: false,
-        classification: 'validation' as any,
+        classification: 'permanent',
         isRetryable: false,
         severity: 'error',
       }
@@ -67,7 +67,7 @@ export function CustomPeriodTypeDialog({
         requestId: 'local-validation',
         timestamp: new Date().toISOString(),
         showSupportContact: false,
-        classification: 'validation' as any,
+        classification: 'permanent',
         isRetryable: false,
         severity: 'error',
       }

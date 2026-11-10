@@ -156,7 +156,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   setupMocks()
   // Mock auth context with manage_workspaces permission by default
-  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
+  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as never)
 })
 
 function render() {

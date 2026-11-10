@@ -219,7 +219,7 @@ describe('Error Classification Integration Tests', () => {
     it('allows copying request ID to clipboard', async () => {
       const user = userEvent.setup();
       const writeTextMock = vi.fn().mockResolvedValue(undefined);
-      (navigator.clipboard as any).writeText = writeTextMock;
+      (navigator.clipboard as unknown as { writeText: unknown }).writeText = writeTextMock;
 
       const formattedError: FormattedError = {
         severity: 'error',

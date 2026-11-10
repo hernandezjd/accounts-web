@@ -15,7 +15,7 @@ vi.mock('@/store/themeStore', () => ({
   useThemeStore: (selector: (s: object) => unknown) => {
     const state = {
       themesByWorkspace: {},
-      getThemeForWorkspace: (_id: string) => mockStoredSettings,
+      getThemeForWorkspace: () => mockStoredSettings,
       setThemeForWorkspace: mockSetThemeForWorkspace,
       resetThemeForWorkspace: mockResetThemeForWorkspace,
     }

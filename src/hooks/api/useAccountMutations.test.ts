@@ -73,7 +73,7 @@ describe('useAccountMutations.updateAccount', () => {
     mockPut.mockResolvedValue({
       data: { accountId: 'acc-2', code: '1002', name: 'Cash Renamed' },
       response: new Response(),
-    } as any)
+    } as never)
     // GET returns the updated row so the polling predicate would resolve true.
     mockGet.mockResolvedValue({
       data: [
@@ -81,7 +81,7 @@ describe('useAccountMutations.updateAccount', () => {
         { ...existingAccounts[1], code: '1002', name: 'Cash Renamed' },
       ],
       response: new Response(),
-    } as any)
+    } as never)
     // Drive polling: invoke the predicate once and resolve true.
     mockPoll.mockImplementation(async (predicate) => {
       await predicate()
@@ -96,7 +96,7 @@ describe('useAccountMutations.updateAccount', () => {
     await act(async () => {
       await new Promise<void>((resolve, reject) => {
         result.current.updateAccount.mutate(
-          { id: 'acc-2', body: { code: '1002', name: 'Cash Renamed' } as any },
+          { id: 'acc-2', body: { code: '1002', name: 'Cash Renamed' } as never },
           { onSuccess: () => resolve(), onError: (e) => reject(e) },
         )
       })
@@ -133,7 +133,7 @@ describe('useAccountMutations.updateAccount', () => {
     await act(async () => {
       await new Promise<void>((resolve, reject) => {
         result.current.updateAccount.mutate(
-          { id: 'acc-2', body: { code: '1001', name: 'Cash', parentId: 'acc-3' } as any },
+          { id: 'acc-2', body: { code: '1001', name: 'Cash', parentId: 'acc-3' } as never },
           { onSuccess: () => resolve(), onError: (e) => reject(e) },
         )
       })
@@ -152,7 +152,7 @@ describe('useAccountMutations.updateAccount', () => {
     await act(async () => {
       await new Promise<void>((resolve, reject) => {
         result.current.updateAccount.mutate(
-          { id: 'acc-2', body: { code: '1002', name: 'Cash Renamed' } as any },
+          { id: 'acc-2', body: { code: '1002', name: 'Cash Renamed' } as never },
           { onSuccess: () => resolve(), onError: (e) => reject(e) },
         )
       })
@@ -181,7 +181,7 @@ describe('useAccountMutations.updateAccount', () => {
     mockGet.mockResolvedValueOnce({
       data: existingAccounts,
       response: new Response(),
-    } as any)
+    } as never)
     // Then fresh projection.
     mockGet.mockResolvedValueOnce({
       data: [
@@ -189,12 +189,12 @@ describe('useAccountMutations.updateAccount', () => {
         { ...existingAccounts[1], code: '1002', name: 'Cash Renamed' },
       ],
       response: new Response(),
-    } as any)
+    } as never)
 
     await act(async () => {
       await new Promise<void>((resolve, reject) => {
         result.current.updateAccount.mutate(
-          { id: 'acc-2', body: { code: '1002', name: 'Cash Renamed' } as any },
+          { id: 'acc-2', body: { code: '1002', name: 'Cash Renamed' } as never },
           { onSuccess: () => resolve(), onError: (e) => reject(e) },
         )
       })

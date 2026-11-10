@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ExternalReportDataForm } from './ExternalReportDataForm';
 import { useExternalReportData } from '../hooks/useExternalReportData';
@@ -20,7 +20,7 @@ describe('ExternalReportDataForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    (useExternalReportData as any).mockReturnValue({
+    (useExternalReportData as unknown as Mock).mockReturnValue({
       data: [],
       isLoading: false,
       error: null,
@@ -32,7 +32,7 @@ describe('ExternalReportDataForm', () => {
       isDeleting: false,
     });
 
-    (reportExternalDataConfig.getExternalDataConfig as any).mockReturnValue({
+    (reportExternalDataConfig.getExternalDataConfig as unknown as Mock).mockReturnValue({
       fields: [
         {
           key: 'lastInventoryCount',
@@ -53,7 +53,7 @@ describe('ExternalReportDataForm', () => {
       ],
     });
 
-    (reportExternalDataConfig.requiresExternalData as any).mockReturnValue(true);
+    (reportExternalDataConfig.requiresExternalData as unknown as Mock).mockReturnValue(true);
   });
 
   it('should render the form with external data fields', () => {
@@ -65,7 +65,7 @@ describe('ExternalReportDataForm', () => {
   });
 
   it('should return null when report type does not require external data', () => {
-    (reportExternalDataConfig.requiresExternalData as any).mockReturnValue(false);
+    (reportExternalDataConfig.requiresExternalData as unknown as Mock).mockReturnValue(false);
 
     const { container } = render(<ExternalReportDataForm {...defaultProps} />);
 
@@ -73,7 +73,7 @@ describe('ExternalReportDataForm', () => {
   });
 
   it('should display loading state while fetching data', () => {
-    (useExternalReportData as any).mockReturnValue({
+    (useExternalReportData as unknown as Mock).mockReturnValue({
       data: [],
       isLoading: true,
       error: null,
@@ -91,7 +91,7 @@ describe('ExternalReportDataForm', () => {
   });
 
   it('should display error message when data loading fails', () => {
-    (useExternalReportData as any).mockReturnValue({
+    (useExternalReportData as unknown as Mock).mockReturnValue({
       data: [],
       isLoading: false,
       error: new Error('Failed to load data'),
@@ -109,7 +109,7 @@ describe('ExternalReportDataForm', () => {
   });
 
   it('should populate form with existing data', () => {
-    (useExternalReportData as any).mockReturnValue({
+    (useExternalReportData as unknown as Mock).mockReturnValue({
       data: [
         {
           id: '1',
@@ -156,7 +156,7 @@ describe('ExternalReportDataForm', () => {
 
   it('should show last updated timestamp when data exists', () => {
     const now = new Date();
-    (useExternalReportData as any).mockReturnValue({
+    (useExternalReportData as unknown as Mock).mockReturnValue({
       data: [
         {
           id: '1',
@@ -207,7 +207,7 @@ describe('ExternalReportDataForm', () => {
   });
 
   it('should handle form submission with updates to existing data', async () => {
-    (useExternalReportData as any).mockReturnValue({
+    (useExternalReportData as unknown as Mock).mockReturnValue({
       data: [
         {
           id: '1',
@@ -260,7 +260,7 @@ describe('ExternalReportDataForm', () => {
   });
 
   it('should disable form while submitting', () => {
-    (useExternalReportData as any).mockReturnValue({
+    (useExternalReportData as unknown as Mock).mockReturnValue({
       data: [],
       isLoading: false,
       error: null,
@@ -279,7 +279,7 @@ describe('ExternalReportDataForm', () => {
   });
 
   it('should display current values section when data exists', () => {
-    (useExternalReportData as any).mockReturnValue({
+    (useExternalReportData as unknown as Mock).mockReturnValue({
       data: [
         {
           id: '1',

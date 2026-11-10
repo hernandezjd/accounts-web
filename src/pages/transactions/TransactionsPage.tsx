@@ -1,4 +1,4 @@
-import { useEffect, useState, Fragment } from 'react'
+import { useState, Fragment } from 'react'
 import { useParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -90,11 +90,10 @@ export function TransactionsPage() {
   const { hasWorkspaceAccess } = useWorkspaceAccess()
 
   // If the last row of the last page disappears (e.g. after a delete), step back to the new last page
-  useEffect(() => {
-    if (transactionsPage && transactionsPage.content.length === 0 && page > 0) {
-      setPage(Math.max(0, transactionsPage.totalPages - 1))
-    }
-  }, [transactionsPage, page])
+  // Step back to the last page when the current one is empty (adjusting state while rendering)
+  if (transactionsPage && transactionsPage.content.length === 0 && page > 0) {
+    setPage(Math.max(0, transactionsPage.totalPages - 1))
+  }
 
   const initialDateMissing = !workspaceConfig?.systemInitialDate
   const hasAccess = hasWorkspaceAccess(workspaceId)

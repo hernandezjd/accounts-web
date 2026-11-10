@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Box from '@mui/material/Box'
@@ -546,7 +546,7 @@ function NominalAccountsDialog({
         requestId: 'local-validation',
         timestamp: new Date().toISOString(),
         showSupportContact: false,
-        classification: 'validation' as any,
+        classification: 'permanent',
         isRetryable: false,
         severity: 'error',
       }
@@ -561,7 +561,7 @@ function NominalAccountsDialog({
         requestId: 'local-validation',
         timestamp: new Date().toISOString(),
         showSupportContact: false,
-        classification: 'validation' as any,
+        classification: 'permanent',
         isRetryable: false,
         severity: 'error',
       }
@@ -1119,7 +1119,10 @@ export function SetupPage() {
   const [activeTab, setActiveTab] = useState(0)
   const [initialEditMode, setInitialEditMode] = useState<'initialDate' | 'nominalAccounts' | 'closingTransactionType' | null>(null)
 
-  useEffect(() => {
+  // Apply navigation state when it changes (adjusting state while rendering)
+  const [syncedLocationState, setSyncedLocationState] = useState<unknown>(undefined)
+  if (location.state !== syncedLocationState) {
+    setSyncedLocationState(location.state)
     const state = location.state as { initialTab?: number; initialEditMode?: string } | null
     if (state?.initialTab !== undefined) {
       setActiveTab(state.initialTab)
@@ -1131,7 +1134,7 @@ export function SetupPage() {
     } else if (state?.initialEditMode === 'closingTransactionType') {
       setInitialEditMode('closingTransactionType')
     }
-  }, [location.state])
+  }
 
   return (
     <Box>

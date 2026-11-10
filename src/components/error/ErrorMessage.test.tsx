@@ -162,7 +162,7 @@ describe('ErrorMessage', () => {
     it('copies request ID to clipboard on button click', async () => {
       const user = userEvent.setup()
       const writeTextMock = vi.fn().mockResolvedValue(undefined)
-      ;(navigator.clipboard as any).writeText = writeTextMock
+      ;(navigator.clipboard as unknown as { writeText: unknown }).writeText = writeTextMock
 
       renderWithProviders(<ErrorMessage error={fiveXxError} showRequestId={true} />)
 

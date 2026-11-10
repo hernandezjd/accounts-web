@@ -55,7 +55,7 @@ beforeEach(() => {
     user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1'] } },
     isAuthenticated: true,
     isLoading: false,
-  } as any)
+  } as never)
 })
 
 describe('AppHeader', () => {
@@ -78,7 +78,7 @@ describe('AppHeader', () => {
       user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1', 'org-2'] } },
       isAuthenticated: true,
       isLoading: false,
-    } as any)
+    } as never)
     renderHeader()
     await waitFor(() => {
       expect(screen.getByTestId('switch-org-button')).toBeInTheDocument()
@@ -90,7 +90,7 @@ describe('AppHeader', () => {
       user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1', 'org-2'] } },
       isAuthenticated: true,
       isLoading: false,
-    } as any)
+    } as never)
     renderHeader()
     await waitFor(() => {
       expect(screen.getByTestId('switch-org-button')).toBeInTheDocument()

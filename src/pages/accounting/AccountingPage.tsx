@@ -30,6 +30,7 @@ import { CurrencyViewSelect } from '@/components/CurrencyViewSelect'
 import { ExtraCurrenciesSelect } from '@/components/ExtraCurrenciesSelect'
 import { useExtraCurrencySummaries } from '@/hooks/api/useExtraCurrencySummaries'
 import { useCurrencyView } from '@/hooks/useCurrencyView'
+import { loadTreeState, saveTreeState } from '@/utils/accountingTreeState'
 import { useCurrencyViewStore } from '@/store/currencyViewStore'
 
 function parseLevel(raw: string | null): number | null {
@@ -168,7 +169,11 @@ export function AccountingPage() {
   }, [])
 
   // ── Expand state (React state, reset when data changes) ───────────────────
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
+  // Restored from the session so leaving the page and coming back keeps the open levels.
+  const savedTreeState = useRef(loadTreeState(workspaceId))
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
+    () => new Set(savedTreeState.current?.expanded ?? []),
+  )
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { data: workspaceConfig, isLoading: isConfigLoading } = useWorkspaceConfig(workspaceId)
@@ -216,13 +221,42 @@ export function AccountingPage() {
   // ── Search bar ref (for "/" shortcut) ─────────────────────────────────────
   const searchBarRef = useRef<SearchBarHandle>(null)
 
-  // Reset expanded nodes when data or level filter changes (tree view only)
+  // Expansion follows the level filter, not the data. A refetch (currency change,
+  // zero-account toggle, closure simulation) or a round trip to the transactions
+  // view must keep what the user opened or closed by hand.
+  // - First data, or a new level filter: reset to the level default.
+  // - Later data: only expand parents not seen before (e.g. revealed zero accounts).
+  const seenExpandableRef = useRef<Set<string> | null>(
+    savedTreeState.current ? new Set(savedTreeState.current.seen) : null,
+  )
+  const appliedLevelRef = useRef<number | null | undefined>(savedTreeState.current?.level)
   useEffect(() => {
-    if (viewMode === 'tree') {
-      const nodes: AccountPeriodNode[] = data?.accounts ?? []
-      setExpandedNodes(computeExpandedFromLevel(nodes, levelFilter))
+    if (!data) return
+    const defaults = computeExpandedFromLevel(data.accounts, levelFilter)
+    const levelChanged = appliedLevelRef.current !== levelFilter
+    const firstLoad = seenExpandableRef.current === null
+    if (firstLoad || levelChanged) {
+      setExpandedNodes(defaults)
+    } else {
+      const seen = seenExpandableRef.current as Set<string>
+      const fresh = [...defaults].filter((id) => !seen.has(id))
+      if (fresh.length > 0) {
+        setExpandedNodes((prev) => new Set([...prev, ...fresh]))
+      }
     }
-  }, [data, levelFilter, viewMode])
+    appliedLevelRef.current = levelFilter
+    seenExpandableRef.current = computeExpandedFromLevel(data.accounts, null)
+  }, [data, levelFilter])
+
+  // Remember the expansion for the next visit (only once the tree has been initialised).
+  useEffect(() => {
+    if (seenExpandableRef.current === null) return
+    saveTreeState(workspaceId, {
+      expanded: [...expandedNodes],
+      level: appliedLevelRef.current ?? null,
+      seen: [...seenExpandableRef.current],
+    })
+  }, [expandedNodes, workspaceId])
 
   // Scroll restoration after returning to tree view
   useEffect(() => {
@@ -418,25 +452,27 @@ export function AccountingPage() {
   )
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
-  const stablePrevPeriod = useCallback(handlePrevPeriod, [from, to, granularity])
-  const stableNextPeriod = useCallback(handleNextPeriod, [from, to, granularity])
+  // The handlers close over the current period and level, so keep the latest ones
+  // in a ref and give the shortcuts stable callbacks that always call the latest.
+  const latestHandlers = useRef({ handlePrevPeriod, handleNextPeriod, handleLevelFilterChange, levelFilter })
+  useEffect(() => {
+    latestHandlers.current = { handlePrevPeriod, handleNextPeriod, handleLevelFilterChange, levelFilter }
+  })
+  const stablePrevPeriod = useCallback(() => latestHandlers.current.handlePrevPeriod(), [])
+  const stableNextPeriod = useCallback(() => latestHandlers.current.handleNextPeriod(), [])
+  const stableLevelUp = useCallback(() => {
+    const { levelFilter: level, handleLevelFilterChange: change } = latestHandlers.current
+    change(level === null ? 5 : Math.min(level + 1, 5))
+  }, [])
+  const stableLevelDown = useCallback(() => {
+    const { levelFilter: level, handleLevelFilterChange: change } = latestHandlers.current
+    change(level === null ? 4 : Math.max(level - 1, 1))
+  }, [])
 
   useKeyboardShortcut('ArrowLeft', t('accounting.shortcuts.prevPeriod'), stablePrevPeriod)
   useKeyboardShortcut('ArrowRight', t('accounting.shortcuts.nextPeriod'), stableNextPeriod)
-  useKeyboardShortcut(
-    '+',
-    t('accounting.shortcuts.levelUp'),
-    useCallback(() => {
-      handleLevelFilterChange(levelFilter === null ? 5 : Math.min(levelFilter + 1, 5))
-    }, [levelFilter]),
-  )
-  useKeyboardShortcut(
-    '-',
-    t('accounting.shortcuts.levelDown'),
-    useCallback(() => {
-      handleLevelFilterChange(levelFilter === null ? 4 : Math.max(levelFilter - 1, 1))
-    }, [levelFilter]),
-  )
+  useKeyboardShortcut('+', t('accounting.shortcuts.levelUp'), stableLevelUp)
+  useKeyboardShortcut('-', t('accounting.shortcuts.levelDown'), stableLevelDown)
   useKeyboardShortcut('e', t('accounting.shortcuts.expandAll'), handleExpandAll)
   useKeyboardShortcut('c', t('accounting.shortcuts.collapseAll'), handleCollapseAll)
   // Escape = back (only relevant in transaction view; harmless in tree view)

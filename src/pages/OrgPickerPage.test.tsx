@@ -41,7 +41,7 @@ beforeEach(() => {
     isLoading: false,
     isError: false,
     error: null,
-  } as any)
+  } as never)
 })
 
 describe('OrgPickerPage', () => {
@@ -59,7 +59,7 @@ describe('OrgPickerPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any)
+    } as never)
     renderWithProviders(<OrgPickerPage />)
     await waitFor(() => {
       expect(screen.getByTestId('org-list')).toBeInTheDocument()
@@ -78,7 +78,7 @@ describe('OrgPickerPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any)
+    } as never)
     renderWithProviders(<OrgPickerPage />)
     await waitFor(() => {
       expect(screen.getByTestId('org-list')).toBeInTheDocument()
@@ -95,7 +95,7 @@ describe('OrgPickerPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any)
+    } as never)
     renderWithProviders(<OrgPickerPage />)
     await waitFor(() => {
       expect(useAppStore.getState().selectedOrgId).toBe('org-1')
@@ -110,7 +110,7 @@ describe('OrgPickerPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any)
+    } as never)
     renderWithProviders(<OrgPickerPage />)
     await waitFor(() => {
       expect(screen.getByTestId('org-list')).toBeInTheDocument()
@@ -127,7 +127,7 @@ describe('OrgPickerPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any)
+    } as never)
     renderWithProviders(<OrgPickerPage />)
     await waitFor(() => {
       expect(screen.getByTestId('no-orgs-message')).toBeInTheDocument()
@@ -143,7 +143,7 @@ describe('OrgPickerPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any)
+    } as never)
     renderWithProviders(<OrgPickerPage />)
     await waitFor(() => {
       expect(screen.getByTestId('org-item-org-2')).toBeInTheDocument()

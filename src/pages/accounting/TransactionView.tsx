@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useCallback, Fragment } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -102,7 +102,7 @@ export function TransactionView({
     editingTxnId,
   )
 
-  useEffect(() => {
+  // Open the edit form once the transaction to edit has been fetched
     if (editFetched && editTxnData && editingTxnId) {
       const txn = editTxnData
       const initialData: TransactionFormInitialData = {
@@ -127,7 +127,6 @@ export function TransactionView({
       setFormConfig({ mode: 'edit', transactionId: editingTxnId, initialData })
       setEditingTxnId(null)
     }
-  }, [editFetched, editTxnData, editingTxnId])
 
   // ── Keyboard shortcut: n = new transaction ────────────────────────────────
   useKeyboardShortcut(
@@ -296,7 +295,7 @@ export function TransactionView({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.transactions.map((txn, _) => {
+                    {data.transactions.map((txn) => {
                       const debit = txn.debitAmount
                       const credit = txn.creditAmount
 

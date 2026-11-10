@@ -60,9 +60,9 @@ function renderAppShell(initialPath = '/workspaces/workspace-1/accounting') {
 beforeEach(() => {
   sessionStorage.clear()
   vi.clearAllMocks()
-  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
+  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as never)
   vi.mocked((apiClient.workspace as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
-    (_url: string) => {
+    () => {
       return Promise.resolve({ data: mockWorkspace, response: new Response() })
     },
   )
@@ -100,7 +100,7 @@ describe('AppShell', () => {
       user: { profile: { workspaces: ['workspace-1', 'workspace-2'], organization_ids: [] } },
       isAuthenticated: true,
       isLoading: false,
-    } as any)
+    } as never)
     sessionStorage.setItem('lastWorkspaceId', 'workspace-1')
     renderAppShell()
     await waitFor(() => {
@@ -138,7 +138,7 @@ describe('AppShell', () => {
       user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1'] } },
       isAuthenticated: true,
       isLoading: false,
-    } as any)
+    } as never)
     renderAppShell()
     await waitFor(() => {
       expect(screen.getByTestId('active-workspace-name')).toBeInTheDocument()
@@ -151,7 +151,7 @@ describe('AppShell', () => {
       user: { profile: { workspaces: ['workspace-1'], organization_ids: ['org-1', 'org-2'] } },
       isAuthenticated: true,
       isLoading: false,
-    } as any)
+    } as never)
     renderAppShell()
     await waitFor(() => {
       expect(screen.getByTestId('switch-org-button')).toBeInTheDocument()

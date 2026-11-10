@@ -269,7 +269,7 @@ export function resolveDefaultListPeriod(
 ): Period {
   const fallback = getDefaultPeriod(granularity)
   let from = storedFrom ?? fallback.from
-  let to = storedTo ?? fallback.to
+  const to = storedTo ?? fallback.to
 
   if (systemInitialDate && to < systemInitialDate) {
     // Entirely before the initial date: snap to the period containing it

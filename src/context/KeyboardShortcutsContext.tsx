@@ -32,6 +32,8 @@ interface KeyboardShortcutsContextValue {
 
 const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextValue | null>(null)
 
+// The hook lives next to its provider on purpose; splitting it would only add a file.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useKeyboardShortcutsContext(): KeyboardShortcutsContextValue {
   const ctx = useContext(KeyboardShortcutsContext)
   if (!ctx) throw new Error('useKeyboardShortcutsContext must be used inside KeyboardShortcutsProvider')
@@ -76,6 +78,8 @@ export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProvide
   // Register the built-in "?" shortcut for showing help
   useEffect(() => {
     const key = '?'
+    // Registering writes to the shortcut registry; that is the purpose of this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     register(key, t('shortcuts.showHelp'), () => setHelpOpen(true))
     return () => unregister(key)
   }, [register, unregister, t])

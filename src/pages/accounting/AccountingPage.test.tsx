@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { formatError } from '@accounts/error-handling-web'
 import { mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor, fireEvent, within } from '@testing-library/react'
+import { Route, Routes } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { AccountingPage } from './AccountingPage'
@@ -840,5 +841,120 @@ describe('AccountingPage: zero-balance accounts', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /show zero-balance accounts/i }))
 
     expect(includeZeroArg()).toBe(true)
+  })
+})
+
+describe('AccountingPage: expanded-level state is preserved', () => {
+  const node = (accountId: string, code: string, name: string, level: number, children: PeriodAccountSummary['accounts'] = []) => ({
+    accountId,
+    accountCode: code,
+    accountName: name,
+    level,
+    openingBalance: 0,
+    totalDebits: 10,
+    totalCredits: 0,
+    closingBalance: 10,
+    children,
+    thirdPartyChildren: [],
+  })
+  const buildSummary = (): PeriodAccountSummary => ({
+    fromDate: '2026-01-01',
+    toDate: '2026-01-31',
+    accounts: [node('assets', '1000', 'Assets', 1, [node('cash', '1100', 'Cash', 2)])],
+  })
+  const url = '/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&level=1'
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    mockUseTxns.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+    mockUseSearch.mockReturnValue({ data: undefined, isLoading: false, isError: false } as ReturnType<typeof useUnifiedSearch>)
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as unknown as ReturnType<typeof useWorkspaceConfig>)
+  })
+
+  const returnData = (data: PeriodAccountSummary) =>
+    mockUseSummary.mockReturnValue(mockQuery({ data, isLoading: false, isError: false, error: null }))
+
+  it('keeps manually expanded levels after drilling down and going back', async () => {
+    returnData(buildSummary())
+    renderWithProviders(<AccountingPage />, { routerProps: { initialEntries: [url] } })
+
+    await waitFor(() => expect(screen.getByRole('row', { name: /1000 Assets/i })).toBeInTheDocument())
+    expect(screen.queryByRole('row', { name: /1100 Cash/i })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByLabelText('toggle 1000'))
+    expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
+
+    fireEvent.dblClick(screen.getByRole('row', { name: /1100 Cash/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: /back/i }))
+
+    await waitFor(() => expect(screen.getByRole('row', { name: /1000 Assets/i })).toBeInTheDocument())
+    expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
+  })
+
+  it('keeps manually expanded levels when the data is refetched (currency or zero-account toggle)', async () => {
+    returnData(buildSummary())
+    const { rerender } = renderWithProviders(<AccountingPage />, { routerProps: { initialEntries: [url] } })
+
+    await userEvent.click(await screen.findByLabelText('toggle 1000'))
+    expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
+
+    returnData(buildSummary()) // new object reference, same content
+    rerender(<AccountingPage />)
+
+    expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
+  })
+
+  it('keeps manually expanded levels when zero-balance accounts are toggled', async () => {
+    returnData(buildSummary())
+    renderWithProviders(<AccountingPage />, { routerProps: { initialEntries: [url] } })
+
+    await userEvent.click(await screen.findByLabelText('toggle 1000'))
+    returnData(buildSummary())
+    await userEvent.click(screen.getByRole('checkbox', { name: /show zero-balance accounts/i }))
+
+    expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
+  })
+
+  it('keeps manually expanded levels after leaving the page and coming back', async () => {
+    returnData(buildSummary())
+    const routed = (
+      <Routes>
+        <Route path="/workspaces/:workspaceId/accounting" element={<AccountingPage />} />
+      </Routes>
+    )
+    const first = renderWithProviders(routed, { routerProps: { initialEntries: [url] } })
+
+    await userEvent.click(await screen.findByLabelText('toggle 1000'))
+    expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
+    first.unmount()
+
+    renderWithProviders(routed, { routerProps: { initialEntries: [url] } })
+    await waitFor(() => expect(screen.getByRole('row', { name: /1000 Assets/i })).toBeInTheDocument())
+    expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
+  })
+
+  it('still resets to the level default when the level filter changes', async () => {
+    returnData(buildSummary())
+    renderWithProviders(<AccountingPage />, { routerProps: { initialEntries: [url] } })
+
+    await userEvent.click(await screen.findByLabelText('toggle 1000'))
+    expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
+
+    await userEvent.keyboard('+') // level 1 -> 2
+    await waitFor(() => expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument())
+    await userEvent.keyboard('-') // level 2 -> 1 collapses again
+    await waitFor(() => expect(screen.queryByRole('row', { name: /1100 Cash/i })).not.toBeInTheDocument())
   })
 })

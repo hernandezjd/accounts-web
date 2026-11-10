@@ -30,6 +30,8 @@ export function useCRUDMutation<TData, TError, TVariables>(
     invalidateKeys = [],
     refetchDelay = 1000,
     onSuccessPatch,
+    // Omitted on purpose: the wrapped mutation defines its own onSuccess below.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSuccess,
     ...otherOptions
   } = options;

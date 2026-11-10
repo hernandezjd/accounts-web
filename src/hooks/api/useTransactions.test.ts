@@ -157,7 +157,7 @@ describe('useTransactions', () => {
     mockGet.mockResolvedValueOnce({
       error: mockError,
       response: new Response(null, { status: 500 }),
-    } as any)
+    } as never)
 
     const { result } = renderHook(
       () => useTransactions('workspace-1'),

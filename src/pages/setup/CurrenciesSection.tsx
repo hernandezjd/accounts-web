@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Autocomplete from '@mui/material/Autocomplete'
 import Box from '@mui/material/Box'
@@ -28,13 +28,17 @@ export function CurrenciesSection({ workspaceId }: { workspaceId: string }) {
   const [balanced, setBalanced] = useState<string[]>(config?.balancedCurrencies ?? [])
   const catalog = allCurrencyCodes()
 
-  useEffect(() => {
+  // Reset the editable lists when the saved config changes (adjusting state while rendering)
+  const [syncedEnabled, setSyncedEnabled] = useState(config?.enabledCurrencies)
+  if (config?.enabledCurrencies !== syncedEnabled) {
+    setSyncedEnabled(config?.enabledCurrencies)
     setEnabled(config?.enabledCurrencies ?? [])
-  }, [config?.enabledCurrencies])
-
-  useEffect(() => {
+  }
+  const [syncedBalanced, setSyncedBalanced] = useState(config?.balancedCurrencies)
+  if (config?.balancedCurrencies !== syncedBalanced) {
+    setSyncedBalanced(config?.balancedCurrencies)
     setBalanced(config?.balancedCurrencies ?? [])
-  }, [config?.balancedCurrencies])
+  }
 
   const balancedChanged =
     balanced.length !== (config?.balancedCurrencies ?? []).length ||

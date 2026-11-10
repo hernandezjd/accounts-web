@@ -194,7 +194,7 @@ describe('AccountCreationDialog', () => {
   })
 
   it('resets hasThirdParties checkbox after successful creation', async () => {
-    let onSuccessCallback = null as ((data: any) => void) | null
+    let onSuccessCallback = null as ((data: unknown) => void) | null
     const createMutate = vi.fn((_payload, options) => {
       onSuccessCallback = options.onSuccess
     })

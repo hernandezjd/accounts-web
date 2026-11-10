@@ -53,7 +53,7 @@ function closingTotals(preview: ClosingPreview) {
 
 export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: ClosingDialogProps) {
   const { t } = useTranslation()
-  const { executeClosing } = useExecuteClosingMutation(workspaceId)
+  const { executeClosing } = useExecuteClosingMutation()
 
   const [stage, setStage] = useState<DialogStage>('input')
   const [closingDate, setClosingDate] = useState('')
@@ -79,12 +79,10 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
   }, [previewError, setError])
 
   // Move to preview stage when preview data is loaded
-  useEffect(() => {
-    if (preview && stage === 'input') {
-      setStage('preview')
-      clearError()
-    }
-  }, [preview, stage, clearError])
+  if (preview && stage === 'input') {
+    setStage('preview')
+    clearError()
+  }
 
   const handleInputClose = () => {
     setStage('input')
@@ -105,7 +103,7 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
         requestId: 'local-validation',
         timestamp: new Date().toISOString(),
         showSupportContact: false,
-        classification: 'validation' as any,
+        classification: 'permanent',
         isRetryable: false,
         severity: 'error',
       }
@@ -119,7 +117,7 @@ export function ClosingDialog({ workspaceId, open, onClose, onSuccess }: Closing
         requestId: 'local-validation',
         timestamp: new Date().toISOString(),
         showSupportContact: false,
-        classification: 'validation' as any,
+        classification: 'permanent',
         isRetryable: false,
         severity: 'error',
       }

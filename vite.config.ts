@@ -13,7 +13,7 @@ const appVersion = packageJson.version
 let commitHash = 'unknown'
 try {
   commitHash = execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim()
-} catch (e) {
+} catch {
   // Git not available or not in a git repo
 }
 
@@ -24,6 +24,9 @@ export default defineConfig({
     'import.meta.env.VITE_COMMIT_HASH': JSON.stringify(commitHash),
   },
   resolve: {
+    // @accounts/error-handling-web is a symlinked package with its own node_modules;
+    // without this, React and React Query load twice and hooks/contexts break.
+    dedupe: ['react', 'react-dom', '@tanstack/react-query'],
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },

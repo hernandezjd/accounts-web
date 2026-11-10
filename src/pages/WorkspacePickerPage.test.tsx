@@ -55,7 +55,7 @@ beforeEach(() => {
   // Reset language to English before each test
   i18n.changeLanguage('en')
   // Mock auth context with manage_workspaces permission by default
-  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
+  vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as never)
 })
 
 afterEach(() => {
@@ -226,7 +226,7 @@ describe('WorkspacePickerPage', () => {
       user: { profile: { global_actions: [], workspace_actions: {}, workspaces: [] } },
       isAuthenticated: true,
       isLoading: false,
-    } as any)
+    } as never)
 
     mockGet([])
     renderWithProviders(<WorkspacePickerPage />)

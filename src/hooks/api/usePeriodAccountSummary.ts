@@ -8,7 +8,36 @@ import type { AccountPeriodNode, PeriodAccountSummary } from '@/types/accounting
  * Convert a closure response node back to AccountPeriodNode format.
  * Uses simulated balances when available, and preserves originals for UI diffing.
  */
-function convertClosureNode(node: any): AccountPeriodNode {
+interface ClosureBalances {
+  openingBalance?: number
+  totalDebits?: number
+  totalCredits?: number
+  closingBalance?: number
+}
+
+interface ClosureThirdPartyNode {
+  thirdPartyId: string
+  thirdPartyName: string
+  thirdPartyExternalId: string
+  original?: ClosureBalances
+  simulated?: ClosureBalances
+}
+
+interface ClosureNode {
+  accountId: string
+  accountCode: string
+  accountName: string
+  level: number
+  original?: ClosureBalances
+  simulated?: ClosureBalances
+  children?: ClosureNode[]
+  thirdPartyChildren?: ClosureThirdPartyNode[]
+}
+
+/** Either a plain period node or a closure node carrying `original`/`simulated`. */
+type SummaryNode = AccountPeriodNode | ClosureNode
+
+function convertClosureNode(node: ClosureNode): AccountPeriodNode {
   const original = node.original ?? {}
   const simulated = node.simulated ?? {}
 
@@ -28,7 +57,7 @@ function convertClosureNode(node: any): AccountPeriodNode {
     originalTotalCredits: original.totalCredits ?? 0,
     originalClosingBalance: original.closingBalance ?? 0,
     children: (node.children ?? []).map(convertClosureNode),
-    thirdPartyChildren: (node.thirdPartyChildren ?? []).map((tpNode: any) => {
+    thirdPartyChildren: (node.thirdPartyChildren ?? []).map((tpNode) => {
       const tpOrig = tpNode.original ?? {}
       const tpSim = tpNode.simulated ?? {}
       return {
@@ -52,8 +81,10 @@ function convertClosureNode(node: any): AccountPeriodNode {
  * Normalize the `accounts` of a period summary response: closure responses (with `original`/`simulated`)
  * are converted to the flat AccountPeriodNode shape, plain responses are returned as they are.
  */
-export function toAccountNodes(accounts: any[]): AccountPeriodNode[] {
-  return accounts.map((node: any) => (node.original !== undefined ? convertClosureNode(node) : node))
+export function toAccountNodes(accounts: SummaryNode[]): AccountPeriodNode[] {
+  return accounts.map((node) =>
+    'original' in node && node.original !== undefined ? convertClosureNode(node as ClosureNode) : (node as AccountPeriodNode),
+  )
 }
 
 export function usePeriodAccountSummary(
@@ -80,7 +111,7 @@ export function usePeriodAccountSummary(
       if (response.error) {
         throw response.error
       }
-      const data = response.data as any
+      const data = response.data as { fromDate: string; toDate: string; accounts?: SummaryNode[] }
 
       // Handle both PeriodAccountSummaryResponse and PeriodAccountSummaryWithClosureResponse
       const accounts = toAccountNodes(data.accounts ?? [])

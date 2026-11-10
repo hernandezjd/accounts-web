@@ -67,7 +67,7 @@ vi.mock('./clients', () => ({
 }))
 
 vi.mock('@accounts/error-handling-web', () => ({
-  formatError: vi.fn((error: unknown, _statusCode?: number) => ({
+  formatError: vi.fn((error: unknown) => ({
     errorCode: (typeof error === 'object' && error !== null && 'errorCode' in error)
       ? (error as { errorCode: string }).errorCode
       : 'UNKNOWN_ERROR',
@@ -109,7 +109,7 @@ function makeClientResponse(opts: {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockedFormatError.mockImplementation((error: unknown, _statusCode?: number) => ({
+  mockedFormatError.mockImplementation((error: unknown) => ({
     errorCode: (typeof error === 'object' && error !== null && 'errorCode' in error)
       ? (error as { errorCode: string }).errorCode
       : 'UNKNOWN_ERROR',

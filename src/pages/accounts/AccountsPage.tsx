@@ -109,7 +109,7 @@ function AccountFormDialog({
       updateAccount.mutate(
         {
           id: editAccount!.id!,
-          body: { code, name, parentId: parentId ?? undefined, ...(currencies.length > 0 ? { currencies } : {}), ...(nativeCurrency && nativeCurrency !== editAccount?.nativeCurrency ? { nativeCurrency } : {}) } as any,
+          body: { code, name, parentId: parentId ?? undefined, ...(currencies.length > 0 ? { currencies } : {}), ...(nativeCurrency && nativeCurrency !== editAccount?.nativeCurrency ? { nativeCurrency } : {}) } as never,
         },
         {
           onSuccess: handleClose,
@@ -375,7 +375,7 @@ function ToggleTpDialog({ open, onClose, account, workspaceId }: ToggleTpDialogP
       {
         onSuccess: handleClose,
         onError: (err) => {
-          const msg = (err as any).userMessage || (err instanceof Error ? err.message : '')
+          const msg = (err as { userMessage?: string }).userMessage || (err instanceof Error ? err.message : '')
           if (enabling && msg.toLowerCase().includes('thirdparty')) {
             setNeedsThirdPartyId(true)
           }

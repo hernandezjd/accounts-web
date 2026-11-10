@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
@@ -51,7 +52,7 @@ function getFirstDayOfPeriod(from: string): string {
  * If the opening balance date (from) differs from the first day of the period,
  * show the date on a second line to prevent layout shift.
  */
-function getOpeningBalanceHeader(from: string, simulateClosure: boolean, t: any): ReactNode {
+function getOpeningBalanceHeader(from: string, simulateClosure: boolean, t: TFunction): ReactNode {
   const firstDay = getFirstDayOfPeriod(from)
   const baseKey = simulateClosure ? 'accounting.tree.openingBalanceSim' : 'accounting.tree.openingBalance'
   const baseLabel = t(baseKey)
