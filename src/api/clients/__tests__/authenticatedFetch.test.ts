@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from 'vitest'
 
 /**
  * Unit tests for createAuthenticatedFetch() in clients/index.ts.
@@ -58,9 +58,9 @@ function createAuthenticatedFetch() {
 
 describe('createAuthenticatedFetch', () => {
   let fetchMock: ReturnType<typeof vi.fn>
-  let localStorageGetItem: ReturnType<typeof vi.spyOn>
-  let localStorageRemoveItem: ReturnType<typeof vi.spyOn>
-  let sessionStorageRemoveItem: ReturnType<typeof vi.spyOn>
+  let localStorageGetItem: MockInstance<(key: string) => string | null>
+  let localStorageRemoveItem: MockInstance<(key: string) => void>
+  let sessionStorageRemoveItem: MockInstance<(key: string) => void>
   let capturedHeaders: Headers
 
   beforeEach(() => {

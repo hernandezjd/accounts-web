@@ -66,7 +66,6 @@ const sampleAccounts: Account[] = [
     level: 1,
     parentId: null,
     hasThirdParties: false,
-    balance: 0,
     hasChildren: false,
   },
 ]

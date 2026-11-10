@@ -86,9 +86,9 @@ import { apiClient } from './apiClient'
 import { commandClient, queryClient, workspaceClient } from './clients'
 import { formatError } from '@accounts/error-handling-web'
 
-const mockedCommandClient = commandClient as { [key: string]: ReturnType<typeof vi.fn> }
-const mockedQueryClient = queryClient as { [key: string]: ReturnType<typeof vi.fn> }
-const mockedWorkspaceClient = workspaceClient as { [key: string]: ReturnType<typeof vi.fn> }
+const mockedCommandClient = commandClient as unknown as { [key: string]: ReturnType<typeof vi.fn> }
+const mockedQueryClient = queryClient as unknown as { [key: string]: ReturnType<typeof vi.fn> }
+const mockedWorkspaceClient = workspaceClient as unknown as { [key: string]: ReturnType<typeof vi.fn> }
 const mockedFormatError = formatError as ReturnType<typeof vi.fn>
 
 /** Build a mock openapi-fetch response tuple */

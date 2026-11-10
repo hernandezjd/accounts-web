@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { oidcConfig, userManager } from '@/auth/oidc-config'
+import { oidcConfig as oidcConfigValue, userManager } from '@/auth/oidc-config'
+
+// AuthProviderProps is a union that does not declare these keys, so the tests read them by name
+// through a plain record. The runtime object does contain them.
+const oidcConfig = oidcConfigValue as unknown as Record<string, unknown>
 
 /**
  * Unit tests for accounts-web OIDC configuration.

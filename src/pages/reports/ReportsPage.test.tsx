@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { formatError } from '@accounts/error-handling-web'
+import { mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -210,12 +212,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows error state', () => {
-      mockUsePeriodReport.mockReturnValue({
+      mockUsePeriodReport.mockReturnValue(mockQuery({
         data: undefined,
         isLoading: false,
         isError: true,
-        error: new Error('fail'),
-      } as ReturnType<typeof usePeriodReport>)
+        error: formatError(new Error('fail')),
+      }))
 
       renderWithProviders(<ReportsPage />)
 
@@ -223,12 +225,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows empty state when no data', () => {
-      mockUsePeriodReport.mockReturnValue({
+      mockUsePeriodReport.mockReturnValue(mockQuery({
         data: { fromDate: '2026-01-01', toDate: '2026-01-31', entries: [] },
         isLoading: false,
         isError: false,
         error: null,
-      } as ReturnType<typeof usePeriodReport>)
+      }))
 
       renderWithProviders(<ReportsPage />)
 
@@ -346,12 +348,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows error state', async () => {
-      mockUsePeriodReport.mockReturnValue({
+      mockUsePeriodReport.mockReturnValue(mockQuery({
         data: undefined,
         isLoading: false,
         isError: true,
-        error: new Error('fail'),
-      } as ReturnType<typeof usePeriodReport>)
+        error: formatError(new Error('fail')),
+      }))
 
       await renderOnTab('tab-balance-at-date')
 
@@ -361,12 +363,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows empty state when no data', async () => {
-      mockUsePeriodReport.mockReturnValue({
+      mockUsePeriodReport.mockReturnValue(mockQuery({
         data: { fromDate: '2026-01-31', toDate: '2026-01-31', entries: [] },
         isLoading: false,
         isError: false,
         error: null,
-      } as ReturnType<typeof usePeriodReport>)
+      }))
 
       await renderOnTab('tab-balance-at-date')
 
@@ -443,12 +445,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows error state', async () => {
-      mockUseBalanceAtLevel.mockReturnValue({
+      mockUseBalanceAtLevel.mockReturnValue(mockQuery({
         data: undefined,
         isLoading: false,
         isError: true,
-        error: new Error('fail'),
-      } as ReturnType<typeof useBalanceAtLevel>)
+        error: formatError(new Error('fail')),
+      }))
 
       await renderOnTab('tab-balance-at-level')
 
@@ -458,12 +460,12 @@ describe('ReportsPage', () => {
     })
 
     it('shows empty state when no data', async () => {
-      mockUseBalanceAtLevel.mockReturnValue({
+      mockUseBalanceAtLevel.mockReturnValue(mockQuery({
         data: [],
         isLoading: false,
         isError: false,
         error: null,
-      } as ReturnType<typeof useBalanceAtLevel>)
+      }))
 
       await renderOnTab('tab-balance-at-level')
 

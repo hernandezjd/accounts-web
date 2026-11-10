@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -22,24 +23,24 @@ const sampleAccounts = [
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockUseAccounts.mockReturnValue({
+  mockUseAccounts.mockReturnValue(mockQuery({
     data: sampleAccounts,
     isLoading: false,
     isError: false,
     error: null,
-  } as ReturnType<typeof useAccounts>)
+  }))
 })
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('AccountPicker', () => {
   it('renders without crashing when no accounts', () => {
-    mockUseAccounts.mockReturnValue({
+    mockUseAccounts.mockReturnValue(mockQuery({
       data: [],
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useAccounts>)
+    }))
 
     renderWithProviders(
       <AccountPicker workspaceId="t1" value={null} onChange={vi.fn()} label="Parent Account (optional)" />,

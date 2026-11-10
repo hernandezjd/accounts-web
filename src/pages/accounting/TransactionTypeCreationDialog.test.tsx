@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockMutation } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -14,14 +15,12 @@ import { useTransactionTypeMutations } from '@/hooks/api/useTransactionTypeMutat
 
 const mockUseTransactionTypeMutations = vi.mocked(useTransactionTypeMutations)
 
-const noOpMutation = { mutate: vi.fn(), isPending: false }
-
 beforeEach(() => {
   vi.clearAllMocks()
   mockUseTransactionTypeMutations.mockReturnValue({
-    createTransactionType: { ...noOpMutation },
-    updateTransactionType: { ...noOpMutation },
-    deleteTransactionType: { ...noOpMutation },
+    createTransactionType: mockMutation(),
+    updateTransactionType: mockMutation(),
+    deleteTransactionType: mockMutation(),
   })
 })
 
@@ -47,9 +46,9 @@ describe('TransactionTypeCreationDialog', () => {
   it('submits with correct name when save clicked', async () => {
     const createMutate = vi.fn((_, callbacks) => callbacks.onSuccess({ id: 'tt-1', name: 'Income' }))
     mockUseTransactionTypeMutations.mockReturnValue({
-      createTransactionType: { mutate: createMutate, isPending: false },
-      updateTransactionType: { ...noOpMutation },
-      deleteTransactionType: { ...noOpMutation },
+      createTransactionType: mockMutation({ mutate: createMutate, isPending: false }),
+      updateTransactionType: mockMutation(),
+      deleteTransactionType: mockMutation(),
     })
 
     const onCreated = vi.fn()
@@ -72,9 +71,9 @@ describe('TransactionTypeCreationDialog', () => {
       callbacks.onSuccess({ id: 'tt-1', name: 'Expense' }),
     )
     mockUseTransactionTypeMutations.mockReturnValue({
-      createTransactionType: { mutate: createMutate, isPending: false },
-      updateTransactionType: { ...noOpMutation },
-      deleteTransactionType: { ...noOpMutation },
+      createTransactionType: mockMutation({ mutate: createMutate, isPending: false }),
+      updateTransactionType: mockMutation(),
+      deleteTransactionType: mockMutation(),
     })
 
     renderWithProviders(
@@ -111,9 +110,9 @@ describe('TransactionTypeCreationDialog', () => {
 
   it('disables save button while mutation is pending', async () => {
     mockUseTransactionTypeMutations.mockReturnValue({
-      createTransactionType: { mutate: vi.fn(), isPending: true },
-      updateTransactionType: { ...noOpMutation },
-      deleteTransactionType: { ...noOpMutation },
+      createTransactionType: mockMutation({ mutate: vi.fn(), isPending: true }),
+      updateTransactionType: mockMutation(),
+      deleteTransactionType: mockMutation(),
     })
 
     renderWithProviders(
@@ -144,9 +143,9 @@ describe('TransactionTypeCreationDialog', () => {
       callbacks.onSuccess({ id: 'tt-1', name: 'Income' }),
     )
     mockUseTransactionTypeMutations.mockReturnValue({
-      createTransactionType: { mutate: createMutate, isPending: false },
-      updateTransactionType: { ...noOpMutation },
-      deleteTransactionType: { ...noOpMutation },
+      createTransactionType: mockMutation({ mutate: createMutate, isPending: false }),
+      updateTransactionType: mockMutation(),
+      deleteTransactionType: mockMutation(),
     })
 
     renderWithProviders(

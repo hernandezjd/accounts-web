@@ -20,14 +20,9 @@ vi.mock('@/api/apiClient', () => ({
 import { apiClient } from '@/api/apiClient'
 
 type MockOrgClient = { GET: ReturnType<typeof vi.fn> }
-type MockUserClient = { GET: ReturnType<typeof vi.fn> }
 
 function mockOrgGet(data: unknown) {
   vi.mocked((apiClient.organization as unknown as MockOrgClient).GET).mockResolvedValue({ data, response: new Response() })
-}
-
-function mockUserGet(data: unknown) {
-  vi.mocked((apiClient.user as unknown as MockUserClient).GET).mockResolvedValue({ data, response: new Response() })
 }
 
 const twoOrgs = [

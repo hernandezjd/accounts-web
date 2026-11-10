@@ -1,4 +1,6 @@
+import { formatError } from '@accounts/error-handling-web'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -76,7 +78,7 @@ const errorResult = {
   data: undefined,
   isLoading: false,
   isError: true,
-  error: new Error('Failed to fetch search results'),
+  error: formatError(new Error('Failed to fetch search results')),
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -94,7 +96,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldShowNoResults_whenQueryReturnsEmpty', async () => {
-    mockUseSearch.mockReturnValue(loadedEmptyResult as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(loadedEmptyResult))
 
     renderWithProviders(<SearchBar {...defaultProps} />)
 
@@ -107,7 +109,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldShowAccountResults_whenSearchReturnsAccounts', async () => {
-    mockUseSearch.mockReturnValue(resultWithAccounts as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(resultWithAccounts))
 
     renderWithProviders(<SearchBar {...defaultProps} />)
 
@@ -121,7 +123,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldShowTransactionResults_whenSearchReturnsTransactions', async () => {
-    mockUseSearch.mockReturnValue(resultWithTransactions as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(resultWithTransactions))
 
     renderWithProviders(<SearchBar {...defaultProps} />)
 
@@ -135,7 +137,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldCallOnAccountSelect_whenAccountResultClicked', async () => {
-    mockUseSearch.mockReturnValue(resultWithAccounts as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(resultWithAccounts))
     const onAccountSelect = vi.fn()
 
     renderWithProviders(<SearchBar {...defaultProps} onAccountSelect={onAccountSelect} />)
@@ -153,7 +155,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldCallOnTransactionSelect_whenTransactionResultClicked', async () => {
-    mockUseSearch.mockReturnValue(resultWithTransactions as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(resultWithTransactions))
     const onTransactionSelect = vi.fn()
 
     renderWithProviders(<SearchBar {...defaultProps} onTransactionSelect={onTransactionSelect} />)
@@ -171,7 +173,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldScopeToCurrentPeriod_whenAllHistoryOff', async () => {
-    mockUseSearch.mockReturnValue(resultWithAccounts as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(resultWithAccounts))
 
     renderWithProviders(<SearchBar {...defaultProps} />)
 
@@ -189,7 +191,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldRemoveDateScope_whenAllHistoryToggled', async () => {
-    mockUseSearch.mockReturnValue(resultWithAccounts as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(resultWithAccounts))
 
     renderWithProviders(<SearchBar {...defaultProps} />)
 
@@ -211,7 +213,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldClearInput_whenEscapePressed', async () => {
-    mockUseSearch.mockReturnValue(resultWithAccounts as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(resultWithAccounts))
 
     renderWithProviders(<SearchBar {...defaultProps} />)
 
@@ -239,7 +241,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldShowErrorAlert_whenSearchFails', async () => {
-    mockUseSearch.mockReturnValue(errorResult as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(errorResult))
 
     renderWithProviders(<SearchBar {...defaultProps} />)
 
@@ -255,7 +257,7 @@ describe('SearchBar', () => {
   })
 
   it('shouldShowRetryButton_whenSearchFails', async () => {
-    mockUseSearch.mockReturnValue(errorResult as ReturnType<typeof useUnifiedSearch>)
+    mockUseSearch.mockReturnValue(mockQuery<ReturnType<typeof useUnifiedSearch>>(errorResult))
 
     renderWithProviders(<SearchBar {...defaultProps} />)
 

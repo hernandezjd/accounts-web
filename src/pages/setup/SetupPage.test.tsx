@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { formatError } from '@accounts/error-handling-web'
+import { mockMutation, mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -49,8 +51,8 @@ const mockUseAccounts = vi.mocked(useAccounts)
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
 const sampleWorkspaces = [
-  { id: 't-1', name: 'Acme Corp', status: 'active', contactName: 'Jane', contactEmail: 'j@acme.com', contactPhone: '' },
-  { id: 't-2', name: 'Beta LLC', status: 'inactive', contactName: 'Bob', contactEmail: 'b@beta.com', contactPhone: '' },
+  { id: 't-1', name: 'Acme Corp', status: 'active' as const, contactName: 'Jane', contactEmail: 'j@acme.com', contactPhone: '' },
+  { id: 't-2', name: 'Beta LLC', status: 'inactive' as const, contactName: 'Bob', contactEmail: 'b@beta.com', contactPhone: '' },
 ]
 
 const sampleConfig = {
@@ -79,8 +81,6 @@ const sampleTransactionTypes = [
   { id: 'tt-1', name: 'Journal Entry' },
 ]
 
-const noOpMutation = { mutate: vi.fn(), isPending: false }
-
 // Default auth mock: user has manage_workspaces permission
 const defaultAuthMock = {
   user: { profile: { global_actions: ['manage_workspaces'], workspace_actions: {}, workspaces: ['t-1', 't-2'] } },
@@ -91,18 +91,18 @@ const defaultAuthMock = {
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
 function setupMocks() {
-  mockUseWorkspaces.mockReturnValue({
+  mockUseWorkspaces.mockReturnValue(mockQuery({
     data: sampleWorkspaces,
     isLoading: false,
     isError: false,
-  } as ReturnType<typeof useWorkspaces>)
+  }))
 
   mockUseWorkspaceMutations.mockReturnValue({
-    createWorkspace: { ...noOpMutation },
-    updateWorkspace: { ...noOpMutation },
-    deactivateWorkspace: { ...noOpMutation },
-    reactivateWorkspace: { ...noOpMutation },
-    deleteWorkspace: { ...noOpMutation },
+    createWorkspace: mockMutation(),
+    updateWorkspace: mockMutation(),
+    deactivateWorkspace: mockMutation(),
+    reactivateWorkspace: mockMutation(),
+    deleteWorkspace: mockMutation(),
   })
 
   mockUseWorkspaceConfig.mockReturnValue({
@@ -112,21 +112,25 @@ function setupMocks() {
   } as ReturnType<typeof useWorkspaceConfig>)
 
   mockUseWorkspaceConfigMutations.mockReturnValue({
-    setInitialDate: { ...noOpMutation },
-    setLockedPeriodDate: { ...noOpMutation },
-    setMinimumAccountLevel: { ...noOpMutation },
-    setNominalAccountsConfig: { ...noOpMutation },
-    setClosingTransactionType: { ...noOpMutation },
+    setBaseCurrency: mockMutation(),
+    setEnabledCurrencies: mockMutation(),
+    setBalancedCurrencies: mockMutation(),
+    setAlwaysVisibleAccounts: mockMutation(),
+    setInitialDate: mockMutation(),
+    setLockedPeriodDate: mockMutation(),
+    setMinimumAccountLevel: mockMutation(),
+    setNominalAccountsConfig: mockMutation(),
+    setClosingTransactionType: mockMutation(),
   })
 
-  mockUseCodeStructureConfig.mockReturnValue({
+  mockUseCodeStructureConfig.mockReturnValue(mockQuery({
     data: sampleCodeStructure,
     isLoading: false,
     isError: false,
-  } as ReturnType<typeof useCodeStructureConfig>)
+  }))
 
   mockUseCodeStructureConfigMutations.mockReturnValue({
-    configureCodeStructure: { ...noOpMutation },
+    configureCodeStructure: mockMutation(),
   })
 
   mockUseTransactionTypes.mockReturnValue({
@@ -136,16 +140,16 @@ function setupMocks() {
   } as ReturnType<typeof useTransactionTypes>)
 
   mockUseTransactionTypeMutations.mockReturnValue({
-    createTransactionType: { ...noOpMutation },
-    updateTransactionType: { ...noOpMutation },
-    deleteTransactionType: { ...noOpMutation },
+    createTransactionType: mockMutation(),
+    updateTransactionType: mockMutation(),
+    deleteTransactionType: mockMutation(),
   })
 
-  mockUseAccounts.mockReturnValue({
+  mockUseAccounts.mockReturnValue(mockQuery({
     data: sampleAccounts,
     isLoading: false,
     isError: false,
-  } as ReturnType<typeof useAccounts>)
+  }))
 }
 
 beforeEach(() => {
@@ -231,11 +235,11 @@ describe('SetupPage — Workspaces tab', () => {
   it('calls deactivateWorkspace when Deactivate is clicked on active workspace', async () => {
     const deactivate = vi.fn()
     mockUseWorkspaceMutations.mockReturnValue({
-      createWorkspace: { ...noOpMutation },
-      updateWorkspace: { ...noOpMutation },
-      deactivateWorkspace: { mutate: deactivate, isPending: false },
-      reactivateWorkspace: { ...noOpMutation },
-      deleteWorkspace: { ...noOpMutation },
+      createWorkspace: mockMutation(),
+      updateWorkspace: mockMutation(),
+      deactivateWorkspace: mockMutation({ mutate: deactivate, isPending: false }),
+      reactivateWorkspace: mockMutation(),
+      deleteWorkspace: mockMutation(),
     })
 
     const user = userEvent.setup()
@@ -247,11 +251,11 @@ describe('SetupPage — Workspaces tab', () => {
   it('calls reactivateWorkspace when Reactivate is clicked on inactive workspace', async () => {
     const reactivate = vi.fn()
     mockUseWorkspaceMutations.mockReturnValue({
-      createWorkspace: { ...noOpMutation },
-      updateWorkspace: { ...noOpMutation },
-      deactivateWorkspace: { ...noOpMutation },
-      reactivateWorkspace: { mutate: reactivate, isPending: false },
-      deleteWorkspace: { ...noOpMutation },
+      createWorkspace: mockMutation(),
+      updateWorkspace: mockMutation(),
+      deactivateWorkspace: mockMutation(),
+      reactivateWorkspace: mockMutation({ mutate: reactivate, isPending: false }),
+      deleteWorkspace: mockMutation(),
     })
 
     const user = userEvent.setup()
@@ -270,11 +274,11 @@ describe('SetupPage — Workspaces tab', () => {
   it('calls deleteWorkspace when confirm delete is submitted', async () => {
     const deleteFn = vi.fn()
     mockUseWorkspaceMutations.mockReturnValue({
-      createWorkspace: { ...noOpMutation },
-      updateWorkspace: { ...noOpMutation },
-      deactivateWorkspace: { ...noOpMutation },
-      reactivateWorkspace: { ...noOpMutation },
-      deleteWorkspace: { mutate: deleteFn, isPending: false },
+      createWorkspace: mockMutation(),
+      updateWorkspace: mockMutation(),
+      deactivateWorkspace: mockMutation(),
+      reactivateWorkspace: mockMutation(),
+      deleteWorkspace: mockMutation({ mutate: deleteFn, isPending: false }),
     })
 
     const user = userEvent.setup()
@@ -287,11 +291,11 @@ describe('SetupPage — Workspaces tab', () => {
   it('submits create workspace form', async () => {
     const createFn = vi.fn()
     mockUseWorkspaceMutations.mockReturnValue({
-      createWorkspace: { mutate: createFn, isPending: false },
-      updateWorkspace: { ...noOpMutation },
-      deactivateWorkspace: { ...noOpMutation },
-      reactivateWorkspace: { ...noOpMutation },
-      deleteWorkspace: { ...noOpMutation },
+      createWorkspace: mockMutation({ mutate: createFn, isPending: false }),
+      updateWorkspace: mockMutation(),
+      deactivateWorkspace: mockMutation(),
+      reactivateWorkspace: mockMutation(),
+      deleteWorkspace: mockMutation(),
     })
 
     const user = userEvent.setup()
@@ -337,11 +341,15 @@ describe('SetupPage — Accounting Config tab', () => {
   it('calls setInitialDate mutation on submit', async () => {
     const setDateFn = vi.fn()
     mockUseWorkspaceConfigMutations.mockReturnValue({
-      setInitialDate: { mutate: setDateFn, isPending: false },
-      setLockedPeriodDate: { ...noOpMutation },
-      setMinimumAccountLevel: { ...noOpMutation },
-      setNominalAccountsConfig: { ...noOpMutation },
-      setClosingTransactionType: { ...noOpMutation },
+      setBaseCurrency: mockMutation(),
+      setEnabledCurrencies: mockMutation(),
+      setBalancedCurrencies: mockMutation(),
+      setAlwaysVisibleAccounts: mockMutation(),
+      setInitialDate: mockMutation({ mutate: setDateFn, isPending: false }),
+      setLockedPeriodDate: mockMutation(),
+      setMinimumAccountLevel: mockMutation(),
+      setNominalAccountsConfig: mockMutation(),
+      setClosingTransactionType: mockMutation(),
     })
 
     const user = await switchToConfigTab()
@@ -388,7 +396,7 @@ describe('SetupPage — loading / error states', () => {
   })
 
   it('shows error in Workspaces tab', () => {
-    mockUseWorkspaces.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error('load failed') } as ReturnType<typeof useWorkspaces>)
+    mockUseWorkspaces.mockReturnValue(mockQuery({ data: undefined, isLoading: false, isError: true, error: formatError(new Error('load failed')) }))
     render()
     expect(screen.getByRole('alert')).toBeInTheDocument()
   })
@@ -431,7 +439,7 @@ describe('SetupPage — code structure edit', () => {
   it('calls configureCodeStructure on submit', async () => {
     const configureFn = vi.fn()
     mockUseCodeStructureConfigMutations.mockReturnValue({
-      configureCodeStructure: { mutate: configureFn, isPending: false },
+      configureCodeStructure: mockMutation({ mutate: configureFn, isPending: false }),
     })
 
     const user = userEvent.setup()
@@ -495,11 +503,15 @@ describe('SetupPage — nominal accounts configuration', () => {
   it('calls setNominalAccountsConfig on save', async () => {
     const saveFn = vi.fn()
     mockUseWorkspaceConfigMutations.mockReturnValue({
-      setInitialDate: { ...noOpMutation },
-      setLockedPeriodDate: { ...noOpMutation },
-      setMinimumAccountLevel: { ...noOpMutation },
-      setNominalAccountsConfig: { mutate: saveFn, isPending: false },
-      setClosingTransactionType: { ...noOpMutation },
+      setBaseCurrency: mockMutation(),
+      setEnabledCurrencies: mockMutation(),
+      setBalancedCurrencies: mockMutation(),
+      setAlwaysVisibleAccounts: mockMutation(),
+      setInitialDate: mockMutation(),
+      setLockedPeriodDate: mockMutation(),
+      setMinimumAccountLevel: mockMutation(),
+      setNominalAccountsConfig: mockMutation({ mutate: saveFn, isPending: false }),
+      setClosingTransactionType: mockMutation(),
     })
 
     const user = userEvent.setup()
@@ -540,11 +552,15 @@ describe('SetupPage — closing transaction type configuration', () => {
   it('calls setClosingTransactionType mutation when selection changes', async () => {
     const setClosingFn = vi.fn()
     mockUseWorkspaceConfigMutations.mockReturnValue({
-      setInitialDate: { ...noOpMutation },
-      setLockedPeriodDate: { ...noOpMutation },
-      setMinimumAccountLevel: { ...noOpMutation },
-      setNominalAccountsConfig: { ...noOpMutation },
-      setClosingTransactionType: { mutate: setClosingFn, isPending: false },
+      setBaseCurrency: mockMutation(),
+      setEnabledCurrencies: mockMutation(),
+      setBalancedCurrencies: mockMutation(),
+      setAlwaysVisibleAccounts: mockMutation(),
+      setInitialDate: mockMutation(),
+      setLockedPeriodDate: mockMutation(),
+      setMinimumAccountLevel: mockMutation(),
+      setNominalAccountsConfig: mockMutation(),
+      setClosingTransactionType: mockMutation({ mutate: setClosingFn, isPending: false }),
     })
 
     const user = await switchToConfigTab()

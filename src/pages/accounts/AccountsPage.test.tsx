@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockMutation, mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -41,7 +42,6 @@ const sampleAccounts: Account[] = [
     level: 1,
     parentId: null,
     hasThirdParties: false,
-    balance: 0,
     hasChildren: true,
     active: true,
   },
@@ -52,7 +52,6 @@ const sampleAccounts: Account[] = [
     level: 2,
     parentId: 'acc-1',
     hasThirdParties: false,
-    balance: 0,
     hasChildren: false,
     active: true,
   },
@@ -65,12 +64,9 @@ const inactiveAccount: Account = {
   level: 2,
   parentId: 'acc-1',
   hasThirdParties: false,
-  balance: 0,
   hasChildren: false,
   active: false,
 }
-
-const noOpMutation = { mutate: vi.fn(), isPending: false }
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
@@ -85,11 +81,11 @@ beforeEach(() => {
   } as ReturnType<typeof useAccounts>)
 
   mockUseAccountMutations.mockReturnValue({
-    createAccount: { ...noOpMutation },
-    updateAccount: { ...noOpMutation },
-    deactivateAccount: { ...noOpMutation },
-    activateAccount: { ...noOpMutation },
-    toggleHasThirdParties: { ...noOpMutation },
+    createAccount: mockMutation(),
+    updateAccount: mockMutation(),
+    deactivateAccount: mockMutation(),
+    activateAccount: mockMutation(),
+    toggleHasThirdParties: mockMutation(),
   })
 
   mockUseCodeStructureConfig.mockReturnValue({
@@ -171,11 +167,11 @@ describe('AccountsPage', () => {
   it('confirming deactivate calls deactivateAccount mutation', async () => {
     const deactivateMutate = vi.fn()
     mockUseAccountMutations.mockReturnValue({
-      createAccount: { ...noOpMutation },
-      updateAccount: { ...noOpMutation },
-      deactivateAccount: { ...noOpMutation, mutate: deactivateMutate },
-      activateAccount: { ...noOpMutation },
-      toggleHasThirdParties: { ...noOpMutation },
+      createAccount: mockMutation(),
+      updateAccount: mockMutation(),
+      deactivateAccount: mockMutation({ mutate: deactivateMutate }),
+      activateAccount: mockMutation(),
+      toggleHasThirdParties: mockMutation(),
     })
 
     renderWithProviders(<AccountsPage />)
@@ -190,6 +186,9 @@ describe('AccountsPage', () => {
   it('shows friendly message on 409 deactivate error', async () => {
     const deactivateMutate = vi.fn((_id, opts) => {
       const formattedError: FormattedError = {
+        timestamp: '2026-01-01T00:00:00.000Z',
+        classification: 'permanent',
+        severity: 'error',
         userMessage: 'Account has child accounts and cannot be deactivated',
         suggestion: 'Please deactivate child accounts first',
         errorCode: 'ACCOUNT_HAS_CHILDREN',
@@ -204,11 +203,11 @@ describe('AccountsPage', () => {
       opts.onError(formattedError)
     })
     mockUseAccountMutations.mockReturnValue({
-      createAccount: { ...noOpMutation },
-      updateAccount: { ...noOpMutation },
-      deactivateAccount: { ...noOpMutation, mutate: deactivateMutate },
-      activateAccount: { ...noOpMutation },
-      toggleHasThirdParties: { ...noOpMutation },
+      createAccount: mockMutation(),
+      updateAccount: mockMutation(),
+      deactivateAccount: mockMutation({ mutate: deactivateMutate }),
+      activateAccount: mockMutation(),
+      toggleHasThirdParties: mockMutation(),
     })
 
     renderWithProviders(<AccountsPage />)
@@ -247,11 +246,11 @@ describe('AccountsPage', () => {
       error: null,
     } as ReturnType<typeof useAccounts>)
     mockUseAccountMutations.mockReturnValue({
-      createAccount: { ...noOpMutation },
-      updateAccount: { ...noOpMutation },
-      deactivateAccount: { ...noOpMutation },
-      activateAccount: { ...noOpMutation, mutate: activateMutate },
-      toggleHasThirdParties: { ...noOpMutation },
+      createAccount: mockMutation(),
+      updateAccount: mockMutation(),
+      deactivateAccount: mockMutation(),
+      activateAccount: mockMutation({ mutate: activateMutate }),
+      toggleHasThirdParties: mockMutation(),
     })
 
     renderWithProviders(<AccountsPage />)
@@ -308,12 +307,12 @@ describe('AccountsPage', () => {
   })
 
   it('shows empty state when no accounts', () => {
-    mockUseAccounts.mockReturnValue({
+    mockUseAccounts.mockReturnValue(mockQuery({
       data: [],
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useAccounts>)
+    }))
 
     renderWithProviders(<AccountsPage />)
 

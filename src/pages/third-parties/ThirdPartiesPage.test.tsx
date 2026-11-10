@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockMutation, mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -58,8 +59,6 @@ const sampleThirdParties: ThirdParty[] = [
   },
 ]
 
-const noOpMutation = { mutate: vi.fn(), isPending: false }
-
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -73,10 +72,10 @@ beforeEach(() => {
   } as ReturnType<typeof useAllThirdParties>)
 
   mockUseThirdPartyMutations.mockReturnValue({
-    createThirdParty: { ...noOpMutation },
-    updateThirdParty: { ...noOpMutation },
-    deactivateThirdParty: { ...noOpMutation },
-    activateThirdParty: { ...noOpMutation },
+    createThirdParty: mockMutation(),
+    updateThirdParty: mockMutation(),
+    deactivateThirdParty: mockMutation(),
+    activateThirdParty: mockMutation(),
   })
 
   mockUseUserActions.mockReturnValue({
@@ -158,10 +157,10 @@ describe('ThirdPartiesPage', () => {
   it('confirming deactivate calls deactivateThirdParty mutation', async () => {
     const deactivateMutate = vi.fn()
     mockUseThirdPartyMutations.mockReturnValue({
-      createThirdParty: { ...noOpMutation },
-      updateThirdParty: { ...noOpMutation },
-      deactivateThirdParty: { ...noOpMutation, mutate: deactivateMutate },
-      activateThirdParty: { ...noOpMutation },
+      createThirdParty: mockMutation(),
+      updateThirdParty: mockMutation(),
+      deactivateThirdParty: mockMutation({ mutate: deactivateMutate }),
+      activateThirdParty: mockMutation(),
     })
 
     renderWithProviders(<ThirdPartiesPage />)
@@ -190,10 +189,10 @@ describe('ThirdPartiesPage', () => {
       opts.onError(formattedError)
     })
     mockUseThirdPartyMutations.mockReturnValue({
-      createThirdParty: { ...noOpMutation },
-      updateThirdParty: { ...noOpMutation },
-      deactivateThirdParty: { ...noOpMutation, mutate: deactivateMutate },
-      activateThirdParty: { ...noOpMutation },
+      createThirdParty: mockMutation(),
+      updateThirdParty: mockMutation(),
+      deactivateThirdParty: mockMutation({ mutate: deactivateMutate }),
+      activateThirdParty: mockMutation(),
     })
 
     renderWithProviders(<ThirdPartiesPage />)
@@ -223,12 +222,12 @@ describe('ThirdPartiesPage', () => {
   })
 
   it('shows empty state when no third parties', () => {
-    mockUseAllThirdParties.mockReturnValue({
+    mockUseAllThirdParties.mockReturnValue(mockQuery({
       data: [],
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useAllThirdParties>)
+    }))
 
     renderWithProviders(<ThirdPartiesPage />)
 

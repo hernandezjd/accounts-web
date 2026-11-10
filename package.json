@@ -7,10 +7,11 @@
     "dev": "vite",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
-    "test": "npm run typecheck && vitest run",
+    "test": "npm run typecheck && npm run typecheck:tests && vitest run",
     "test:watch": "vitest",
     "generate:api": "bash scripts/generate-api-types.sh",
-    "typecheck": "npm run generate:api && tsc -p tsconfig.build.json --noEmit"
+    "typecheck": "npm run generate:api && tsc -p tsconfig.build.json --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@accounts/error-handling-web": "file:../error-handling-web",

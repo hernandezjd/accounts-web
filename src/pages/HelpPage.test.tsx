@@ -89,8 +89,6 @@ describe('HelpPage', () => {
   })
 
   it('should support Spanish language', async () => {
-    const user = userEvent.setup()
-
     // Change language to Spanish before rendering
     await i18n.changeLanguage('es')
 

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockMutation, mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor, within, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -46,13 +47,6 @@ const mockUseThirdPartyMutations = vi.mocked(useThirdPartyMutations)
 
 // ─── Default mock return values ────────────────────────────────────────────────
 
-const noOpMutation = {
-  mutate: vi.fn(),
-  isPending: false,
-  isError: false,
-  error: null,
-}
-
 function setupDefaultMocks() {
   mockUseTransactionTypes.mockReturnValue({
     data: [{ id: 'type-1', name: 'Invoice' }],
@@ -69,16 +63,16 @@ function setupDefaultMocks() {
   } as ReturnType<typeof useWorkspaceConfig>)
 
   mockUseTransactionMutations.mockReturnValue({
-    createTransaction: { ...noOpMutation },
-    previewValuation: { ...noOpMutation },
-    editTransaction: { ...noOpMutation },
-    deleteTransaction: { ...noOpMutation },
-    createInitialBalance: { ...noOpMutation },
-    editInitialBalance: { ...noOpMutation },
-    deleteInitialBalance: { ...noOpMutation },
+    createTransaction: mockMutation(),
+    previewValuation: mockMutation(),
+    editTransaction: mockMutation(),
+    deleteTransaction: mockMutation(),
+    createInitialBalance: mockMutation(),
+    editInitialBalance: mockMutation(),
+    deleteInitialBalance: mockMutation(),
   })
 
-  mockUseAccounts.mockReturnValue({
+  mockUseAccounts.mockReturnValue(mockQuery({
     data: [
       {
         id: 'acc-1',
@@ -88,28 +82,34 @@ function setupDefaultMocks() {
         hasThirdParties: false,
         level: 2,
         parentId: null,
-        balance: 0,
       },
     ],
     isLoading: false,
     isError: false,
     error: null,
-  } as ReturnType<typeof useAccounts>)
+  }))
 
-  mockUseThirdParties.mockReturnValue({
+  mockUseThirdParties.mockReturnValue(mockQuery({
     data: [],
     isLoading: false,
     isError: false,
     isFetching: false,
     error: null,
-  } as ReturnType<typeof useThirdParties>)
+  }))
 
   mockUseAccountMutations.mockReturnValue({
-    createAccount: { ...noOpMutation },
+    updateAccount: mockMutation(),
+    deactivateAccount: mockMutation(),
+    activateAccount: mockMutation(),
+    toggleHasThirdParties: mockMutation(),
+    createAccount: mockMutation(),
   })
 
   mockUseThirdPartyMutations.mockReturnValue({
-    createThirdParty: { ...noOpMutation },
+    updateThirdParty: mockMutation(),
+    deactivateThirdParty: mockMutation(),
+    activateThirdParty: mockMutation(),
+    createThirdParty: mockMutation(),
   })
 }
 
@@ -261,12 +261,13 @@ describe('TransactionForm', () => {
   it('calls deleteTransaction mutation when confirm delete is clicked', async () => {
     const deleteMutate = vi.fn()
     mockUseTransactionMutations.mockReturnValue({
-      createTransaction: { ...noOpMutation },
-      editTransaction: { ...noOpMutation },
-      deleteTransaction: { ...noOpMutation, mutate: deleteMutate },
-      createInitialBalance: { ...noOpMutation },
-      editInitialBalance: { ...noOpMutation },
-      deleteInitialBalance: { ...noOpMutation },
+      previewValuation: mockMutation(),
+      createTransaction: mockMutation(),
+      editTransaction: mockMutation(),
+      deleteTransaction: mockMutation({ mutate: deleteMutate }),
+      createInitialBalance: mockMutation(),
+      editInitialBalance: mockMutation(),
+      deleteInitialBalance: mockMutation(),
     })
 
     renderWithProviders(

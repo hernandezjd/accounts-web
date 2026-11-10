@@ -30,7 +30,6 @@ type MockWorkspaceClient = { GET: ReturnType<typeof vi.fn> }
 type MockOrgClient = { GET: ReturnType<typeof vi.fn> }
 
 const org1 = { id: 'org-1', name: 'Acme Corp', contactEmail: 'acme@example.com' }
-const org2 = { id: 'org-2', name: 'Globex Corp', contactEmail: 'globex@example.com' }
 
 function mockWorkspaceGet() {
   vi.mocked((apiClient.workspace as unknown as MockWorkspaceClient).GET).mockResolvedValue({

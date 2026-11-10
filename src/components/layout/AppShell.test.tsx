@@ -30,7 +30,6 @@ const defaultAuthMock = {
 }
 
 const mockWorkspace = { id: 'workspace-1', name: 'Acme Corp', status: 'active' as const }
-const mockWorkspace2 = { id: 'workspace-2', name: 'Other Corp', status: 'active' as const }
 
 /**
  * Render AppShell inside a real Route so that useParams() gets :workspaceId.
@@ -63,7 +62,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   vi.spyOn(useAuthContextModule, 'useAuthContext').mockReturnValue(defaultAuthMock as any)
   vi.mocked((apiClient.workspace as unknown as { GET: ReturnType<typeof vi.fn> }).GET).mockImplementation(
-    (url: string) => {
+    (_url: string) => {
       return Promise.resolve({ data: mockWorkspace, response: new Response() })
     },
   )

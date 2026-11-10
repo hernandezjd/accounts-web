@@ -1,3 +1,4 @@
+import { mockMutation } from '@/test-utils/mockReactQuery'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { ClosingDialog } from './ClosingDialog'
@@ -13,7 +14,7 @@ import { useExecuteClosingMutation } from '@/hooks/api/useExecuteClosingMutation
 vi.mock('@/hooks/api/useExecuteClosingMutation', () => ({
   useExecuteClosingMutation: vi.fn(() => ({
     executeClosing: {
-      mutate: vi.fn((body, callbacks) => {
+      mutate: vi.fn((_body, callbacks) => {
         // Simulate success
         setTimeout(() => callbacks.onSuccess(), 100)
       }),
@@ -56,7 +57,7 @@ const mockPreviewData = {
 }
 
 vi.mock('@/hooks/api/useClosingPreview', () => ({
-  useClosingPreview: vi.fn((workspaceId, date, description, enabled) => {
+  useClosingPreview: vi.fn((_workspaceId, _date, _description, enabled) => {
     if (!enabled) {
       return {
         data: undefined,
@@ -194,7 +195,7 @@ describe('ClosingDialog', () => {
   describe('Error Display', () => {
     it('displays error from executeClosing using error handler', async () => {
       mockUseExecuteClosingMutation.mockReturnValue({
-        executeClosing: {
+        executeClosing: mockMutation({
           mutate: vi.fn((_body, callbacks) => {
             callbacks.onError({
               errorCode: 'CLOSING_CONFIG_ERROR',
@@ -208,8 +209,8 @@ describe('ClosingDialog', () => {
             })
           }),
           isPending: false,
-        },
-      } as ReturnType<typeof useExecuteClosingMutation>)
+        }),
+      })
 
       renderComponent()
 

@@ -8,7 +8,7 @@ import {
   computeExpandedFromLevel,
 } from './period'
 import type { AccountPeriodNode } from '@/types/accounting'
-import { resolveDefaultListPeriod, getDefaultPeriod } from './period'
+import { resolveDefaultListPeriod } from './period'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

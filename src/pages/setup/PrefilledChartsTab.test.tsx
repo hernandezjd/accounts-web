@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, within } from '@testing-library/react'
+import { formatError } from '@accounts/error-handling-web'
+import { mockQuery } from '@/test-utils/mockReactQuery'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
 import { PrefilledChartsTab } from './PrefilledChartsTab'
@@ -106,11 +108,11 @@ describe('PrefilledChartsTab', () => {
   })
 
   it('shows error state', () => {
-    mockUsePrefilledCharts.mockReturnValue({
+    mockUsePrefilledCharts.mockReturnValue(mockQuery({
       data: undefined,
       isLoading: false,
-      error: new Error('fail'),
-    } as ReturnType<typeof usePrefilledCharts>)
+      error: formatError(new Error('fail')),
+    }))
 
     renderWithProviders(<PrefilledChartsTab />)
 

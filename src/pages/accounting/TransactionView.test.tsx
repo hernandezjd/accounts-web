@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockMutation } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -78,13 +79,6 @@ const sampleData: AccountTransactionDetail = {
   ],
 }
 
-const noOpMutation = {
-  mutate: vi.fn(),
-  isPending: false,
-  isError: false,
-  error: null,
-}
-
 const defaultProps = {
   workspaceId: 'workspace-1',
   accountId: 'acc-1',
@@ -114,12 +108,13 @@ describe('TransactionView', () => {
     } as ReturnType<typeof useTransactionById>)
 
     mockUseTransactionMutations.mockReturnValue({
-      createTransaction: { ...noOpMutation },
-      editTransaction: { ...noOpMutation },
-      deleteTransaction: { ...noOpMutation },
-      createInitialBalance: { ...noOpMutation },
-      editInitialBalance: { ...noOpMutation },
-      deleteInitialBalance: { ...noOpMutation },
+      previewValuation: mockMutation(),
+      createTransaction: mockMutation(),
+      editTransaction: mockMutation(),
+      deleteTransaction: mockMutation(),
+      createInitialBalance: mockMutation(),
+      editInitialBalance: mockMutation(),
+      deleteInitialBalance: mockMutation(),
     })
   })
 
@@ -310,10 +305,13 @@ describe('TransactionView', () => {
   it('calls deleteTransaction mutation when confirm is clicked', async () => {
     const deleteMutate = vi.fn()
     mockUseTransactionMutations.mockReturnValue({
-      createTransaction: { ...noOpMutation },
-      editTransaction: { ...noOpMutation },
-      deleteTransaction: { ...noOpMutation, mutate: deleteMutate },
-      createInitialBalance: { ...noOpMutation },
+      previewValuation: mockMutation(),
+      editInitialBalance: mockMutation(),
+      deleteInitialBalance: mockMutation(),
+      createTransaction: mockMutation(),
+      editTransaction: mockMutation(),
+      deleteTransaction: mockMutation({ mutate: deleteMutate }),
+      createInitialBalance: mockMutation(),
     })
 
     mockUseQuery.mockReturnValue({

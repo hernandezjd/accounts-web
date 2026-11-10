@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { formatError } from '@accounts/error-handling-web'
+import { mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -69,6 +71,10 @@ const sampleTransactions: AccountTransactionDetail = {
   toDate: '2026-01-31',
   thirdPartyId: null,
   openingBalance: 1000,
+  currency: 'USD',
+  totalDebits: 300,
+  totalCredits: 0,
+  closingBalance: 1300,
   transactions: [
     {
       transactionId: 'txn-1',
@@ -76,6 +82,8 @@ const sampleTransactions: AccountTransactionDetail = {
       transactionTypeName: 'Invoice',
       date: '2026-01-10',
       description: 'Test transaction',
+      debitAmount: 300,
+      creditAmount: 0,
       items: [
         {
           accountId: 'acc-1',
@@ -133,12 +141,12 @@ describe('AccountingPage', () => {
   })
 
   it('shows error state when query fails', () => {
-    mockUseSummary.mockReturnValue({
+    mockUseSummary.mockReturnValue(mockQuery({
       data: undefined,
       isLoading: false,
       isError: true,
-      error: new Error('fetch failed'),
-    } as ReturnType<typeof usePeriodAccountSummary>)
+      error: formatError(new Error('fetch failed')),
+    }))
 
     renderWithProviders(<AccountingPage />, {
       routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
@@ -551,14 +559,14 @@ describe('AccountingPage', () => {
       ],
     }
 
-    mockUseSummary.mockReturnValue({
+    mockUseSummary.mockReturnValue(mockQuery({
       data: nestedSummary,
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof usePeriodAccountSummary>)
+    }))
 
-    mockUseSearch.mockReturnValue({
+    mockUseSearch.mockReturnValue(mockQuery({
       data: {
         query: 'cash',
         accounts: [{ accountId: 'acc-child', accountCode: '1100', accountName: 'Cash', level: 2 }],
@@ -566,7 +574,7 @@ describe('AccountingPage', () => {
       },
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useUnifiedSearch>)
+    }))
 
     renderWithProviders(<AccountingPage />, {
       routerProps: { initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly&level=1'] },
@@ -609,7 +617,7 @@ describe('AccountingPage', () => {
       error: null,
     } as ReturnType<typeof useAccountTransactionsInPeriod>)
 
-    mockUseSearch.mockReturnValue({
+    mockUseSearch.mockReturnValue(mockQuery({
       data: {
         query: 'inv',
         accounts: [],
@@ -626,7 +634,7 @@ describe('AccountingPage', () => {
       },
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useUnifiedSearch>)
+    }))
 
     renderWithProviders(<AccountingPage />, {
       routerProps: { initialEntries: ['/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'] },
@@ -796,12 +804,12 @@ describe('AccountingPage: zero-balance accounts', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
-    mockUseSummary.mockReturnValue({
+    mockUseSummary.mockReturnValue(mockQuery({
       data: { fromDate: '2026-01-01', toDate: '2026-01-31', accounts: [] },
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof usePeriodAccountSummary>)
+    }))
     mockUseTxns.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -826,7 +834,7 @@ describe('AccountingPage: zero-balance accounts', () => {
       routerProps: { initialEntries: ['/workspaces/workspace-1/accounting'] },
     })
 
-    const includeZeroArg = () => mockUseSummary.mock.calls.at(-1)?.[4]
+    const includeZeroArg = () => mockUseSummary.mock.calls[mockUseSummary.mock.calls.length - 1]?.[4]
     expect(includeZeroArg()).toBe(false)
 
     await userEvent.click(screen.getByRole('checkbox', { name: /show zero-balance accounts/i }))

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockMutation, mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -24,22 +25,21 @@ const sampleAccounts = [
   { id: 'acc-2', code: '1001', name: 'Cash', level: 2, parentId: 'acc-1', hasThirdParties: false, balance: 0, hasChildren: false },
 ]
 
-const noOpMutation = { mutate: vi.fn(), isPending: false }
-
 beforeEach(() => {
   vi.clearAllMocks()
   mockUseAccountMutations.mockReturnValue({
-    createAccount: { ...noOpMutation },
-    updateAccount: { ...noOpMutation },
-    deleteAccount: { ...noOpMutation },
-    toggleHasThirdParties: { ...noOpMutation },
+    deactivateAccount: mockMutation(),
+    activateAccount: mockMutation(),
+    createAccount: mockMutation(),
+    updateAccount: mockMutation(),
+    toggleHasThirdParties: mockMutation(),
   })
-  mockUseAccounts.mockReturnValue({
+  mockUseAccounts.mockReturnValue(mockQuery({
     data: sampleAccounts,
     isLoading: false,
     isError: false,
     error: null,
-  } as ReturnType<typeof useAccounts>)
+  }))
 })
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -70,10 +70,11 @@ describe('AccountCreationDialog', () => {
   it('submits with correct parentId from selected account', async () => {
     const createMutate = vi.fn()
     mockUseAccountMutations.mockReturnValue({
-      createAccount: { mutate: createMutate, isPending: false },
-      updateAccount: { ...noOpMutation },
-      deleteAccount: { ...noOpMutation },
-      toggleHasThirdParties: { ...noOpMutation },
+      deactivateAccount: mockMutation(),
+      activateAccount: mockMutation(),
+      createAccount: mockMutation({ mutate: createMutate, isPending: false }),
+      updateAccount: mockMutation(),
+      toggleHasThirdParties: mockMutation(),
     })
 
     renderWithProviders(
@@ -100,10 +101,11 @@ describe('AccountCreationDialog', () => {
   it('submits without parentId when no parent selected', async () => {
     const createMutate = vi.fn()
     mockUseAccountMutations.mockReturnValue({
-      createAccount: { mutate: createMutate, isPending: false },
-      updateAccount: { ...noOpMutation },
-      deleteAccount: { ...noOpMutation },
-      toggleHasThirdParties: { ...noOpMutation },
+      deactivateAccount: mockMutation(),
+      activateAccount: mockMutation(),
+      createAccount: mockMutation({ mutate: createMutate, isPending: false }),
+      updateAccount: mockMutation(),
+      toggleHasThirdParties: mockMutation(),
     })
 
     renderWithProviders(
@@ -143,10 +145,11 @@ describe('AccountCreationDialog', () => {
   it('submits with hasThirdParties false by default', async () => {
     const createMutate = vi.fn()
     mockUseAccountMutations.mockReturnValue({
-      createAccount: { mutate: createMutate, isPending: false },
-      updateAccount: { ...noOpMutation },
-      deleteAccount: { ...noOpMutation },
-      toggleHasThirdParties: { ...noOpMutation },
+      deactivateAccount: mockMutation(),
+      activateAccount: mockMutation(),
+      createAccount: mockMutation({ mutate: createMutate, isPending: false }),
+      updateAccount: mockMutation(),
+      toggleHasThirdParties: mockMutation(),
     })
 
     renderWithProviders(
@@ -167,10 +170,11 @@ describe('AccountCreationDialog', () => {
   it('submits with hasThirdParties true when checkbox is checked', async () => {
     const createMutate = vi.fn()
     mockUseAccountMutations.mockReturnValue({
-      createAccount: { mutate: createMutate, isPending: false },
-      updateAccount: { ...noOpMutation },
-      deleteAccount: { ...noOpMutation },
-      toggleHasThirdParties: { ...noOpMutation },
+      deactivateAccount: mockMutation(),
+      activateAccount: mockMutation(),
+      createAccount: mockMutation({ mutate: createMutate, isPending: false }),
+      updateAccount: mockMutation(),
+      toggleHasThirdParties: mockMutation(),
     })
 
     renderWithProviders(
@@ -190,15 +194,16 @@ describe('AccountCreationDialog', () => {
   })
 
   it('resets hasThirdParties checkbox after successful creation', async () => {
-    let onSuccessCallback: ((data: any) => void) | null = null
-    const createMutate = vi.fn((payload, options) => {
+    let onSuccessCallback = null as ((data: any) => void) | null
+    const createMutate = vi.fn((_payload, options) => {
       onSuccessCallback = options.onSuccess
     })
     mockUseAccountMutations.mockReturnValue({
-      createAccount: { mutate: createMutate, isPending: false },
-      updateAccount: { ...noOpMutation },
-      deleteAccount: { ...noOpMutation },
-      toggleHasThirdParties: { ...noOpMutation },
+      deactivateAccount: mockMutation(),
+      activateAccount: mockMutation(),
+      createAccount: mockMutation({ mutate: createMutate, isPending: false }),
+      updateAccount: mockMutation(),
+      toggleHasThirdParties: mockMutation(),
     })
 
     const onCreated = vi.fn()

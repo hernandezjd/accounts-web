@@ -639,32 +639,30 @@ describe('ErrorMessage', () => {
       expect(alertElement).toHaveClass('MuiAlert-filledWarning')
     })
 
-    it('prefers error.severity over prop severity', () => {
+    it('uses error.severity over the other fields', () => {
       const warningSeverityError: FormattedError = {
         ...sampleError,
         errorCode: 'ACTION_NOT_ALLOWED',
         severity: 'warning',
       }
 
-      // Pass severity prop as 'error', but error.severity is 'warning'
-      // Component should use error.severity
-      renderWithProviders(<ErrorMessage error={warningSeverityError} severity="error" />)
+      // error.severity is 'warning' and the component must use it
+      renderWithProviders(<ErrorMessage error={warningSeverityError} />)
 
       const alertElement = screen.getByRole('alert')
       // Should render with warning styling because error.severity takes precedence
       expect(alertElement).toHaveClass('MuiAlert-filledWarning')
     })
 
-    it('uses prop severity as fallback when error.severity is not provided', () => {
+    it('uses error.severity (the component has no severity prop)', () => {
       const errorWithoutSeverity: FormattedError = {
         ...sampleError,
         severity: 'error',
       }
 
-      renderWithProviders(<ErrorMessage error={errorWithoutSeverity} severity="warning" />)
+      renderWithProviders(<ErrorMessage error={errorWithoutSeverity} />)
 
       const alertElement = screen.getByRole('alert')
-      // Component still uses error.severity over prop
       expect(alertElement).toHaveClass('MuiAlert-filledError')
     })
   })

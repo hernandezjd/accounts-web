@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mockMutation, mockQuery } from '@/test-utils/mockReactQuery'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
@@ -32,8 +33,6 @@ const sampleTypes: TransactionType[] = [
   { id: 'tt-2', name: 'Purchase Invoice' },
 ]
 
-const noOpMutation = { mutate: vi.fn(), isPending: false }
-
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -47,9 +46,9 @@ beforeEach(() => {
   } as ReturnType<typeof useTransactionTypes>)
 
   mockUseTransactionTypeMutations.mockReturnValue({
-    createTransactionType: { ...noOpMutation },
-    updateTransactionType: { ...noOpMutation },
-    deleteTransactionType: { ...noOpMutation },
+    createTransactionType: mockMutation(),
+    updateTransactionType: mockMutation(),
+    deleteTransactionType: mockMutation(),
   })
 
   // Default: user has manage_configuration permission
@@ -110,9 +109,9 @@ describe('TransactionTypesPage', () => {
   it('confirming delete calls deleteTransactionType mutation', async () => {
     const deleteMutate = vi.fn()
     mockUseTransactionTypeMutations.mockReturnValue({
-      createTransactionType: { ...noOpMutation },
-      updateTransactionType: { ...noOpMutation },
-      deleteTransactionType: { ...noOpMutation, mutate: deleteMutate },
+      createTransactionType: mockMutation(),
+      updateTransactionType: mockMutation(),
+      deleteTransactionType: mockMutation({ mutate: deleteMutate }),
     })
 
     renderWithProviders(<TransactionTypesPage />)
@@ -139,9 +138,9 @@ describe('TransactionTypesPage', () => {
       opts.onError(mockError)
     })
     mockUseTransactionTypeMutations.mockReturnValue({
-      createTransactionType: { ...noOpMutation },
-      updateTransactionType: { ...noOpMutation },
-      deleteTransactionType: { ...noOpMutation, mutate: deleteMutate },
+      createTransactionType: mockMutation(),
+      updateTransactionType: mockMutation(),
+      deleteTransactionType: mockMutation({ mutate: deleteMutate }),
     })
 
     renderWithProviders(<TransactionTypesPage />)
@@ -171,12 +170,12 @@ describe('TransactionTypesPage', () => {
   })
 
   it('shows empty state when no transaction types', () => {
-    mockUseTransactionTypes.mockReturnValue({
+    mockUseTransactionTypes.mockReturnValue(mockQuery({
       data: [],
       isLoading: false,
       isError: false,
       error: null,
-    } as ReturnType<typeof useTransactionTypes>)
+    }))
 
     renderWithProviders(<TransactionTypesPage />)
 

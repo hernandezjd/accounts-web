@@ -49,6 +49,7 @@ describe('Error Classification Integration Tests', () => {
 
     it('displays error without retry button', () => {
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'VALIDATION_ERROR',
         userMessage: 'Please check your input',
         suggestion: 'Verify that all required fields are filled correctly',
@@ -78,6 +79,7 @@ describe('Error Classification Integration Tests', () => {
 
     it('displays error without retry button', () => {
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'UNAUTHORIZED',
         userMessage: 'Your session has expired',
         suggestion: 'Please log in again to continue',
@@ -103,6 +105,7 @@ describe('Error Classification Integration Tests', () => {
 
     it('displays error without retry button', () => {
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'ACCOUNT_NOT_FOUND',
         userMessage: 'The requested account could not be found',
         suggestion: 'Verify the account ID and ensure the account has not been deleted',
@@ -131,6 +134,7 @@ describe('Error Classification Integration Tests', () => {
       const handleRetry = vi.fn();
 
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'HTTP_408',
         userMessage: 'Request timed out',
         suggestion: 'The request took too long. Try again.',
@@ -164,6 +168,7 @@ describe('Error Classification Integration Tests', () => {
       const handleRetry = vi.fn();
 
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'RATE_LIMITED',
         userMessage: 'Too many requests. Rate limited, trying again...',
         suggestion: 'Please wait a moment before trying again',
@@ -191,6 +196,7 @@ describe('Error Classification Integration Tests', () => {
 
     it('displays error without retry button and shows request ID prominently', () => {
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'INTERNAL_SERVER_ERROR',
         userMessage: 'An unexpected error occurred. Our team has been notified.',
         suggestion: 'Please contact support with the request ID provided.',
@@ -216,6 +222,7 @@ describe('Error Classification Integration Tests', () => {
       (navigator.clipboard as any).writeText = writeTextMock;
 
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'INTERNAL_SERVER_ERROR',
         userMessage: 'Server error',
         requestId: 'req-500-copy-test',
@@ -247,6 +254,7 @@ describe('Error Classification Integration Tests', () => {
       const handleRetry = vi.fn();
 
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'HTTP_503',
         userMessage: 'Service temporarily unavailable, trying again...',
         suggestion: 'The service is temporarily unavailable. Please wait.',
@@ -278,6 +286,7 @@ describe('Error Classification Integration Tests', () => {
       const handleRetry = vi.fn();
 
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'NETWORK_ERROR',
         userMessage: 'Connection timeout. Trying again...',
         suggestion: 'Your connection was interrupted. Please try again.',
@@ -356,6 +365,7 @@ describe('Error Classification Integration Tests', () => {
       const handleRetry = vi.fn();
 
       const formattedError: FormattedError = {
+        severity: 'error',
         errorCode: 'HTTP_504',
         userMessage: 'Gateway timeout',
         suggestion: 'The gateway timed out. Please try again.',
