@@ -148,6 +148,7 @@
       "closingBalance": "Closing balance",
       "untrackedCurrency": "{{account}} has no movements in {{currency}}. Choose {{base}} or another currency in the currency selector, or go back.",
       "balanceIn": "Balance ({{currency}})",
+      "amountIn": "Amount ({{currency}})",
       "closingBalanceIn": "Closing balance ({{currency}})"
     },
     "search": {

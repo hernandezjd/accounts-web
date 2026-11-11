@@ -148,6 +148,7 @@
       "closingBalance": "Saldo final",
       "untrackedCurrency": "{{account}} no tiene movimientos en {{currency}}. Elige {{base}} u otra moneda en el selector de moneda, o vuelve atrás.",
       "balanceIn": "Saldo ({{currency}})",
+      "amountIn": "Importe ({{currency}})",
       "closingBalanceIn": "Saldo final ({{currency}})"
     },
     "search": {

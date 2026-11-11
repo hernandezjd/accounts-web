@@ -81,6 +81,8 @@ interface ListItem {
   thirdPartyName?: string | null
   debit: ReactNode
   credit: ReactNode
+  /** The line's amount in each extra currency, with its rate, keyed by currency (full list only). */
+  amountsIn?: Record<string, ReactNode>
 }
 
 /** One transaction, ready to show. Both data sources (statement and full list) are mapped to this. */
@@ -92,6 +94,8 @@ interface ListRow {
   description: string
   debit: string
   credit: string
+  /** Debit total in each extra currency, keyed by currency (full list only). */
+  amountsIn?: Record<string, string>
   /** Balance of the chosen account after this transaction (statement only). */
   balance?: string
   items: ListItem[]
@@ -213,6 +217,8 @@ export function TransactionList({
 
   const chosenExtra = useCurrencyViewStore((s) => s.extraCurrencies)
   const extraCurrencies = hasAccount ? chosenExtra.filter((c) => c !== (view.currency ?? viewBaseCurrency)) : []
+  // The full list has no account statement, so each extra currency is one amount column: the transaction's debit total
+  const journalCurrencies = hasAccount ? [] : chosenExtra.filter((c) => c !== (view.currency ?? viewBaseCurrency))
   const extraColumns = useExtraCurrencyStatements(
     workspaceId,
     hasAccount ? accountId : null,
@@ -259,12 +265,27 @@ export function TransactionList({
     const currency = item.currency as string
     const equivalent = equivalentOf(item)
     if (equivalent == null) return null
-    // A stored rate relates the base currency and one other currency (base units per unit of the other one)
-    const otherCurrency = listCurrency === baseCurrency ? currency : currency === baseCurrency ? listCurrency : null
+    return pairRateText(currency, listCurrency as string, amount, equivalent, storedRates)
+  }
+
+  /**
+   * The rate between two currencies, as readable text. A stored rate is used when one of the two is the base
+   * currency (it relates the base and one other currency); otherwise the rate is the one the two amounts imply.
+   * @param fromAmount the amount in `fromCurrency`; `toAmount` is the same value in `toCurrency`.
+   */
+  function pairRateText(
+    fromCurrency: string,
+    toCurrency: string,
+    fromAmount: number,
+    toAmount: number,
+    storedRates?: { currency: string; rate: number }[],
+  ): string {
+    const otherCurrency =
+      fromCurrency === baseCurrency ? toCurrency : toCurrency === baseCurrency ? fromCurrency : null
     const storedRate = otherCurrency ? storedRates?.find((r) => r.currency === otherCurrency)?.rate : undefined
     return storedRate != null && otherCurrency
       ? formatRate(storedRate, baseCurrency, otherCurrency)
-      : formatRate(equivalent / amount, listCurrency, currency)
+      : formatRate(toAmount / fromAmount, toCurrency, fromCurrency)
   }
 
   /**
@@ -287,6 +308,8 @@ export function TransactionList({
     const equivalent = equivalentOf(item)
     const rateText = rateTextOf(items, itemIndex, storedRates)
     if (equivalent == null || rateText == null) return '—'
+    // In its own column (full list), the amount and its rate show there, not here
+    if (journalCurrencies.includes(currency)) return formatMoney(equivalent, listCurrency)
     const key = originalNoteKey(item)
     const noteRepeatedLater = items.some(
       (later, laterIndex) => laterIndex > itemIndex && originalNoteKey(later) === key,
@@ -315,15 +338,90 @@ export function TransactionList({
   // The totals are in the currency of the list: an item counts with its own amount when it is in that currency
   // and with its stored equivalent otherwise. An item without a stored equivalent is left out of the totals.
   const amountInList = (item: TransactionItem, amount: number): number | undefined =>
-    !item.currency || item.currency === journalCurrency
+    amountInCurrency(item, amount, journalCurrency)
+  /** An amount of an item in a currency: its own amount in its native currency, else its stored equivalent. */
+  function amountInCurrency(item: TransactionItem, amount: number, currency: string | null): number | undefined {
+    return !item.currency || item.currency === currency
       ? amount
-      : item.equivalents?.find((e) => e.currency === journalCurrency)?.amount
+      : item.equivalents?.find((e) => e.currency === currency)?.amount
+  }
+  /**
+   * The amount of one line in an extra currency, with the rate that relates it below. In its own currency it is
+   * the native amount, with its rate to the base; otherwise it is the stored equivalent, with the rate between the
+   * two currencies. A dash when the line has no amount in that currency.
+   */
+  function lineAmountIn(
+    item: TransactionItem,
+    currency: string,
+    storedRates?: { currency: string; rate: number }[],
+  ): { amount: string; rate: string | null } {
+    const amount = item.debitAmount || item.creditAmount
+    const value = amount ? amountInCurrency(item, amount, currency) : undefined
+    if (!amount || value === undefined) return { amount: '—', rate: null }
+    const native = item.currency ?? baseCurrency
+    let rate: string | null = null
+    if (native === currency && currency !== baseCurrency && baseCurrency) {
+      const baseAmount = item.equivalents?.find((e) => e.currency === baseCurrency)?.amount
+      if (baseAmount != null) rate = pairRateText(currency, baseCurrency, amount, baseAmount, storedRates)
+    } else if (native && native !== currency) {
+      rate = pairRateText(native, currency, amount, value, storedRates)
+    }
+    return { amount: formatMoney(value, currency), rate }
+  }
+  /** The total of one side of the items in a currency, or undefined when no line of that side has an amount in it. */
+  function sideTotalIn(
+    items: TransactionItem[],
+    side: 'debitAmount' | 'creditAmount',
+    currency: string,
+  ): number | undefined {
+    let total: number | undefined
+    for (const item of items) {
+      const amount = item[side]
+      if (!amount) continue
+      const value = amountInCurrency(item, amount, currency)
+      if (value !== undefined) total = (total ?? 0) + value
+    }
+    return total
+  }
   function journalRow(txn: Transaction): ListRow {
     const items = txn.items ?? []
     const sumOf = (pick: (item: TransactionItem) => number | undefined): number =>
       items.reduce((sum, item) => sum + (pick(item) ?? 0), 0)
     const debit = sumOf((item) => (item.debitAmount ? amountInList(item, item.debitAmount) : undefined))
     const credit = sumOf((item) => (item.creditAmount ? amountInList(item, item.creditAmount) : undefined))
+    // Extra currency columns: the debit total in that currency, or the credit total when no debit line has an
+    // amount in it. Only native amounts and stored equivalents count; a line without one is left out.
+    const amountsIn: Record<string, string> = {}
+    for (const currency of journalCurrencies) {
+      const total = sideTotalIn(items, 'debitAmount', currency) ?? sideTotalIn(items, 'creditAmount', currency)
+      amountsIn[currency] = total === undefined ? '—' : formatMoney(total, currency)
+    }
+    // Per line and extra currency: the amount and its rate. A rate is shown only under the last line that shares it.
+    const lineAmounts = items.map((item) =>
+      journalCurrencies.map((currency) => lineAmountIn(item, currency, txn.valuation?.rates)),
+    )
+    const lineAmountNode = (itemIndex: number, columnIndex: number): ReactNode => {
+      const { amount, rate } = lineAmounts[itemIndex][columnIndex]
+      const repeatedLater =
+        rate !== null &&
+        lineAmounts.some((later, laterIndex) => laterIndex > itemIndex && later[columnIndex].rate === rate)
+      return (
+        <>
+          {amount}
+          {rate !== null && !repeatedLater && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              sx={{ whiteSpace: 'nowrap' }}
+              data-testid="item-original-amount"
+            >
+              {rate}
+            </Typography>
+          )}
+        </>
+      )
+    }
     return {
       id: txn.id ?? '',
       date: txn.date ?? '',
@@ -332,12 +430,16 @@ export function TransactionList({
       description: txn.description ?? '',
       debit: debit > 0 ? formatMoney(debit, journalCurrency) : '',
       credit: credit > 0 ? formatMoney(credit, journalCurrency) : '',
+      amountsIn,
       items: items.map((item, itemIndex) => ({
         accountId: item.accountId ?? undefined,
         accountLabel: `${item.accountCode} ${item.accountName}`,
         thirdPartyName: item.thirdPartyName,
         debit: renderItemAmount(items, itemIndex, item.debitAmount, txn.valuation?.rates),
         credit: renderItemAmount(items, itemIndex, item.creditAmount, txn.valuation?.rates),
+        amountsIn: Object.fromEntries(
+          journalCurrencies.map((currency, columnIndex) => [currency, lineAmountNode(itemIndex, columnIndex)]),
+        ),
       })),
       source: txn,
     }
@@ -430,7 +532,7 @@ export function TransactionList({
   const accountTitle = thirdPartyName
     ? `${accountCode} ${accountName} / ${thirdPartyName}`
     : `${accountCode} ${accountName}`
-  const columnCount = 7 + (hasAccount ? 1 + extraColumns.length : 0)
+  const columnCount = 7 + (hasAccount ? 1 + extraColumns.length : journalCurrencies.length)
 
   return (
     <Box>
@@ -580,6 +682,11 @@ export function TransactionList({
                   <TableCell align="right" sx={{ fontWeight: 700 }}>
                     {withCurrency(t('accounting.transactions.credit'))}
                   </TableCell>
+                  {journalCurrencies.map((currency) => (
+                    <TableCell key={currency} align="right" sx={{ fontWeight: 700 }}>
+                      {t('accounting.transactions.amountIn', { currency })}
+                    </TableCell>
+                  ))}
                   {/* A running balance only means something for one account */}
                   {hasAccount && (
                     <TableCell align="right" sx={{ fontWeight: 700 }}>
@@ -625,6 +732,16 @@ export function TransactionList({
                       <TableCell align="right" sx={{ py: 0.75 }}>
                         {row.credit}
                       </TableCell>
+                      {journalCurrencies.map((currency) => (
+                        <TableCell
+                          key={currency}
+                          align="right"
+                          data-testid={`journal-amount-${currency}`}
+                          sx={{ py: 0.75 }}
+                        >
+                          {row.amountsIn?.[currency] ?? ''}
+                        </TableCell>
+                      ))}
                       {hasAccount && (
                         <TableCell align="right" sx={{ py: 0.75, fontWeight: 600 }}>
                           {row.balance}
@@ -690,7 +807,17 @@ export function TransactionList({
                         <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em', verticalAlign: 'top' }}>
                           {item.credit}
                         </TableCell>
-                        <TableCell sx={{ py: 0.5 }} colSpan={columnCount - 6} />
+                        {journalCurrencies.map((currency) => (
+                          <TableCell
+                            key={currency}
+                            align="right"
+                            data-testid={`journal-item-amount-${currency}`}
+                            sx={{ py: 0.5, fontSize: '0.875em', verticalAlign: 'top' }}
+                          >
+                            {item.amountsIn?.[currency] ?? ''}
+                          </TableCell>
+                        ))}
+                        <TableCell sx={{ py: 0.5 }} colSpan={columnCount - 6 - journalCurrencies.length} />
                       </TableRow>
                     ))}
 

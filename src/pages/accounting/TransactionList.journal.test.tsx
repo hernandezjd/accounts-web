@@ -284,6 +284,224 @@ describe('TransactionList without an account', () => {
     )
   })
 
+  it('adds one amount column per extra currency: the debit total, or the credit total when no debit is in it', () => {
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useWorkspaceConfig>)
+    const pesosPayment: Transaction = {
+      id: 'txn-cop',
+      date: '2024-01-18',
+      transactionTypeId: 'tt-1',
+      transactionTypeName: 'Journal Entry',
+      transactionNumber: 'JE-010',
+      description: 'Payment in pesos',
+      items: [
+        { accountId: 'acc-1', accountCode: '519515', accountName: 'Expenses', debitAmount: 218.49, creditAmount: 0, currency: 'CAD' },
+        {
+          accountId: 'acc-2',
+          accountCode: '111014',
+          accountName: 'Bank',
+          debitAmount: 0,
+          creditAmount: 500000,
+          currency: 'COP',
+          equivalents: [{ currency: 'CAD', amount: 218.49, roundingAdjustment: 0 }],
+        },
+      ],
+    }
+    const cadOnly: Transaction = {
+      id: 'txn-cad',
+      date: '2024-01-19',
+      transactionTypeId: 'tt-1',
+      transactionTypeName: 'Journal Entry',
+      transactionNumber: 'JE-011',
+      description: 'Only Canadian dollars',
+      items: [
+        { accountId: 'acc-1', accountCode: '519515', accountName: 'Expenses', debitAmount: 100, creditAmount: 0, currency: 'CAD' },
+        { accountId: 'acc-2', accountCode: '111014', accountName: 'Bank', debitAmount: 0, creditAmount: 100, currency: 'CAD' },
+      ],
+    }
+    mockUseTransactions.mockReturnValue({
+      data: pageOf([pesosPayment, cadOnly]),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+    useCurrencyViewStore.setState({ extraCurrencies: ['COP'] })
+
+    try {
+      renderWithProviders(<TransactionList {...journalProps} />)
+
+      expect(screen.getByText('Amount (COP)')).toBeInTheDocument()
+      const amounts = screen.getAllByTestId('journal-amount-COP')
+      // The debit side has no COP amount, so the credit side's 500,000 COP is shown
+      expect(amounts[0]).toHaveTextContent(/^500,000(\.00)?$/)
+      // Neither side has a COP amount: a dash
+      expect(amounts[1]).toHaveTextContent('—')
+      // Item rows, in order: each line in COP. The CAD debit line has no COP amount; the COP credit line is native
+      const lineAmounts = screen.getAllByTestId('journal-item-amount-COP')
+      expect(lineAmounts.map((cell) => cell.textContent)).toEqual(['—', expect.stringMatching(/^500,000/), '—', '—'])
+    } finally {
+      useCurrencyViewStore.setState({ extraCurrencies: [] })
+    }
+  })
+
+  it('leaves the original amount out of the item caption when its currency has a column, keeping the rate', () => {
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useWorkspaceConfig>)
+    const payment: Transaction = {
+      id: 'txn-rate',
+      date: '2024-01-20',
+      transactionTypeId: 'tt-1',
+      transactionTypeName: 'Journal Entry',
+      transactionNumber: 'JE-012',
+      description: 'Payment in pesos',
+      valuation: { mode: 'CLIENT_RATES', rates: [{ currency: 'COP', rate: 0.00043698081217 }] },
+      items: [
+        { accountId: 'acc-1', accountCode: '519515', accountName: 'Expenses', debitAmount: 218.49, creditAmount: 0, currency: 'CAD' },
+        {
+          accountId: 'acc-2',
+          accountCode: '111014',
+          accountName: 'Bank',
+          debitAmount: 0,
+          creditAmount: 500000,
+          currency: 'COP',
+          equivalents: [{ currency: 'CAD', amount: 218.49, roundingAdjustment: 0 }],
+        },
+      ],
+    }
+    mockUseTransactions.mockReturnValue({
+      data: pageOf([payment]),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+    useCurrencyViewStore.setState({ extraCurrencies: ['COP'] })
+
+    try {
+      renderWithProviders(<TransactionList {...journalProps} />)
+
+      // 500,000 COP is in its own column, so the caption keeps only the rate
+      expect(screen.getByTestId('item-original-amount')).toHaveTextContent(/^1 CAD = 2,288\.43 COP$/)
+    } finally {
+      useCurrencyViewStore.setState({ extraCurrencies: [] })
+    }
+  })
+
+  it('shows the rate under the amount in its own currency column, not under the base amount', () => {
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useWorkspaceConfig>)
+    const dollarPurchase: Transaction = {
+      id: 'txn-usd',
+      date: '2024-01-21',
+      transactionTypeId: 'tt-1',
+      transactionTypeName: 'Journal Entry',
+      transactionNumber: 'JE-013',
+      description: 'Purchase in dollars',
+      valuation: { mode: 'CLIENT_RATES', rates: [{ currency: 'USD', rate: 1.4492437 }] },
+      items: [
+        {
+          accountId: 'acc-1',
+          accountCode: '151603',
+          accountName: 'Apartment',
+          debitAmount: 1613.69,
+          creditAmount: 0,
+          currency: 'USD',
+          equivalents: [{ currency: 'CAD', amount: 2338.63, roundingAdjustment: 0 }],
+        },
+        { accountId: 'acc-2', accountCode: '111014', accountName: 'Bank', debitAmount: 0, creditAmount: 2338.63, currency: 'CAD' },
+      ],
+    }
+    mockUseTransactions.mockReturnValue({
+      data: pageOf([dollarPurchase]),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+    useCurrencyViewStore.setState({ extraCurrencies: ['USD'] })
+
+    try {
+      renderWithProviders(<TransactionList {...journalProps} />)
+
+      // The only rate caption is the one under the USD amount; the base amount (CAD) has none
+      const captions = screen.getAllByTestId('item-original-amount')
+      expect(captions).toHaveLength(1)
+      expect(captions[0]).toHaveTextContent('1 USD = 1.4492437 CAD')
+      expect(captions[0].closest('td')).toHaveAttribute('data-testid', 'journal-item-amount-USD')
+    } finally {
+      useCurrencyViewStore.setState({ extraCurrencies: [] })
+    }
+  })
+
+  it('shows a shared rate under the last line of the column only', () => {
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useWorkspaceConfig>)
+    const split: Transaction = {
+      id: 'txn-split',
+      date: '2024-01-22',
+      transactionTypeId: 'tt-1',
+      transactionTypeName: 'Journal Entry',
+      transactionNumber: 'JE-014',
+      description: 'Split payment in pesos',
+      valuation: { mode: 'CLIENT_RATES', rates: [{ currency: 'COP', rate: 0.00043698081217 }] },
+      items: [
+        { accountId: 'acc-1', accountCode: '519515', accountName: 'Expenses', debitAmount: 260.92, creditAmount: 0, currency: 'CAD' },
+        {
+          accountId: 'acc-2',
+          accountCode: '429518',
+          accountName: 'Landlord',
+          debitAmount: 0,
+          creditAmount: 298500,
+          currency: 'COP',
+          equivalents: [{ currency: 'CAD', amount: 130.46, roundingAdjustment: 0 }],
+        },
+        {
+          accountId: 'acc-3',
+          accountCode: '238016',
+          accountName: 'Patricia',
+          debitAmount: 0,
+          creditAmount: 298500,
+          currency: 'COP',
+          equivalents: [{ currency: 'CAD', amount: 130.46, roundingAdjustment: 0 }],
+        },
+      ],
+    }
+    mockUseTransactions.mockReturnValue({
+      data: pageOf([split]),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+    useCurrencyViewStore.setState({ extraCurrencies: ['COP'] })
+
+    try {
+      renderWithProviders(<TransactionList {...journalProps} />)
+
+      // Both COP lines show 298,500, but the shared rate is written once: under the last of them
+      const lineCells = screen.getAllByTestId('journal-item-amount-COP')
+      expect(lineCells[0]).not.toHaveTextContent('1 CAD')
+      expect(lineCells[1]).not.toHaveTextContent('1 CAD')
+      expect(lineCells[2]).toHaveTextContent('1 CAD = 2,288.43 COP')
+      expect(screen.getAllByTestId('item-original-amount')).toHaveLength(1)
+    } finally {
+      useCurrencyViewStore.setState({ extraCurrencies: [] })
+    }
+  })
+
   it('shows the rate only on the last item that shares it', () => {
     mockUseWorkspaceConfig.mockReturnValue({
       data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
