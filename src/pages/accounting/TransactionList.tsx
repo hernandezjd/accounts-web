@@ -174,8 +174,13 @@ export function TransactionList({
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE)
 
-  // A new period or another account starts again on the first page (adjusting state while rendering)
-  const scopeKey = `${from}|${to}|${accountId ?? ''}|${thirdPartyId ?? ''}`
+  // Currencies. The statement and the full list both follow the currency selector.
+  const { view, baseCurrency: viewBaseCurrency, displayCurrency } = useCurrencyView(workspaceId)
+  const baseCurrency = workspaceConfig?.baseCurrency ?? viewBaseCurrency ?? null
+  const journalCurrency = displayCurrency ?? baseCurrency
+
+  // A new period, currency or account starts again on the first page (adjusting state while rendering)
+  const scopeKey = `${from}|${to}|${accountId ?? ''}|${thirdPartyId ?? ''}|${displayCurrency ?? ''}`
   const [pagedScope, setPagedScope] = useState(scopeKey)
   if (pagedScope !== scopeKey) {
     setPagedScope(scopeKey)
@@ -195,9 +200,10 @@ export function TransactionList({
     to,
     thirdPartyId,
   )
+  // The full list shows only transactions with a line in the chosen currency (MC-23): the API filters them
   const journal = useTransactions(
     hasAccount ? null : workspaceId || null,
-    { dateFrom: from, dateTo: to, transactionTypeId: typeFilter?.id },
+    { dateFrom: from, dateTo: to, transactionTypeId: typeFilter?.id, currency: displayCurrency ?? undefined },
     { page, size: rowsPerPage },
   )
   const isLoading = hasAccount ? statement.isLoading : journal.isLoading
@@ -205,10 +211,6 @@ export function TransactionList({
   const error = (hasAccount ? statement.error : journal.error) ?? null
   const refetch = hasAccount ? statement.refetch : journal.refetch
 
-  // Currencies. The statement and the full list both follow the currency selector.
-  const { view, baseCurrency: viewBaseCurrency, displayCurrency } = useCurrencyView(workspaceId)
-  const baseCurrency = workspaceConfig?.baseCurrency ?? viewBaseCurrency ?? null
-  const journalCurrency = displayCurrency ?? baseCurrency
   const chosenExtra = useCurrencyViewStore((s) => s.extraCurrencies)
   const extraCurrencies = hasAccount ? chosenExtra.filter((c) => c !== (view.currency ?? viewBaseCurrency)) : []
   const extraColumns = useExtraCurrencyStatements(

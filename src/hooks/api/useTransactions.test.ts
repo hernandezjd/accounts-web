@@ -60,6 +60,26 @@ describe('useTransactions', () => {
     expect(result.current.data).toEqual(samplePage)
   })
 
+  it('sends the currency filter to the API', async () => {
+    mockGet.mockResolvedValueOnce({ data: samplePage, response: new Response() })
+
+    const { result } = renderHook(
+      () => useTransactions('workspace-1', { currency: 'COP' }),
+      { wrapper: makeWrapper() }
+    )
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    expect(mockGet).toHaveBeenCalledWith(
+      '/transactions',
+      expect.objectContaining({
+        params: expect.objectContaining({
+          query: expect.objectContaining({ currency: 'COP' }),
+        }),
+      })
+    )
+  })
+
   it('does not fetch when workspaceId is null', () => {
     const { result } = renderHook(
       () => useTransactions(null),

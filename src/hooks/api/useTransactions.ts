@@ -11,6 +11,8 @@ export interface TransactionFilters {
   accountId?: string
   dateFrom?: string
   dateTo?: string
+  /** ISO 4217 code: only transactions with a line in this currency (MC-23). */
+  currency?: string
   [key: string]: string | undefined
 }
 
@@ -32,6 +34,7 @@ export function useTransactions(
   if (filters.accountId) query.accountId = filters.accountId
   if (filters.dateFrom) query.dateFrom = filters.dateFrom
   if (filters.dateTo) query.dateTo = filters.dateTo
+  if (filters.currency) query.currency = filters.currency
 
   return useApiQuery(
     queryKeys.transactions.list(workspaceId!, { ...filters, ...pagination }),

@@ -386,6 +386,22 @@ describe('TransactionList without an account', () => {
     }
   })
 
+  it('asks the API only for transactions with a line in the chosen currency', () => {
+    useCurrencyViewStore.setState({ view: { currency: 'USD' } })
+
+    try {
+      renderWithProviders(<TransactionList {...journalProps} />)
+
+      expect(mockUseTransactions).toHaveBeenLastCalledWith(
+        'workspace-test',
+        expect.objectContaining({ currency: 'USD' }),
+        expect.anything(),
+      )
+    } finally {
+      useCurrencyViewStore.setState({ view: { currency: null } })
+    }
+  })
+
   it('"New Transaction" button shows inline create form', async () => {
     renderWithProviders(<TransactionList {...journalProps} />)
 
