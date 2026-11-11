@@ -42,6 +42,27 @@ export function formatAmount(n: number | null | undefined): string {
   return formatMoney(n, displayCurrencyOf(view, baseCurrency))
 }
 
+/**
+ * Rates are stored as base units per one unit of the currency (MC-15). A rate below 1 (0.00043698 CAD per 1 COP) is
+ * awkward to read and to type, so it is shown and entered the other way round (2,288.43 COP per 1 CAD).
+ */
+export function isInvertedRate(rate: number | null | undefined): boolean {
+  return rate != null && rate > 0 && rate < 1
+}
+
+/** The stored rate for a number typed in the given direction. An inverted one is rounded to the 14 decimals of a rate. */
+export function toStoredRate(typed: number, inverted: boolean): number {
+  return inverted && typed > 0 ? Number((1 / typed).toFixed(14)) : typed
+}
+
+/** A stored rate as a sentence in its readable direction: "1 CAD = 2,288.43 COP" or "1 USD = 1.37 CAD". */
+export function formatRate(rate: number, baseCurrency: string | null | undefined, currency: string, locale?: string): string {
+  const inverted = isInvertedRate(rate)
+  const value = (inverted ? 1 / rate : rate).toLocaleString(locale, { maximumSignificantDigits: 8 })
+  const base = baseCurrency ?? ''
+  return (inverted ? `1 ${base} = ${value} ${currency}` : `1 ${currency} = ${value} ${base}`).trim()
+}
+
 const FALLBACK_CURRENCIES = ['AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'EUR', 'GBP', 'JPY', 'MXN', 'PEN', 'USD']
 
 /** The ISO 4217 codes the browser knows, sorted. */

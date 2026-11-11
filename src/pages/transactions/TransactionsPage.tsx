@@ -29,7 +29,7 @@ import { useWorkspaceAccess } from '@/hooks/useWorkspaceAccess'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
 import { TransactionForm, type TransactionFormInitialData } from '../accounting/TransactionForm'
-import { formatMoney } from '@/utils/money'
+import { formatMoney, formatRate } from '@/utils/money'
 
 const DEFAULT_ROWS_PER_PAGE = 50
 const ROWS_PER_PAGE_OPTIONS = [25, 50, 100, 200]
@@ -115,10 +115,48 @@ export function TransactionsPage() {
     }
   }
 
-  // Item amounts are in the currency of the item; the currency code is shown when it is not the base currency
-  function formatItemAmount(amount: number, currency?: string | null): string {
-    const text = formatMoney(amount, currency ?? baseCurrency)
-    return currency && currency !== baseCurrency ? `${text} ${currency}` : text
+  // The debit and credit columns are in base currency, so each column adds up to the transaction total. An item in
+  // another currency shows its base equivalent, and below it the original amount with the rate in its readable
+  // direction (see formatRate). Without a base equivalent the original amount is shown alone. An item that would
+  // repeat the note of an earlier item of the transaction (same amounts in both currencies) shows no note.
+  const withBaseCurrency = (label: string): string => (baseCurrency ? `${label} (${baseCurrency})` : label)
+
+  type TransactionItem = NonNullable<Transaction['items']>[number]
+  const originalNoteKey = (item: TransactionItem): string | null => {
+    if (!item.currency || item.currency === baseCurrency) return null
+    const equivalent = item.equivalents?.find((e) => e.currency === baseCurrency)?.amount
+    if (equivalent == null) return null
+    return `${item.currency}|${item.debitAmount || item.creditAmount}|${equivalent}`
+  }
+  const repeatsEarlierNote = (txn: Transaction, itemIndex: number): boolean => {
+    const items = txn.items ?? []
+    const key = originalNoteKey(items[itemIndex])
+    return key !== null && items.slice(0, itemIndex).some((earlier) => originalNoteKey(earlier) === key)
+  }
+
+  function renderItemAmount(txn: Transaction, itemIndex: number, amount?: number | null) {
+    const item = (txn.items ?? [])[itemIndex]
+    if (!amount) return ''
+    if (!item.currency || item.currency === baseCurrency) return formatMoney(amount, baseCurrency)
+    const original = formatMoney(amount, item.currency, { withCode: true })
+    const equivalent = item.equivalents?.find((e) => e.currency === baseCurrency)?.amount
+    if (equivalent == null) return original
+    const rate = txn.valuation?.rates?.find((r) => r.currency === item.currency)?.rate ?? equivalent / amount
+    if (repeatsEarlierNote(txn, itemIndex)) return formatMoney(equivalent, baseCurrency)
+    return (
+      <>
+        {formatMoney(equivalent, baseCurrency)}
+        {/* The amount and the rate each stay on one line; a narrow column breaks between them */}
+        <Typography variant="caption" color="text.secondary" display="block" data-testid="item-original-amount">
+          <Box component="span" sx={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+            {original} ·&nbsp;
+          </Box>
+          <Box component="span" sx={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+            {formatRate(rate, baseCurrency, item.currency)}
+          </Box>
+        </Typography>
+      </>
+    )
   }
 
   const updateFilterForm = (patch: Partial<FilterForm>) => {
@@ -286,8 +324,8 @@ export function TransactionsPage() {
               <TableCell>{t('transactionsPage.type')}</TableCell>
               <TableCell>{t('transactionsPage.number')}</TableCell>
               <TableCell>{t('transactionsPage.description')}</TableCell>
-              <TableCell align="right">{t('common.debit')}</TableCell>
-              <TableCell align="right">{t('common.credit')}</TableCell>
+              <TableCell align="right">{withBaseCurrency(t('common.debit'))}</TableCell>
+              <TableCell align="right">{withBaseCurrency(t('common.credit'))}</TableCell>
               <TableCell>{t('transactionsPage.actions')}</TableCell>
             </TableRow>
           </TableHead>
@@ -303,9 +341,9 @@ export function TransactionsPage() {
                 <Fragment key={txn.id}>
                   {/* Transaction summary row */}
                   <TableRow data-testid={`txn-row-${txn.id}`}>
-                    <TableCell sx={{ py: 0.75 }}>{txn.date}</TableCell>
+                    <TableCell sx={{ py: 0.75, whiteSpace: 'nowrap' }}>{txn.date}</TableCell>
                     <TableCell sx={{ py: 0.75 }}>{txn.transactionTypeName}</TableCell>
-                    <TableCell sx={{ py: 0.75 }}>{txn.transactionNumber}</TableCell>
+                    <TableCell sx={{ py: 0.75, whiteSpace: 'nowrap' }}>{txn.transactionNumber}</TableCell>
                     <TableCell sx={{ py: 0.75 }}>{txn.description}</TableCell>
                     <TableCell align="right" sx={{ py: 0.75 }}>
                       {debit > 0 ? formatMoney(debit, baseCurrency) : ''}
@@ -328,15 +366,15 @@ export function TransactionsPage() {
                   {/* Line item rows */}
                   {(txn.items ?? []).map((item, itemIndex) => (
                     <TableRow key={`${txn.id}-item-${itemIndex}`} sx={{ bgcolor: 'action.hover' }}>
-                      <TableCell sx={{ py: 0.5, pl: 4 }} colSpan={4}>
+                      <TableCell sx={{ py: 0.5, pl: 4, verticalAlign: 'top' }} colSpan={4}>
                         {item.accountCode} {item.accountName}
                         {item.thirdPartyName && ` / ${item.thirdPartyName}`}
                       </TableCell>
-                      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em' }}>
-                        {item.debitAmount && item.debitAmount !== 0 ? formatItemAmount(item.debitAmount, item.currency) : ''}
+                      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em', verticalAlign: 'top' }}>
+                        {renderItemAmount(txn, itemIndex, item.debitAmount)}
                       </TableCell>
-                      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em' }}>
-                        {item.creditAmount && item.creditAmount !== 0 ? formatItemAmount(item.creditAmount, item.currency) : ''}
+                      <TableCell align="right" sx={{ py: 0.5, fontSize: '0.875em', verticalAlign: 'top' }}>
+                        {renderItemAmount(txn, itemIndex, item.creditAmount)}
                       </TableCell>
                       <TableCell sx={{ py: 0.5 }} />
                     </TableRow>

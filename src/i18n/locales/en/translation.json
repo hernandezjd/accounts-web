@@ -597,6 +597,7 @@
     "currency": "Currency",
     "rate": "Rate",
     "rateHelp": "{{base}} per 1 {{currency}}",
+    "swapRateDirection": "Switch the direction of the rate",
     "baseAmount": "Base amount",
     "baseEquivalent": "Equivalent in {{currency}}",
     "baseNotSet": "Set the base currency first (Setup > Currencies).",

@@ -597,6 +597,7 @@
     "currency": "Moneda",
     "rate": "Tasa",
     "rateHelp": "{{base}} por 1 {{currency}}",
+    "swapRateDirection": "Cambiar la dirección de la tasa",
     "baseAmount": "Importe base",
     "baseEquivalent": "Equivalente en {{currency}}",
     "baseNotSet": "Defina primero la moneda base (Configuración > Monedas).",

@@ -25,6 +25,9 @@ vi.mock('@/hooks/api/useThirdParties', () => ({
 vi.mock('@/hooks/api/useAccountMutations', () => ({
   useAccountMutations: vi.fn(),
 }))
+vi.mock('@/hooks/api/useExchangeRates', () => ({
+  useExchangeRates: vi.fn(),
+}))
 vi.mock('@/hooks/api/useThirdPartyMutations', () => ({
   useThirdPartyMutations: vi.fn(),
 }))
@@ -36,6 +39,7 @@ import { useAccounts } from '@/hooks/api/useAccounts'
 import { useThirdParties } from '@/hooks/api/useThirdParties'
 import { useAccountMutations } from '@/hooks/api/useAccountMutations'
 import { useThirdPartyMutations } from '@/hooks/api/useThirdPartyMutations'
+import { useExchangeRates } from '@/hooks/api/useExchangeRates'
 
 const mockUseTransactionTypes = vi.mocked(useTransactionTypes)
 const mockUseWorkspaceConfig = vi.mocked(useWorkspaceConfig)
@@ -44,10 +48,17 @@ const mockUseAccounts = vi.mocked(useAccounts)
 const mockUseThirdParties = vi.mocked(useThirdParties)
 const mockUseAccountMutations = vi.mocked(useAccountMutations)
 const mockUseThirdPartyMutations = vi.mocked(useThirdPartyMutations)
+const mockUseExchangeRates = vi.mocked(useExchangeRates)
+
+function mockTableRates(rates: Array<{ baseCurrency: string; currency: string; rate: number }>) {
+  mockUseExchangeRates.mockReturnValue({ data: rates } as ReturnType<typeof useExchangeRates>)
+}
 
 // ─── Default mock return values ────────────────────────────────────────────────
 
 function setupDefaultMocks() {
+  mockTableRates([])
+
   mockUseTransactionTypes.mockReturnValue({
     data: [{ id: 'type-1', name: 'Invoice' }],
     isLoading: false,
@@ -224,7 +235,7 @@ describe('TransactionForm multi-currency', () => {
       />,
     )
 
-    expect(screen.getByText(/EUR 1.1/)).toBeInTheDocument()
+    expect(screen.getByText(/1 EUR = 1\.1 USD/)).toBeInTheDocument()
     expect(screen.queryByTestId('rate-input')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
 
@@ -272,6 +283,45 @@ describe('TransactionForm multi-currency', () => {
     )
 
     expect(screen.getByRole('button', { name: /^save$/i })).toBeDisabled()
+  })
+
+  async function chooseRatesForThisTransaction() {
+    await userEvent.click(within(screen.getByTestId('valuation-mode')).getByRole('combobox'))
+    await userEvent.click(screen.getByRole('option', { name: 'Rates for this transaction' }))
+  }
+
+  it('asks for a rate below 1 the other way round and sends it in the stored direction', async () => {
+    // The table says 0.0004 USD per 1 EUR, so the rate is typed as EUR per 1 USD: 2,500 -> 1 / 2,500 = 0.0004
+    mockTableRates([{ baseCurrency: 'USD', currency: 'EUR', rate: 0.0004 }])
+    renderWithProviders(<TransactionForm {...editProps(fxItems)} />)
+    await chooseRatesForThisTransaction()
+
+    expect(screen.getByText('EUR per 1 USD')).toBeInTheDocument()
+    await userEvent.type(within(screen.getByTestId('rate-input')).getByRole('textbox'), '2500')
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    expect(editMutate.mock.calls[0][0].body.valuation).toEqual({
+      mode: 'RATES',
+      rates: [{ currency: 'EUR', rate: 0.0004 }],
+    })
+  })
+
+  it('asks for a rate of 1 or more as stored, and the direction can be switched', async () => {
+    mockTableRates([{ baseCurrency: 'USD', currency: 'EUR', rate: 1.1 }])
+    renderWithProviders(<TransactionForm {...editProps(fxItems)} />)
+    await chooseRatesForThisTransaction()
+
+    expect(screen.getByText('USD per 1 EUR')).toBeInTheDocument()
+    await userEvent.type(within(screen.getByTestId('rate-input')).getByRole('textbox'), '1.25')
+    await userEvent.click(screen.getByTestId('rate-direction-toggle'))
+    expect(screen.getByText('EUR per 1 USD')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    // 1.25 EUR per 1 USD = 1 / 1.25 = 0.8 USD per 1 EUR
+    expect(editMutate.mock.calls[0][0].body.valuation).toEqual({
+      mode: 'RATES',
+      rates: [{ currency: 'EUR', rate: 0.8 }],
+    })
   })
 
   it('asks for the rate table when a transaction without stored valuation is edited', async () => {

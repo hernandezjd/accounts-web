@@ -3,6 +3,8 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import Tooltip from '@mui/material/Tooltip'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -11,6 +13,7 @@ import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import DeleteIcon from '@mui/icons-material/Delete'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import { useTranslation } from 'react-i18next'
 import { useErrorHandler } from '@accounts/error-handling-web'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
@@ -20,10 +23,13 @@ import {
   useRateJobRuns,
   useRateSources,
 } from '@/hooks/api/useExchangeRates'
+import { formatRate, isInvertedRate, toStoredRate } from '@/utils/money'
 
 /**
  * Maintenance of the global exchange-rate table (MC-16, MC-17): the rates with their history, the free sources the
  * scheduled job reads, its latest runs (a failed run is shown as an alert) and manual entry or correction of a rate.
+ * Rates are stored as base units per one unit of the currency, and shown and typed in their readable direction
+ * (see isInvertedRate): 0.00038 CAD per 1 COP reads "1 CAD = 2,631.5789 COP".
  * Needs the global action manage_exchange_rates; without it the server answers 403, which is shown as an error.
  */
 export function RatesTab() {
@@ -37,6 +43,24 @@ export function RatesTab() {
 
   const [manual, setManual] = useState({ baseCurrency: '', currency: '', rateDate: '', rate: '' })
   const [source, setSource] = useState({ name: '', urlTemplate: '', jsonPath: '', priority: '100' })
+
+  // The direction a manual rate is typed in: the one of the current rate of the pair, unless the user switched it.
+  // Typing fixes it; changing the pair lets it be decided again.
+  const { data: currentRates } = useExchangeRates({})
+  const [manualInvertedChoice, setManualInvertedChoice] = useState<boolean | null>(null)
+  const manualInverted =
+    manualInvertedChoice ??
+    isInvertedRate(
+      currentRates?.find(
+        (r) => r.baseCurrency === manual.baseCurrency && r.currency === manual.currency && !r.superseded,
+      )?.rate,
+    )
+  const manualPairKnown = manual.baseCurrency.length === 3 && manual.currency.length === 3
+  const manualRateHelp = !manualPairKnown
+    ? t('rates.rateHelp')
+    : manualInverted
+      ? t('currency.rateHelp', { base: manual.currency, currency: manual.baseCurrency })
+      : t('currency.rateHelp', { base: manual.baseCurrency, currency: manual.currency })
 
   const lastRun = runs?.[0]
   const onError = (err: unknown) => setError(err as never)
@@ -98,7 +122,9 @@ export function RatesTab() {
               <TableCell>{rate.rateDate}</TableCell>
               <TableCell>{rate.baseCurrency}</TableCell>
               <TableCell>{rate.currency}</TableCell>
-              <TableCell align="right">{rate.rate}</TableCell>
+              <TableCell align="right">
+                {rate.rate != null ? formatRate(rate.rate, rate.baseCurrency, rate.currency ?? '') : ''}
+              </TableCell>
               <TableCell>{rate.source}</TableCell>
               <TableCell>{rate.superseded ? t('rates.superseded') : ''}</TableCell>
             </TableRow>
@@ -111,21 +137,53 @@ export function RatesTab() {
       </Typography>
       <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
         <TextField size="small" label={t('rates.base')} value={manual.baseCurrency}
-          onChange={(e) => setManual({ ...manual, baseCurrency: e.target.value.toUpperCase() })} sx={{ width: 100 }} />
+          onChange={(e) => {
+            setManual({ ...manual, baseCurrency: e.target.value.toUpperCase() })
+            setManualInvertedChoice(null)
+          }}
+          sx={{ width: 100 }} inputProps={{ 'data-testid': 'manual-rate-base' }} />
         <TextField size="small" label={t('currency.currency')} value={manual.currency}
-          onChange={(e) => setManual({ ...manual, currency: e.target.value.toUpperCase() })} sx={{ width: 100 }} />
+          onChange={(e) => {
+            setManual({ ...manual, currency: e.target.value.toUpperCase() })
+            setManualInvertedChoice(null)
+          }}
+          sx={{ width: 100 }} inputProps={{ 'data-testid': 'manual-rate-currency' }} />
         <TextField size="small" type="date" label={t('rates.date')} value={manual.rateDate}
-          onChange={(e) => setManual({ ...manual, rateDate: e.target.value })} InputLabelProps={{ shrink: true }} />
+          onChange={(e) => setManual({ ...manual, rateDate: e.target.value })} InputLabelProps={{ shrink: true }}
+          inputProps={{ 'data-testid': 'manual-rate-date' }} />
         <TextField size="small" label={t('currency.rate')} value={manual.rate}
-          onChange={(e) => setManual({ ...manual, rate: e.target.value.replace(',', '.') })} sx={{ width: 160 }}
-          helperText={t('rates.rateHelp')} />
+          onChange={(e) => {
+            setManual({ ...manual, rate: e.target.value.replace(',', '.') })
+            setManualInvertedChoice(manualInverted)
+          }}
+          sx={{ width: 200 }}
+          helperText={manualRateHelp}
+          inputProps={{ 'data-testid': 'manual-rate-input' }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <Tooltip title={t('currency.swapRateDirection')}>
+                  <IconButton
+                    size="small"
+                    edge="end"
+                    aria-label={t('currency.swapRateDirection')}
+                    onClick={() => setManualInvertedChoice(!manualInverted)}
+                    data-testid="manual-rate-direction-toggle"
+                  >
+                    <SwapHorizIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </InputAdornment>
+            ),
+          }}
+        />
         <Button
           variant="contained"
           disabled={!manual.baseCurrency || !manual.currency || !manual.rateDate || !(parseFloat(manual.rate) > 0) || putRate.isPending}
           onClick={() => {
             clearError()
             putRate.mutate(
-              { baseCurrency: manual.baseCurrency, currency: manual.currency, rateDate: manual.rateDate, rate: parseFloat(manual.rate) },
+              { baseCurrency: manual.baseCurrency, currency: manual.currency, rateDate: manual.rateDate, rate: toStoredRate(parseFloat(manual.rate), manualInverted) },
               { onSuccess: () => setManual({ ...manual, rate: '' }), onError },
             )
           }}

@@ -13,7 +13,9 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
+import InputAdornment from '@mui/material/InputAdornment'
 import DeleteIcon from '@mui/icons-material/Delete'
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp'
@@ -23,7 +25,8 @@ import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useAccounts } from '@/hooks/api/useAccounts'
 import { useTransactionMutations } from '@/hooks/api/useTransactionMutations'
 import { PREFERENCE_KEYS } from '@/utils/preferences'
-import { formatMoney } from '@/utils/money'
+import { formatMoney, formatRate, isInvertedRate, toStoredRate } from '@/utils/money'
+import { useExchangeRates } from '@/hooks/api/useExchangeRates'
 import MenuItem from '@mui/material/MenuItem'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -114,6 +117,7 @@ interface FormDraft {
   }>
   valuationMode?: ValuationMode
   rates?: Record<string, string>
+  ratesInverted?: Record<string, boolean>
 }
 
 const EMPTY_DRAFT: FormDraft = {
@@ -253,6 +257,10 @@ export function TransactionForm({
   const [rates, setRates] = useState<Record<string, string>>(() =>
     Object.fromEntries((initialData?.valuation?.rates ?? []).map((r) => [r.currency, String(r.rate)])),
   )
+  // Stored rates come in the stored direction
+  const [ratesInverted, setRatesInverted] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries((initialData?.valuation?.rates ?? []).map((r) => [r.currency, false])),
+  )
   const [preview, setPreview] = useState<ValuationPreview | null>(null)
 
   const { error, handleError, clearError } = useErrorHandler()
@@ -289,6 +297,7 @@ export function TransactionForm({
     }
     if (storedDraft.valuationMode) setValuationMode(storedDraft.valuationMode)
     if (storedDraft.rates) setRates(storedDraft.rates)
+    if (storedDraft.ratesInverted) setRatesInverted(storedDraft.ratesInverted)
     setShowRestoreBanner(false)
     setDraftDecided(true)
   }, [storedDraft])
@@ -322,13 +331,14 @@ export function TransactionForm({
       })),
       valuationMode,
       rates,
+      ratesInverted,
     }
     try {
       sessionStorage.setItem(`form-draft:${draftKey}`, JSON.stringify(draft))
     } catch {
       // ignore storage errors
     }
-  }, [isDraftMode, draftDecided, selectedType, number, date, description, items, valuationMode, rates, draftKey])
+  }, [isDraftMode, draftDecided, selectedType, number, date, description, items, valuationMode, rates, ratesInverted, draftKey])
 
   // ── Sync hasThirdParties from accounts list (edit mode) ──
   const accountsSyncedRef = useRef(false)
@@ -372,6 +382,17 @@ export function TransactionForm({
   const ratesEditable = !(isEditMode && initialData?.valuation)
   const showRateInputs = needsValuation && valuationMode === 'RATES' && ratesEditable
   const showExactGrid = needsValuation && valuationMode === 'EXACT_AMOUNTS'
+
+  // A rate is typed in its readable direction (see isInvertedRate): the latest rate of the table tells which one it
+  // is, and the user can switch it. Typing fixes the direction, so a table that loads late does not reinterpret it.
+  const { data: tableRates } = useExchangeRates({ base: baseCurrency })
+  const isRateInverted = (currency: string): boolean =>
+    ratesInverted[currency] ??
+    isInvertedRate(
+      tableRates?.find((r) => r.currency === currency && r.baseCurrency === baseCurrency && !r.superseded)?.rate,
+    )
+  const storedRateOf = (currency: string): number =>
+    toStoredRate(parseAmount(rates[currency] ?? ''), isRateInverted(currency))
 
   // ── Totals: per native currency, as entered. The balance in base and in the required currencies depends on the
   // valuation, so the server (or the preview) decides it.
@@ -465,7 +486,7 @@ export function TransactionForm({
     if (valuationMode === 'RATES') {
       return {
         mode: 'RATES' as const,
-        rates: involvedCurrencies.map((currency) => ({ currency, rate: parseAmount(rates[currency] ?? '') })),
+        rates: involvedCurrencies.map((currency) => ({ currency, rate: storedRateOf(currency) })),
       }
     }
     return { mode: valuationMode }
@@ -886,7 +907,7 @@ export function TransactionForm({
           {isEditMode && initialData?.valuation && initialData.valuation.mode !== 'EXACT_AMOUNTS' && (
             <Typography variant="caption" display="block" sx={{ mb: 1 }}>
               {t('valuation.storedRates')}:{' '}
-              {initialData.valuation.rates.map((r) => `${r.currency} ${r.rate}`).join(', ')}
+              {initialData.valuation.rates.map((r) => formatRate(r.rate, baseCurrency, r.currency)).join(', ')}
             </Typography>
           )}
 
@@ -896,14 +917,40 @@ export function TransactionForm({
                 <TextField
                   key={currency}
                   value={rates[currency] ?? ''}
-                  onChange={(e) => setRates((prev) => ({ ...prev, [currency]: normaliseAmountInput(e.target.value) }))}
+                  onChange={(e) => {
+                    setRates((prev) => ({ ...prev, [currency]: normaliseAmountInput(e.target.value) }))
+                    setRatesInverted((prev) => ({ ...prev, [currency]: isRateInverted(currency) }))
+                  }}
                   onKeyDown={handleAmountKeyDown}
                   label={`${t('currency.rate')} ${currency}`}
-                  helperText={t('currency.rateHelp', { base: baseCurrency, currency })}
+                  helperText={
+                    isRateInverted(currency)
+                      ? t('currency.rateHelp', { base: currency, currency: baseCurrency })
+                      : t('currency.rateHelp', { base: baseCurrency, currency })
+                  }
                   disabled={!ratesEditable}
                   size="small"
-                  sx={{ width: 170 }}
+                  sx={{ width: 200 }}
                   inputProps={{ style: { textAlign: 'right' }, inputMode: 'decimal' }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Tooltip title={t('currency.swapRateDirection')}>
+                          <IconButton
+                            size="small"
+                            edge="end"
+                            aria-label={t('currency.swapRateDirection')}
+                            onClick={() =>
+                              setRatesInverted((prev) => ({ ...prev, [currency]: !isRateInverted(currency) }))
+                            }
+                            data-testid="rate-direction-toggle"
+                          >
+                            <SwapHorizIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  }}
                   data-testid="rate-input"
                 />
               ))}
@@ -987,7 +1034,7 @@ export function TransactionForm({
             <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
               {t('valuation.ratesUsed')}:{' '}
               {preview.valuation.rates
-                .map((r) => `${r.currency} ${r.rate}${r.rateDate ? ` (${r.rateDate})` : ''}`)
+                .map((r) => `${formatRate(r.rate ?? 0, baseCurrency, r.currency ?? '')}${r.rateDate ? ` (${r.rateDate})` : ''}`)
                 .join(', ')}
             </Typography>
           )}

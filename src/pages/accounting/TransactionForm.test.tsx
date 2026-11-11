@@ -25,6 +25,9 @@ vi.mock('@/hooks/api/useThirdParties', () => ({
 vi.mock('@/hooks/api/useAccountMutations', () => ({
   useAccountMutations: vi.fn(),
 }))
+vi.mock('@/hooks/api/useExchangeRates', () => ({
+  useExchangeRates: () => ({ data: undefined }),
+}))
 vi.mock('@/hooks/api/useThirdPartyMutations', () => ({
   useThirdPartyMutations: vi.fn(),
 }))

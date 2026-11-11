@@ -598,6 +598,7 @@
     "currency": "Валюта",
     "rate": "Курс",
     "rateHelp": "{{base}} за 1 {{currency}}",
+    "swapRateDirection": "Змінити напрямок курсу",
     "baseAmount": "Базова сума",
     "baseEquivalent": "Еквівалент у {{currency}}",
     "baseNotSet": "Спершу задайте базову валюту (Налаштування > Валюти).",

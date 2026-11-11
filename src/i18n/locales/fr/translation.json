@@ -598,6 +598,7 @@
     "currency": "Devise",
     "rate": "Taux",
     "rateHelp": "{{base}} pour 1 {{currency}}",
+    "swapRateDirection": "Inverser le sens du taux",
     "baseAmount": "Montant de base",
     "baseEquivalent": "Équivalent en {{currency}}",
     "baseNotSet": "Définissez d'abord la devise de base (Configuration > Devises).",

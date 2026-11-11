@@ -226,6 +226,105 @@ describe('TransactionsPage', () => {
     expect(amounts.length).toBeGreaterThanOrEqual(2)
   })
 
+  it('shows a foreign currency item in base currency with the original amount and readable rate below', () => {
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useWorkspaceConfig>)
+    const foreignTransaction: Transaction = {
+      id: 'txn-3',
+      date: '2024-01-17',
+      transactionTypeId: 'tt-1',
+      transactionTypeName: 'Journal Entry',
+      transactionNumber: 'JE-003',
+      description: 'Payment in pesos',
+      valuation: { mode: 'CLIENT_RATES', rates: [{ currency: 'COP', rate: 0.00043698081217 }] },
+      items: [
+        {
+          accountId: 'acc-1',
+          accountCode: '519515',
+          accountName: 'Expenses',
+          debitAmount: 218.49,
+          creditAmount: 0,
+          currency: 'CAD',
+        },
+        {
+          accountId: 'acc-2',
+          accountCode: '111014',
+          accountName: 'Bank',
+          debitAmount: 0,
+          creditAmount: 500000,
+          currency: 'COP',
+          equivalents: [{ currency: 'CAD', amount: 218.49, roundingAdjustment: 0 }],
+        },
+      ],
+    }
+    mockUseTransactions.mockReturnValue({
+      data: pageOf([foreignTransaction]),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+
+    renderWithProviders(<TransactionsPage />)
+
+    expect(screen.getByText('Debit (CAD)')).toBeInTheDocument()
+    expect(screen.getByText('Credit (CAD)')).toBeInTheDocument()
+    // Transaction debit and credit totals, the debit item and the base equivalent of the credit item
+    expect(screen.getAllByText('218.49')).toHaveLength(4)
+    // The stored rate, 0.00043698081217 CAD per 1 COP, is shown as 1 / rate. The decimals of COP depend on the Intl
+    // data of the runtime.
+    expect(screen.getByTestId('item-original-amount')).toHaveTextContent(
+      /^500,000(\.00)? COP ·\s1 CAD = 2,288\.43 COP$/,
+    )
+  })
+
+  it('does not repeat the original amount note of an earlier item with the same amounts', () => {
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useWorkspaceConfig>)
+    const item = (accountCode: string, debitAmount: number, creditAmount: number, equivalent: number) => ({
+      accountId: `acc-${accountCode}`,
+      accountCode,
+      accountName: 'Account',
+      debitAmount,
+      creditAmount,
+      currency: 'COP',
+      equivalents: [{ currency: 'CAD', amount: equivalent, roundingAdjustment: 0 }],
+    })
+    mockUseTransactions.mockReturnValue({
+      data: pageOf([
+        {
+          id: 'txn-4',
+          date: '2024-01-18',
+          transactionTypeId: 'tt-1',
+          transactionTypeName: 'Journal Entry',
+          transactionNumber: 'JE-004',
+          description: 'Rent in pesos',
+          // 597,000 COP = 260.92 CAD, split in two items of 298,500 COP = 130.46 CAD
+          items: [item('111014', 597000, 0, 260.92), item('429518', 0, 298500, 130.46), item('238016', 0, 298500, 130.46)],
+        },
+      ]),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+
+    renderWithProviders(<TransactionsPage />)
+
+    const notes = screen.getAllByTestId('item-original-amount')
+    expect(notes).toHaveLength(2)
+    expect(notes[0]).toHaveTextContent(/^597,000/)
+    expect(notes[1]).toHaveTextContent(/^298,500/)
+    // Both credit items still show their base amount
+    expect(screen.getAllByText('130.46')).toHaveLength(2)
+  })
+
   it('"New Transaction" button shows inline create form', async () => {
     renderWithProviders(<TransactionsPage />)
 

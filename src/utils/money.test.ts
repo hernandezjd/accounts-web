@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { allCurrencyCodes, currencyDecimals, formatAmount, formatMoney } from './money'
+import { allCurrencyCodes, currencyDecimals, formatAmount, formatMoney, formatRate, isInvertedRate, toStoredRate } from './money'
 import { useCurrencyViewStore } from '@/store/currencyViewStore'
 
 describe('currencyDecimals', () => {
@@ -50,5 +50,27 @@ describe('formatAmount', () => {
 describe('allCurrencyCodes', () => {
   it('lists ISO 4217 codes, USD among them', () => {
     expect(allCurrencyCodes()).toContain('USD')
+  })
+})
+
+describe('rates in their readable direction', () => {
+  it('inverts a rate below 1 only', () => {
+    expect(isInvertedRate(0.00043698)).toBe(true)
+    expect(isInvertedRate(1.37)).toBe(false)
+    expect(isInvertedRate(1)).toBe(false)
+    expect(isInvertedRate(0)).toBe(false)
+    expect(isInvertedRate(undefined)).toBe(false)
+  })
+
+  it('stores a typed inverted rate as base units per one unit, with 14 decimals', () => {
+    // 2,288.43 COP per 1 CAD = 1 / 2,288.43 CAD per 1 COP
+    expect(toStoredRate(2288.43, true)).toBe(0.00043698081217)
+    expect(toStoredRate(1.37, false)).toBe(1.37)
+    expect(toStoredRate(0, true)).toBe(0)
+  })
+
+  it('formats a rate naming both currencies', () => {
+    expect(formatRate(0.00043698081217, 'CAD', 'COP', 'en')).toBe('1 CAD = 2,288.43 COP')
+    expect(formatRate(1.37, 'CAD', 'USD', 'en')).toBe('1 USD = 1.37 CAD')
   })
 })
