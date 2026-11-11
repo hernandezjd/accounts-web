@@ -7,6 +7,8 @@ import Typography from '@mui/material/Typography'
 import Alert from '@mui/material/Alert'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
 import { useTranslation } from 'react-i18next'
 import type { AccountPeriodNode, Granularity } from '@/types/accounting'
 import {
@@ -25,7 +27,8 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { PeriodControls } from './PeriodControls'
 import { AccountTree } from './AccountTree'
 import { SearchBar, type SearchBarHandle } from './SearchBar'
-import { TransactionView } from './TransactionView'
+import { TransactionList } from './TransactionList'
+import { useAccounts } from '@/hooks/api/useAccounts'
 import { CurrencyViewSelect } from '@/components/CurrencyViewSelect'
 import { ExtraCurrenciesSelect } from '@/components/ExtraCurrenciesSelect'
 import { useExtraCurrencySummaries } from '@/hooks/api/useExtraCurrencySummaries'
@@ -39,14 +42,7 @@ function parseLevel(raw: string | null): number | null {
   return isNaN(n) ? null : n
 }
 
-interface ViewStateSnapshot {
-  from: string
-  to: string
-  granularity: Granularity
-  levelFilter: number | null
-  expandedNodes: Set<string>
-  scrollPosition: number
-}
+type ViewMode = 'tree' | 'transactions'
 
 /** Walk the account tree to find a node by accountId. */
 function findAccount(
@@ -106,13 +102,12 @@ export function AccountingPage() {
   const to = searchParams.get('to') ?? storedPeriodTo ?? defaultPeriod.to
   const levelFilter = parseLevel(searchParams.get('level'))
 
-  // ── View mode (URL) ───────────────────────────────────────────────────────
-  const viewMode = searchParams.get('view') === 'transactions' ? 'transactions' : 'tree'
+  // ── Tab (URL) ─────────────────────────────────────────────────────────────
+  // Two tabs share the period and the currencies: the account tree and the transactions.
+  // The transactions tab shows one account's statement when an account is chosen, else all transactions.
+  const viewMode: ViewMode = searchParams.get('view') === 'transactions' ? 'transactions' : 'tree'
   const selectedAccountId = searchParams.get('accountId') ?? null
   const selectedThirdPartyId = searchParams.get('thirdPartyId') ?? null
-
-  // ── View state stack (React state, independent from browser history) ───────
-  const [, setViewStateStack] = useState<ViewStateSnapshot[]>([])
 
   // ── Highlight state for search account selection ───────────────────────────
   const [highlightedAccountId, setHighlightedAccountId] = useState<string | null>(null)
@@ -137,8 +132,8 @@ export function AccountingPage() {
     })
   }
 
-  // Ref to trigger scroll restoration after tree re-renders
-  const pendingScrollRef = useRef<number | null>(null)
+  // Scroll position of the tree when the user left it, restored when they come back
+  const treeScrollRef = useRef<number | null>(null)
 
   // ── Ensure URL has the period if not set (use stored values if available) ────
   useEffect(() => {
@@ -258,17 +253,36 @@ export function AccountingPage() {
     })
   }, [expandedNodes, workspaceId])
 
-  // Scroll restoration after returning to tree view
+  // Coming back to the tree: same scroll position as when the user left, and the account
+  // they were looking at is opened and highlighted for a moment.
+  const previousViewRef = useRef<ViewMode>(viewMode)
+  const treeNodesRef = useRef<AccountPeriodNode[]>([])
   useEffect(() => {
-    if (viewMode === 'tree' && pendingScrollRef.current !== null) {
-      const pos = pendingScrollRef.current
-      pendingScrollRef.current = null
-      // Small delay to let the tree render before scrolling
+    treeNodesRef.current = data?.accounts ?? []
+  }, [data])
+  useEffect(() => {
+    const cameBack = previousViewRef.current === 'transactions' && viewMode === 'tree'
+    previousViewRef.current = viewMode
+    if (!cameBack) return
+    const scrollPosition = treeScrollRef.current
+    treeScrollRef.current = null
+    const accountId = selectedAccountId
+    // Wait a frame so the tree is rendered before scrolling
+    requestAnimationFrame(() => {
+      if (scrollPosition !== null) window.scrollTo(0, scrollPosition)
+      if (!accountId) return
+      const ancestors = new Set<string>()
+      collectAncestorIds(treeNodesRef.current, accountId, ancestors)
+      setExpandedNodes((prev) => new Set([...prev, ...ancestors]))
+      setHighlightedAccountId(accountId)
       requestAnimationFrame(() => {
-        window.scrollTo(0, pos)
+        document
+          .querySelector(`[data-account-id="${accountId}"]`)
+          ?.scrollIntoView?.({ block: 'nearest' })
       })
-    }
-  }, [viewMode])
+      setTimeout(() => setHighlightedAccountId(null), 2000)
+    })
+  }, [viewMode, selectedAccountId])
 
   // ── URL update helpers ────────────────────────────────────────────────────
   function setPeriod(nextFrom: string, nextTo: string, nextGranularity: Granularity) {
@@ -360,24 +374,20 @@ export function AccountingPage() {
     setExpandedNodes(new Set())
   }, [])
 
-  // ── Drill-down and back ───────────────────────────────────────────────────
-  const handleDrillDown = useCallback(
-    (accountId: string, thirdPartyId?: string) => {
-      // Capture current state before navigating
-      const snapshot: ViewStateSnapshot = {
-        from,
-        to,
-        granularity,
-        levelFilter,
-        expandedNodes: new Set(expandedNodes),
-        scrollPosition: window.scrollY,
-      }
-      setViewStateStack((prev) => [...prev, snapshot])
+  // ── Moving between the two tabs ───────────────────────────────────────────
+  /** Open the transactions tab, on one account's statement or (accountId null) on all transactions. */
+  const showTransactions = useCallback(
+    (accountId: string | null, thirdPartyId?: string) => {
+      if (viewMode === 'tree') treeScrollRef.current = window.scrollY
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev)
         next.set('view', 'transactions')
-        next.set('accountId', accountId)
-        if (thirdPartyId) {
+        if (accountId) {
+          next.set('accountId', accountId)
+        } else {
+          next.delete('accountId')
+        }
+        if (accountId && thirdPartyId) {
           next.set('thirdPartyId', thirdPartyId)
         } else {
           next.delete('thirdPartyId')
@@ -385,35 +395,32 @@ export function AccountingPage() {
         return next
       })
     },
-    [from, to, granularity, levelFilter, expandedNodes, setSearchParams],
+    [viewMode, setSearchParams],
   )
 
+  const handleDrillDown = useCallback(
+    (accountId: string, thirdPartyId?: string) => showTransactions(accountId, thirdPartyId),
+    [showTransactions],
+  )
+
+  /** Back to the account tree. The chosen account stays in the URL, so the tree can highlight it. */
   const handleBack = useCallback(() => {
-    setViewStateStack((prev) => {
-      if (prev.length === 0) return prev
-      const snapshot = prev[prev.length - 1]
-      const rest = prev.slice(0, -1)
-
-      // Restore expand state
-      setExpandedNodes(new Set(snapshot.expandedNodes))
-      pendingScrollRef.current = snapshot.scrollPosition
-
-      // Restore URL
-      setSearchParams(() => {
-        const next = new URLSearchParams()
-        next.set('from', snapshot.from)
-        next.set('to', snapshot.to)
-        next.set('granularity', snapshot.granularity)
-        if (snapshot.levelFilter !== null) {
-          next.set('level', String(snapshot.levelFilter))
-        }
-        // Remove view, accountId, thirdPartyId
-        return next
-      })
-
-      return rest
+    setSearchParams((prev) => {
+      if (prev.get('view') !== 'transactions') return prev
+      const next = new URLSearchParams(prev)
+      next.delete('view')
+      return next
     })
   }, [setSearchParams])
+
+  const handleTabChange = (tab: ViewMode) => {
+    if (tab === viewMode) return
+    if (tab === 'tree') {
+      handleBack()
+    } else {
+      showTransactions(selectedAccountId, selectedThirdPartyId ?? undefined)
+    }
+  }
 
   // ── Search handlers ───────────────────────────────────────────────────────
   const handleAccountSelect = useCallback(
@@ -438,6 +445,7 @@ export function AccountingPage() {
       const txFrom = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, '0')}-01`
       const txTo = new Date(txDate.getFullYear(), txDate.getMonth() + 1, 0).toISOString().slice(0, 10)
       void transactionId
+      treeScrollRef.current = window.scrollY
       setSearchParams(() => {
         const p = new URLSearchParams()
         p.set('view', 'transactions')
@@ -491,6 +499,12 @@ export function AccountingPage() {
   const selectedTP = selectedAccount?.thirdPartyChildren.find(
     (tp) => tp.thirdPartyId === selectedThirdPartyId,
   )
+  // An account without movements in the period is not in the tree: take its name from the account list
+  const needsAccountLookup = viewMode === 'transactions' && !!selectedAccountId && !!data && !selectedAccount
+  const { data: allAccounts } = useAccounts(needsAccountLookup ? workspaceId : null)
+  const listedAccount = needsAccountLookup ? allAccounts?.find((a) => a.id === selectedAccountId) : undefined
+  const selectedAccountCode = selectedAccount?.accountCode ?? listedAccount?.code ?? ''
+  const selectedAccountName = selectedAccount?.accountName ?? listedAccount?.name ?? (selectedAccountCode ? '' : '…')
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -499,40 +513,53 @@ export function AccountingPage() {
         {t('accounting.title')}
       </Typography>
 
-      {viewMode === 'transactions' && selectedAccountId ? (
-        <TransactionView
-          workspaceId={workspaceId ?? ''}
-          accountId={selectedAccountId}
-          accountName={selectedAccount?.accountName ?? selectedAccountId}
-          accountCode={selectedAccount?.accountCode ?? ''}
-          thirdPartyId={selectedThirdPartyId ?? undefined}
-          thirdPartyName={selectedTP?.thirdPartyName}
+      {/* Shared header: the period and the currencies apply to both tabs */}
+      <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 1 }}>
+        <PeriodControls
           from={from}
           to={to}
           granularity={granularity}
-          onBack={handleBack}
           onPrevPeriod={handlePrevPeriod}
           onNextPeriod={handleNextPeriod}
           onGranularityChange={handleGranularityChange}
+          onFromChange={handleFromChange}
+          onToChange={handleToChange}
+          onPeriodChange={handlePeriodChange}
+          systemInitialDate={systemInitialDate}
+        />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
+          <CurrencyViewSelect workspaceId={workspaceId} />
+          <ExtraCurrenciesSelect workspaceId={workspaceId} />
+        </Box>
+      </Box>
+
+      <Tabs
+        value={viewMode}
+        onChange={(_, tab: ViewMode) => handleTabChange(tab)}
+        sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
+      >
+        <Tab value="tree" label={t('accounting.tabs.accounts')} data-testid="tab-accounts" />
+        <Tab value="transactions" label={t('accounting.tabs.transactions')} data-testid="tab-transactions" />
+      </Tabs>
+
+      {viewMode === 'transactions' ? (
+        <TransactionList
+          workspaceId={workspaceId ?? ''}
+          // The statement of an account takes the period as chosen; the full list never starts before the initial date
+          from={selectedAccountId ? from : effectiveFrom}
+          to={to}
+          accountId={selectedAccountId ?? undefined}
+          accountName={selectedAccountName}
+          accountCode={selectedAccountCode}
+          thirdPartyId={selectedThirdPartyId ?? undefined}
+          thirdPartyName={selectedTP?.thirdPartyName}
+          onClearAccount={() => showTransactions(null)}
+          onAccountSelect={(accountId) => showTransactions(accountId)}
         />
       ) : (
         <>
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-            <PeriodControls
-              from={from}
-              to={to}
-              granularity={granularity}
-              onPrevPeriod={handlePrevPeriod}
-              onNextPeriod={handleNextPeriod}
-              onGranularityChange={handleGranularityChange}
-              onFromChange={handleFromChange}
-              onToChange={handleToChange}
-              onPeriodChange={handlePeriodChange}
-              systemInitialDate={systemInitialDate}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 'auto' }}>
-            <CurrencyViewSelect workspaceId={workspaceId} />
-            <ExtraCurrenciesSelect workspaceId={workspaceId} />
+          {/* Options that only make sense for the account tree */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <FormControlLabel
               sx={{ mx: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem', color: 'text.secondary' } }}
@@ -570,7 +597,6 @@ export function AccountingPage() {
               }
               label={t('accounting.simulateClosureToggle')}
             />
-            </Box>
             </Box>
           </Box>
 

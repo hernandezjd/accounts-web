@@ -97,6 +97,9 @@ export function KeyboardShortcutsProvider({ children }: KeyboardShortcutsProvide
       ) {
         return
       }
+      // Page shortcuts do not apply while a dialog is open: the keys belong to the dialog
+      // (for example Escape closes it instead of also navigating back).
+      if (document.querySelector('[role="dialog"]')) return
 
       const key = event.key
       const normalized = normalizeKey(key)

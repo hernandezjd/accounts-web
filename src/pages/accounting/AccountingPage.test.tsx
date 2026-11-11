@@ -10,6 +10,17 @@ import type { AccountTransactionDetail, PeriodAccountSummary } from '@/types/acc
 
 // ─── Mock the API hooks ────────────────────────────────────────────────────────
 
+// The transaction list has its own tests; here it only needs data for the mode without an account
+vi.mock('@/hooks/api/useTransactions', () => ({
+  useTransactions: vi.fn(),
+}))
+vi.mock('@/hooks/api/useTransactionTypes', () => ({
+  useTransactionTypes: vi.fn(() => ({ data: [] })),
+}))
+vi.mock('@/hooks/api/useAccounts', () => ({
+  useAccounts: vi.fn(() => ({ data: [] })),
+}))
+
 vi.mock('@/hooks/api/usePeriodAccountSummary', () => ({
   usePeriodAccountSummary: vi.fn(),
 }))
@@ -102,6 +113,39 @@ const sampleTransactions: AccountTransactionDetail = {
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
+
+import { useTransactions } from '@/hooks/api/useTransactions'
+const mockUseTransactions = vi.mocked(useTransactions)
+
+/** One transaction on Cash (acc-1), as the full list returns it. */
+const journalPage = {
+  content: [
+    {
+      id: 'jrn-1',
+      date: '2026-01-10',
+      transactionTypeId: 'tt-1',
+      transactionTypeName: 'Journal Entry',
+      transactionNumber: 'JE-001',
+      description: 'Cash sale',
+      items: [
+        { accountId: 'acc-1', accountCode: '1000', accountName: 'Cash', debitAmount: 100, creditAmount: 0 },
+      ],
+    },
+  ],
+  page: 0,
+  size: 50,
+  totalElements: 1,
+  totalPages: 1,
+}
+
+beforeEach(() => {
+  mockUseTransactions.mockReturnValue({
+    data: journalPage,
+    isLoading: false,
+    isError: false,
+    error: null,
+  } as ReturnType<typeof useTransactions>)
+})
 
 describe('AccountingPage', () => {
   beforeEach(() => {
@@ -288,10 +332,10 @@ describe('AccountingPage', () => {
     fireEvent.dblClick(cashRow)
 
     await waitFor(() => {
-      // Transaction view shows the account name in the header (looking for h2 heading)
-      expect(screen.getByRole('heading', { name: /1000 Cash/ })).toBeInTheDocument()
+      // Transaction view shows the account in a removable chip
+      expect(screen.getByTestId('account-chip')).toHaveTextContent(/1000 Cash/)
       // Back button appears
-      expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
+      expect(screen.getByTestId('account-chip')).toBeInTheDocument()
     })
   })
 
@@ -375,7 +419,7 @@ describe('AccountingPage', () => {
     fireEvent.dblClick(screen.getByRole('row', { name: /1000 Assets/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /1000 Assets/ })).toBeInTheDocument()
+      expect(screen.getByTestId('account-chip')).toHaveTextContent(/1000 Assets/)
       // The transaction summary row must show the child's debit as the parent's debit
       const summaryRow = screen.getByText('INV-002').closest('tr') as HTMLElement
       expect(within(summaryRow).getByText('120.00')).toBeInTheDocument()
@@ -407,7 +451,7 @@ describe('AccountingPage', () => {
 
     await waitFor(() => {
       // Verify transaction view header shows the account
-      expect(screen.getByRole('heading', { name: /1000 Cash/ })).toBeInTheDocument()
+      expect(screen.getByTestId('account-chip')).toHaveTextContent(/1000 Cash/)
     })
   })
 
@@ -436,16 +480,16 @@ describe('AccountingPage', () => {
     fireEvent.dblClick(screen.getByRole('row', { name: /1000 Cash/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
+      expect(screen.getByTestId('account-chip')).toBeInTheDocument()
     })
 
     // Press Back
-    fireEvent.click(screen.getByRole('button', { name: /back/i }))
+    fireEvent.click(screen.getByTestId('tab-accounts'))
 
     await waitFor(() => {
       // Should be back in tree view: tree headers visible, no back button
       expect(screen.getByText('Code')).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument()
+      expect(screen.queryByTestId('account-chip')).not.toBeInTheDocument()
     })
   })
 
@@ -474,7 +518,7 @@ describe('AccountingPage', () => {
     fireEvent.dblClick(screen.getByRole('row', { name: /1000 Cash/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
+      expect(screen.getByTestId('account-chip')).toBeInTheDocument()
     })
 
     fireEvent.keyDown(window, { key: 'Escape' })
@@ -654,7 +698,7 @@ describe('AccountingPage', () => {
 
     await waitFor(() => {
       // Should now be in transaction view (Back button visible)
-      expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
+      expect(screen.getByTestId('account-chip')).toBeInTheDocument()
     })
   })
 
@@ -690,7 +734,7 @@ describe('AccountingPage', () => {
     await waitFor(() => {
       // Transaction view shows TP name in header
       expect(screen.getByText(/ACME Corp/)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
+      expect(screen.getByTestId('account-chip')).toBeInTheDocument()
     })
   })
 
@@ -896,8 +940,8 @@ describe('AccountingPage: expanded-level state is preserved', () => {
     expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
 
     fireEvent.dblClick(screen.getByRole('row', { name: /1100 Cash/i }))
-    await waitFor(() => expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument())
-    fireEvent.click(screen.getByRole('button', { name: /back/i }))
+    await waitFor(() => expect(screen.getByTestId('account-chip')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('tab-accounts'))
 
     await waitFor(() => expect(screen.getByRole('row', { name: /1000 Assets/i })).toBeInTheDocument())
     expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument()
@@ -956,5 +1000,106 @@ describe('AccountingPage: expanded-level state is preserved', () => {
     await waitFor(() => expect(screen.getByRole('row', { name: /1100 Cash/i })).toBeInTheDocument())
     await userEvent.keyboard('-') // level 2 -> 1 collapses again
     await waitFor(() => expect(screen.queryByRole('row', { name: /1100 Cash/i })).not.toBeInTheDocument())
+  })
+})
+
+describe('AccountingPage: accounts and transactions tabs', () => {
+  const treeUrl = '/workspaces/workspace-1/accounting?from=2026-01-01&to=2026-01-31&granularity=monthly'
+
+  beforeEach(() => {
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as unknown as ReturnType<typeof useWorkspaceConfig>)
+    mockUseSummary.mockReturnValue({
+      data: sampleSummary,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePeriodAccountSummary>)
+    mockUseTxns.mockReturnValue({
+      data: sampleTransactions,
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useAccountTransactionsInPeriod>)
+  })
+
+  it('opens on the accounts tab, with the tree-only options', async () => {
+    renderWithProviders(<AccountingPage />, { routerProps: { initialEntries: [treeUrl] } })
+
+    await waitFor(() => expect(screen.getByText('Cash')).toBeInTheDocument())
+    expect(screen.getByTestId('tab-accounts')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByTestId('show-zero-accounts-toggle')).toBeInTheDocument()
+    expect(screen.getByTestId('simulate-closure-toggle')).toBeInTheDocument()
+  })
+
+  it('the transactions tab without an account shows all transactions of the shared period', async () => {
+    renderWithProviders(<AccountingPage />, { routerProps: { initialEntries: [treeUrl] } })
+    await waitFor(() => expect(screen.getByText('Cash')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByTestId('tab-transactions'))
+
+    await waitFor(() => expect(screen.getByTestId('journal-account-picker')).toBeInTheDocument())
+    expect(mockUseTransactions).toHaveBeenLastCalledWith(
+      null, // no workspace in the test route
+      { dateFrom: '2026-01-01', dateTo: '2026-01-31' },
+      { page: 0, size: 50 },
+    )
+    expect(screen.queryByTestId('account-chip')).not.toBeInTheDocument()
+    // Tree-only options are gone; the shared period controls stay
+    expect(screen.queryByTestId('show-zero-accounts-toggle')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('simulate-closure-toggle')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /next period/i })).toBeInTheDocument()
+  })
+
+  it('changing the period in the transactions tab changes it for the list', async () => {
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: [`${treeUrl}&view=transactions`] },
+    })
+    await waitFor(() => expect(screen.getByTestId('journal-account-picker')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByRole('button', { name: /next period/i }))
+
+    await waitFor(() =>
+      expect(mockUseTransactions).toHaveBeenLastCalledWith(
+        null, // no workspace in the test route
+        { dateFrom: '2026-02-01', dateTo: '2026-02-28' },
+        { page: 0, size: 50 },
+      ),
+    )
+  })
+
+  it('picking an account in the list shows its statement, and removing the chip shows the list again', async () => {
+    renderWithProviders(<AccountingPage />, {
+      routerProps: { initialEntries: [`${treeUrl}&view=transactions`] },
+    })
+    await waitFor(() => expect(screen.getByTestId('journal-account-picker')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByTestId('item-account-jrn-1-0'))
+
+    await waitFor(() => expect(screen.getByTestId('account-chip')).toHaveTextContent(/1000 Cash/))
+    expect(screen.queryByTestId('journal-account-picker')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('account-chip').querySelector('.MuiChip-deleteIcon') as Element)
+
+    await waitFor(() => expect(screen.getByTestId('journal-account-picker')).toBeInTheDocument())
+    expect(screen.queryByTestId('account-chip')).not.toBeInTheDocument()
+  })
+
+  it('going to accounts and back to transactions keeps the chosen account', async () => {
+    renderWithProviders(<AccountingPage />, { routerProps: { initialEntries: [treeUrl] } })
+    await waitFor(() => expect(screen.getByText('Cash')).toBeInTheDocument())
+
+    fireEvent.dblClick(screen.getByRole('row', { name: /1000 Cash/i }))
+    await waitFor(() => expect(screen.getByTestId('account-chip')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByTestId('tab-accounts'))
+    await waitFor(() => expect(screen.getByText('Code')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByTestId('tab-transactions'))
+    await waitFor(() => expect(screen.getByTestId('account-chip')).toHaveTextContent(/1000 Cash/))
   })
 })

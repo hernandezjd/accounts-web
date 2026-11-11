@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Collapse from '@mui/material/Collapse'
 import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import Table from '@mui/material/Table'
@@ -21,7 +20,9 @@ import { useWorkspaceConfig } from '@/hooks/api/useWorkspaceConfig'
 import { useWorkspaceAccess } from '@/hooks/useWorkspaceAccess'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import { InitialDateConfigurationAlert } from '@/components/ui/InitialDateConfigurationAlert'
-import { TransactionForm, type TransactionFormInitialData, type FormMode } from '@/pages/accounting/TransactionForm'
+import type { TransactionFormInitialData, FormMode } from '@/pages/accounting/TransactionForm'
+import { TransactionFormDialog } from '@/pages/accounting/TransactionFormDialog'
+import { useRowFlash } from '@/hooks/useRowFlash'
 
 interface FormConfig {
   mode: FormMode
@@ -36,6 +37,8 @@ export function InitialBalancesPage() {
   const { data: workspaceConfig } = useWorkspaceConfig(workspaceId)
   const { hasWorkspaceAccess } = useWorkspaceAccess()
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null)
+  // The saved row is highlighted for a moment, so the user sees where the change landed
+  const [flashedId, flashRow] = useRowFlash()
 
   // Format error for display with classification
   const formattedError = apiError ?? null
@@ -73,20 +76,20 @@ export function InitialBalancesPage() {
         />
       )}
 
-      <Collapse in={Boolean(formConfig)} unmountOnExit>
-        {formConfig && (
-          <Box sx={{ mb: 3 }}>
-            <TransactionForm
-              workspaceId={workspaceId}
-              mode={formConfig.mode}
-              transactionId={formConfig.transactionId}
-              initialData={formConfig.initialData}
-              onSuccess={() => setFormConfig(null)}
-              onCancel={() => setFormConfig(null)}
-            />
-          </Box>
-        )}
-      </Collapse>
+      {/* Create/edit form, in a dialog over the list */}
+      {formConfig && (
+        <TransactionFormDialog
+          workspaceId={workspaceId}
+          mode={formConfig.mode}
+          transactionId={formConfig.transactionId}
+          initialData={formConfig.initialData}
+          onSuccess={() => {
+            if (formConfig.transactionId) flashRow(formConfig.transactionId)
+            setFormConfig(null)
+          }}
+          onClose={() => setFormConfig(null)}
+        />
+      )}
 
       {isLoading && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 4 }}>
@@ -114,7 +117,14 @@ export function InitialBalancesPage() {
               </TableHead>
               <TableBody>
                 {data.map((ib) => (
-                  <TableRow key={ib.id} hover>
+                  <TableRow
+                    key={ib.id}
+                    hover
+                    sx={{
+                      transition: 'background-color 0.4s',
+                      bgcolor: flashedId === ib.id ? 'primary.light' : undefined,
+                    }}
+                  >
                     <TableCell sx={{ py: 0.75, fontFamily: 'monospace' }}>{ib.transactionNumber}</TableCell>
                     <TableCell sx={{ py: 0.75 }}>{ib.description ?? ''}</TableCell>
                     <TableCell sx={{ py: 0.75 }}>{ib.initialDate}</TableCell>

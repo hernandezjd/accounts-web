@@ -19,7 +19,6 @@
     "accounts": "Comptes",
     "thirdParties": "Tiers",
     "initialBalances": "Soldes initiaux",
-    "transactions": "Transactions",
     "transactionTypes": "Types de transactions",
     "reports": "Rapports",
     "closing": "Clôture",
@@ -70,6 +69,10 @@
     "loadFailed": "Échec du chargement des données."
   },
   "accounting": {
+    "tabs": {
+      "accounts": "Comptes",
+      "transactions": "Transactions"
+    },
     "title": "Comptabilité",
     "loading": "Chargement des données de compte...",
     "error": "Échec du chargement des données de compte.",
@@ -246,23 +249,8 @@
     "noTransactionTypes": "Aucun type de transaction trouvé."
   },
   "transactionsPage": {
-    "title": "Transactions",
-    "newTransaction": "Nouvelle transaction",
-    "dateFrom": "Date à partir de",
-    "dateTo": "Date jusqu'à",
     "transactionType": "Type de transaction",
     "account": "Compte",
-    "applyFilters": "Appliquer",
-    "clearFilters": "Effacer",
-    "date": "Date",
-    "type": "Type",
-    "number": "Numéro",
-    "description": "Description",
-    "items": "Éléments",
-    "actions": "Actions",
-    "loading": "Chargement des transactions...",
-    "error": "Échec du chargement des transactions.",
-    "noTransactions": "Aucune transaction trouvée.",
     "rowsPerPage": "Lignes par page",
     "initialDateNotConfiguredWarning": "La date initiale du système doit être configurée dans les paramètres avant que les transactions puissent être entrées."
   },
@@ -482,6 +470,9 @@
     "draftBannerMessage": "Vous avez un brouillon non enregistré. Voulez-vous le restaurer?",
     "draftRestore": "Restaurer",
     "draftDiscard": "Abandonner",
+    "discardChangesTitle": "Abandonner les modifications ?",
+    "discardChangesMessage": "Les modifications apportées à cette transaction seront perdues.",
+    "keepEditing": "Continuer la modification",
     "initialDateNotConfiguredWarning": "La date initiale du système doit être configurée dans les paramètres avant que les transactions puissent être entrées.",
     "dateBeforeInitialDate": "La date doit être égale ou postérieure à la date initiale du système ({{ date }})."
   },
@@ -521,7 +512,7 @@
     "title": "Aide",
     "gettingStarted": {
       "title": "Mise en route",
-      "description": "Voici comment mettre en place votre système comptable:\n\n1. Créer un client\nCommencez par créer votre premier client. Cela isole vos données comptables. Cliquez sur \"Créez votre premier client\" sur l'écran principal et remplissez les détails de votre organisation.\n\n2. Définir la date initiale du système\nUne fois dans votre client, allez à Paramétrage → Configuration comptable et définissez votre date initiale du système. Cela marque le début de votre période comptable.\n\n3. Créer votre plan comptable\nAllez à Comptes et créez votre structure de comptes. Commencez par les catégories principales (Actif, Passif, Capitaux propres, Revenus, Dépenses) et ajoutez des sous-comptes au besoin. N'oubliez pas d'utiliser des codes de compte uniques.\n\n4. Créer des types de transactions\nAllez à Types de transactions et créez les types de transactions que votre entreprise utilise (par exemple, Facture, Paiement, Transfert, Écriture de journal).\n\n5. Entrer les soldes initiaux (optionnel)\nSi vous commencez avec des soldes de compte existants, allez à Soldes initiaux et enregistrez le solde d'ouverture pour chaque compte.\n\n6. Enregistrer les transactions\nAllez à Transactions et commencez à enregistrer vos transactions commerciales. Chaque transaction doit être équilibrée (total débits = total crédits).\n\n7. Consulter les soldes et les rapports\nAllez à la page Comptabilité pour voir votre arborescence de comptes avec les soldes actuels. Utilisez la section Rapports pour afficher les rapports de période, les soldes à une date et les soldes par niveau.\n\nVoilà! Vous êtes maintenant prêt à gérer vos enregistrements comptables."
+      "description": "Voici comment mettre en place votre système comptable:\n\n1. Créer un client\nCommencez par créer votre premier client. Cela isole vos données comptables. Cliquez sur \"Créez votre premier client\" sur l'écran principal et remplissez les détails de votre organisation.\n\n2. Définir la date initiale du système\nUne fois dans votre client, allez à Paramétrage → Configuration comptable et définissez votre date initiale du système. Cela marque le début de votre période comptable.\n\n3. Créer votre plan comptable\nAllez à Comptes et créez votre structure de comptes. Commencez par les catégories principales (Actif, Passif, Capitaux propres, Revenus, Dépenses) et ajoutez des sous-comptes au besoin. N'oubliez pas d'utiliser des codes de compte uniques.\n\n4. Créer des types de transactions\nAllez à Types de transactions et créez les types de transactions que votre entreprise utilise (par exemple, Facture, Paiement, Transfert, Écriture de journal).\n\n5. Entrer les soldes initiaux (optionnel)\nSi vous commencez avec des soldes de compte existants, allez à Soldes initiaux et enregistrez le solde d'ouverture pour chaque compte.\n\n6. Enregistrer les transactions\nAllez à Comptabilité, onglet Transactions, et commencez à enregistrer vos transactions commerciales. Chaque transaction doit être équilibrée (total débits = total crédits).\n\n7. Consulter les soldes et les rapports\nAllez à la page Comptabilité pour voir votre arborescence de comptes avec les soldes actuels. Utilisez la section Rapports pour afficher les rapports de période, les soldes à une date et les soldes par niveau.\n\nVoilà! Vous êtes maintenant prêt à gérer vos enregistrements comptables."
     },
     "workspaces": {
       "title": "Clients",

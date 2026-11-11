@@ -75,6 +75,8 @@ export interface TransactionWithRunningBalance {
   debitAmount: number
   creditAmount: number
   runningBalance: number
+  /** The valuation the transaction stored: the exact rate used for each non-base currency. */
+  valuation?: { rates: { currency: string; rate: number }[] } | null
 }
 
 export interface AccountTransactionDetail {

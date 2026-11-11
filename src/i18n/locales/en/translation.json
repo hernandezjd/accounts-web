@@ -19,7 +19,6 @@
     "accounts": "Accounts",
     "thirdParties": "Third Parties",
     "initialBalances": "Initial Balances",
-    "transactions": "Transactions",
     "transactionTypes": "Transaction Types",
     "reports": "Reports",
     "closing": "Closing",
@@ -70,6 +69,10 @@
     "loadFailed": "Failed to load data."
   },
   "accounting": {
+    "tabs": {
+      "accounts": "Accounts",
+      "transactions": "Transactions"
+    },
     "title": "Accounting",
     "loading": "Loading account data...",
     "error": "Failed to load account data.",
@@ -246,23 +249,8 @@
     "noTransactionTypes": "No transaction types found."
   },
   "transactionsPage": {
-    "title": "Transactions",
-    "newTransaction": "New Transaction",
-    "dateFrom": "Date From",
-    "dateTo": "Date To",
     "transactionType": "Transaction Type",
     "account": "Account",
-    "applyFilters": "Apply",
-    "clearFilters": "Clear",
-    "date": "Date",
-    "type": "Type",
-    "number": "Number",
-    "description": "Description",
-    "items": "Items",
-    "actions": "Actions",
-    "loading": "Loading transactions...",
-    "error": "Failed to load transactions.",
-    "noTransactions": "No transactions found.",
     "rowsPerPage": "Rows per page",
     "initialDateNotConfiguredWarning": "The system initial date must be configured in Setup before transactions can be entered."
   },
@@ -481,6 +469,9 @@
     "draftBannerMessage": "You have an unsaved draft. Would you like to restore it?",
     "draftRestore": "Restore",
     "draftDiscard": "Discard",
+    "discardChangesTitle": "Discard changes?",
+    "discardChangesMessage": "The changes you made to this transaction will be lost.",
+    "keepEditing": "Keep editing",
     "initialDateNotConfiguredWarning": "The system initial date must be configured in Setup before transactions can be entered.",
     "dateBeforeInitialDate": "Date must be on or after the system initial date ({{ date }})."
   },
@@ -520,7 +511,7 @@
     "title": "Help",
     "gettingStarted": {
       "title": "Getting Started",
-      "description": "Here's how to get your accounting system up and running:\n\n1. Create a Workspace\nStart by creating your first workspace. This isolates your accounting data. Click \"Create Your First Workspace\" on the main screen and fill in your organization details.\n\n2. Set the System Initial Date\nOnce in your workspace, go to Setup → Accounting Configuration and set your system initial date. This marks the beginning of your accounting period.\n\n3. Create Your Chart of Accounts\nGo to Accounts and create your account structure. Start with main categories (Assets, Liabilities, Equity, Income, Expenses) and add sub-accounts as needed. Remember to use unique account codes.\n\n4. Create Transaction Types\nGo to Transaction Types and create the types of transactions your business uses (e.g., Invoice, Payment, Transfer, Journal Entry).\n\n5. Enter Initial Balances (Optional)\nIf you're starting with existing account balances, go to Initial Balances and record the opening balance for each account.\n\n6. Record Transactions\nGo to Transactions and start recording your business transactions. Each transaction must balance (total debits = total credits).\n\n7. Review Balances and Reports\nGo to the Accounting page to see your account tree with current balances. Use the Reports section to view period reports, balance-at-date, and balance-by-level.\n\nThat's it! You're now ready to manage your accounting records."
+      "description": "Here's how to get your accounting system up and running:\n\n1. Create a Workspace\nStart by creating your first workspace. This isolates your accounting data. Click \"Create Your First Workspace\" on the main screen and fill in your organization details.\n\n2. Set the System Initial Date\nOnce in your workspace, go to Setup → Accounting Configuration and set your system initial date. This marks the beginning of your accounting period.\n\n3. Create Your Chart of Accounts\nGo to Accounts and create your account structure. Start with main categories (Assets, Liabilities, Equity, Income, Expenses) and add sub-accounts as needed. Remember to use unique account codes.\n\n4. Create Transaction Types\nGo to Transaction Types and create the types of transactions your business uses (e.g., Invoice, Payment, Transfer, Journal Entry).\n\n5. Enter Initial Balances (Optional)\nIf you're starting with existing account balances, go to Initial Balances and record the opening balance for each account.\n\n6. Record Transactions\nGo to Accounting, Transactions tab, and start recording your business transactions. Each transaction must balance (total debits = total credits).\n\n7. Review Balances and Reports\nGo to the Accounting page to see your account tree with current balances. Use the Reports section to view period reports, balance-at-date, and balance-by-level.\n\nThat's it! You're now ready to manage your accounting records."
     },
     "workspaces": {
       "title": "Workspaces",

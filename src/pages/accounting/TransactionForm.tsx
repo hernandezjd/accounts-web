@@ -35,6 +35,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useFormDraft } from '@/hooks/useFormDraft'
+import { transactionDraftKey } from './transactionDraft'
 import { useErrorHandler } from '@accounts/error-handling-web'
 import { ErrorMessage } from '@/components/error/ErrorMessage'
 import type { components as TxnCmd } from '@/api/generated/transaction-command-api'
@@ -93,6 +94,10 @@ interface TransactionFormProps {
   initialData?: TransactionFormInitialData
   onSuccess: () => void
   onCancel: () => void
+  /** Called when the form starts or stops differing from what it opened with. */
+  onDirtyChange?: (dirty: boolean) => void
+  /** Render without the own border and padding (the form sits inside a dialog). */
+  frameless?: boolean
 }
 
 // ─── Draft type ───────────────────────────────────────────────────────────────
@@ -181,6 +186,8 @@ export function TransactionForm({
   initialData,
   onSuccess,
   onCancel,
+  onDirtyChange,
+  frameless = false,
 }: TransactionFormProps) {
   const { t } = useTranslation()
   const { data: workspaceConfig } = useWorkspaceConfig(workspaceId)
@@ -263,12 +270,34 @@ export function TransactionForm({
   )
   const [preview, setPreview] = useState<ValuationPreview | null>(null)
 
+  // ── Dirty tracking: the form is dirty when what the user can edit differs from what it opened with ──
+  const editableSnapshot = JSON.stringify({
+    type: selectedType?.id ?? '',
+    number,
+    date,
+    description,
+    items: items.map((item) => [
+      item.account?.id ?? '',
+      item.thirdParty?.id ?? '',
+      item.debitAmount,
+      item.creditAmount,
+      item.equivalents,
+    ]),
+    valuationMode,
+    rates,
+  })
+  const [openedSnapshot] = useState(editableSnapshot)
+  const isDirty = editableSnapshot !== openedSnapshot
+  useEffect(() => {
+    onDirtyChange?.(isDirty)
+  }, [isDirty, onDirtyChange])
+
   const { error, handleError, clearError } = useErrorHandler()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   // ── Draft persistence (create mode only) ────────────────────────────────────
   const isDraftMode = mode === 'create' && !initialData
-  const draftKey = `txn-draft-${workspaceId}-create`
+  const draftKey = transactionDraftKey(workspaceId)
   const [storedDraft, , clearDraft, hasDraft] = useFormDraft<FormDraft>(draftKey, EMPTY_DRAFT)
   // Once user decides (restore or discard), start auto-saving
   const [draftDecided, setDraftDecided] = useState(!isDraftMode || !hasDraft)
@@ -627,7 +656,7 @@ export function TransactionForm({
   // ── Render ──
   return (
     <Box
-      sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}
+      sx={frameless ? undefined : { p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}
       data-testid="transaction-form"
     >
       <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>

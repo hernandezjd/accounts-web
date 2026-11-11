@@ -73,7 +73,7 @@ afterEach(() => {
 })
 
 describe('AppShell', () => {
-  it('renders all 7 navigation items', async () => {
+  it('renders all navigation items', async () => {
     renderAppShell()
     await waitFor(() => {
       expect(screen.getByRole('list', { name: 'navigation' })).toBeInTheDocument()
@@ -82,7 +82,8 @@ describe('AppShell', () => {
     expect(nav).toHaveTextContent('Accounting')
     expect(nav).toHaveTextContent('Accounts')
     expect(nav).toHaveTextContent('Third Parties')
-    expect(nav).toHaveTextContent('Transactions')
+    // Transactions has no menu entry: it is a tab of Accounting
+    expect(nav).not.toHaveTextContent('Transactions')
     expect(nav).toHaveTextContent('Initial Balances')
     expect(nav).toHaveTextContent('Reports')
     expect(nav).toHaveTextContent('Setup')

@@ -67,6 +67,18 @@ describe('KeyboardShortcutsContext', () => {
     expect(handler).not.toHaveBeenCalled()
   })
 
+  it('does not fire handler while a dialog is open', () => {
+    const handler = vi.fn()
+    render(
+      <TestWrapper>
+        <ShortcutConsumer shortcutKey="Escape" handler={handler} />
+        <div role="dialog">open dialog</div>
+      </TestWrapper>,
+    )
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(handler).not.toHaveBeenCalled()
+  })
+
   it('supports multiple shortcuts simultaneously', () => {
     const handlerA = vi.fn()
     const handlerB = vi.fn()

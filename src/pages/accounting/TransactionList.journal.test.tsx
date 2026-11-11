@@ -1,19 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test-utils/renderWithProviders'
-import { TransactionsPage } from './TransactionsPage'
+import { TransactionList } from './TransactionList'
 import type { Transaction, TransactionPage } from '@/hooks/api/useTransactions'
 import type { Account } from '@/hooks/api/useAccounts'
-import { getDefaultPeriod } from '@/utils/period'
-import { PREFERENCE_KEYS } from '@/utils/preferences'
+import { useCurrencyViewStore } from '@/store/currencyViewStore'
 
 // ─── Mock hooks ─────────────────────────────────────────────────────────────
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
-  return { ...actual, useParams: vi.fn().mockReturnValue({ workspaceId: 'workspace-test' }) }
-})
 
 vi.mock('@/hooks/api/useTransactions', () => ({
   useTransactions: vi.fn(),
@@ -29,7 +23,7 @@ vi.mock('@/hooks/api/useWorkspaceConfig', () => ({
 }))
 
 // Mock the inline form to avoid setting up all its sub-hooks
-vi.mock('../accounting/TransactionForm', () => ({
+vi.mock('./TransactionForm', () => ({
   TransactionForm: ({
     mode,
     onCancel,
@@ -104,6 +98,15 @@ const sampleTransactions: Transaction[] = [
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
+const onAccountSelect = vi.fn()
+const journalProps = {
+  workspaceId: 'workspace-test',
+  from: '2026-09-01',
+  to: '2026-09-30',
+  onAccountSelect,
+  onClearAccount: vi.fn(),
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   window.localStorage.clear()
@@ -139,18 +142,18 @@ beforeEach(() => {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('TransactionsPage', () => {
-  it('renders filter bar inputs', () => {
-    renderWithProviders(<TransactionsPage />)
+describe('TransactionList without an account', () => {
+  it('renders the account picker and the type filter, and no date inputs', () => {
+    renderWithProviders(<TransactionList {...journalProps} />)
 
-    expect(screen.getByTestId('filter-date-from')).toBeInTheDocument()
-    expect(screen.getByTestId('filter-date-to')).toBeInTheDocument()
-    expect(screen.getByTestId('apply-filters-btn')).toBeInTheDocument()
-    expect(screen.getByTestId('clear-filters-btn')).toBeInTheDocument()
+    expect(screen.getByTestId('journal-account-picker')).toBeInTheDocument()
+    expect(screen.getByTestId('journal-type-filter')).toBeInTheDocument()
+    expect(screen.queryByTestId('filter-date-from')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('apply-filters-btn')).not.toBeInTheDocument()
   })
 
   it('renders transaction table headers', () => {
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     expect(screen.getByTestId('transactions-table')).toBeInTheDocument()
     expect(screen.getByText('Date')).toBeInTheDocument()
@@ -161,7 +164,7 @@ describe('TransactionsPage', () => {
   })
 
   it('renders transaction rows', () => {
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     expect(screen.getByTestId('txn-row-txn-1')).toBeInTheDocument()
     expect(screen.getByText('2024-01-15')).toBeInTheDocument()
@@ -170,7 +173,7 @@ describe('TransactionsPage', () => {
   })
 
   it('displays all transaction line items expanded', () => {
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     // Verify line item account code and name are visible
     expect(screen.getByText(/100 Assets/)).toBeInTheDocument()
@@ -216,7 +219,7 @@ describe('TransactionsPage', () => {
       error: null,
     } as ReturnType<typeof useTransactions>)
 
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     // Both line items should be visible
     expect(screen.getByText(/100 Assets/)).toBeInTheDocument()
@@ -268,7 +271,7 @@ describe('TransactionsPage', () => {
       error: null,
     } as ReturnType<typeof useTransactions>)
 
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     expect(screen.getByText('Debit (CAD)')).toBeInTheDocument()
     expect(screen.getByText('Credit (CAD)')).toBeInTheDocument()
@@ -281,7 +284,7 @@ describe('TransactionsPage', () => {
     )
   })
 
-  it('does not repeat the original amount note of an earlier item with the same amounts', () => {
+  it('shows the rate only on the last item that shares it', () => {
     mockUseWorkspaceConfig.mockReturnValue({
       data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
       isLoading: false,
@@ -315,18 +318,76 @@ describe('TransactionsPage', () => {
       error: null,
     } as ReturnType<typeof useTransactions>)
 
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     const notes = screen.getAllByTestId('item-original-amount')
+    // The first item shares the rate but not the amounts, so it keeps its original amount without the rate
+    expect(notes[0]).toHaveTextContent(/^597,000(\.00)? COP$/)
+    // The last two items repeat the same amounts: only the last one shows the note and the rate
     expect(notes).toHaveLength(2)
-    expect(notes[0]).toHaveTextContent(/^597,000/)
-    expect(notes[1]).toHaveTextContent(/^298,500/)
+    expect(notes[1]).toHaveTextContent(/^298,500(\.00)? COP · 1 CAD = 2,288\.0576 COP$/)
     // Both credit items still show their base amount
     expect(screen.getAllByText('130.46')).toHaveLength(2)
   })
 
+  it('lists in the chosen currency and shows a dash where a line has no stored equivalent', () => {
+    mockUseWorkspaceConfig.mockReturnValue({
+      data: { systemInitialDate: '2024-01-01', lockedPeriodDate: null, baseCurrency: 'CAD' },
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useWorkspaceConfig>)
+    mockUseTransactions.mockReturnValue({
+      data: pageOf([
+        {
+          id: 'txn-usd',
+          date: '2024-01-20',
+          transactionTypeId: 'tt-1',
+          transactionTypeName: 'Journal Entry',
+          transactionNumber: 'JE-005',
+          description: 'Only CAD and COP stored',
+          items: [
+            {
+              accountId: 'acc-cop',
+              accountCode: '111014',
+              accountName: 'Bank COP',
+              debitAmount: 500000,
+              creditAmount: 0,
+              currency: 'COP',
+              equivalents: [{ currency: 'CAD', amount: 218.49, roundingAdjustment: 0 }],
+            },
+            {
+              accountId: 'acc-cad',
+              accountCode: '111015',
+              accountName: 'Bank CAD',
+              debitAmount: 0,
+              creditAmount: 218.49,
+              currency: 'CAD',
+              equivalents: [],
+            },
+          ],
+        },
+      ]),
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useTransactions>)
+    useCurrencyViewStore.setState({ view: { currency: 'USD' } })
+
+    try {
+      renderWithProviders(<TransactionList {...journalProps} />)
+
+      expect(screen.getByText('Debit (USD)')).toBeInTheDocument()
+      // Neither line has a stored USD equivalent, so both show a dash and the totals stay empty
+      expect(screen.getAllByText('—')).toHaveLength(2)
+      expect(screen.queryByText('218.49')).not.toBeInTheDocument()
+    } finally {
+      useCurrencyViewStore.setState({ view: { currency: null } })
+    }
+  })
+
   it('"New Transaction" button shows inline create form', async () => {
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     await userEvent.click(screen.getByTestId('new-transaction-btn'))
 
@@ -336,18 +397,25 @@ describe('TransactionsPage', () => {
     })
   })
 
-  it('hides "New Transaction" button while form is open', async () => {
-    renderWithProviders(<TransactionsPage />)
+  it('keeps the list in place behind the form', async () => {
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     await userEvent.click(screen.getByTestId('new-transaction-btn'))
 
-    await waitFor(() => {
-      expect(screen.queryByTestId('new-transaction-btn')).not.toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByTestId('transaction-form')).toBeInTheDocument())
+    expect(screen.getByTestId('txn-row-txn-1')).toBeInTheDocument()
+  })
+
+  it('asks for confirmation before deleting a transaction', async () => {
+    renderWithProviders(<TransactionList {...journalProps} />)
+
+    await userEvent.click(screen.getByTestId('delete-txn-txn-1'))
+
+    expect(await screen.findByTestId('confirm-delete-btn')).toBeInTheDocument()
   })
 
   it('Edit button shows inline edit form', async () => {
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     await userEvent.click(screen.getByTestId('edit-txn-txn-1'))
 
@@ -357,8 +425,8 @@ describe('TransactionsPage', () => {
     })
   })
 
-  it('cancelling inline form restores "New Transaction" button', async () => {
-    renderWithProviders(<TransactionsPage />)
+  it('cancelling the form closes it', async () => {
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     await userEvent.click(screen.getByTestId('new-transaction-btn'))
     await waitFor(() => screen.getByTestId('transaction-form'))
@@ -377,7 +445,7 @@ describe('TransactionsPage', () => {
       error: null,
     } as ReturnType<typeof useTransactions>)
 
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     expect(screen.getByText(/loading transactions/i)).toBeInTheDocument()
   })
@@ -390,37 +458,51 @@ describe('TransactionsPage', () => {
       error: null,
     } as ReturnType<typeof useTransactions>)
 
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
-    expect(screen.getByText(/no transactions found/i)).toBeInTheDocument()
+    expect(screen.getByText(/no transactions in this period/i)).toBeInTheDocument()
   })
 })
 
-describe('TransactionsPage date range and pagination', () => {
-  it('opens on the current Accounting period when nothing is stored', () => {
-    renderWithProviders(<TransactionsPage />)
-
-    const { from, to } = getDefaultPeriod('monthly')
-    expect(mockUseTransactions).toHaveBeenLastCalledWith(
-      'workspace-test',
-      { dateFrom: from, dateTo: to },
-      { page: 0, size: 50 },
-    )
-    expect(screen.getByTestId('filter-date-from')).toHaveValue(from)
-    expect(screen.getByTestId('filter-date-to')).toHaveValue(to)
-  })
-
-  it('opens on the period last selected in Accounting', () => {
-    window.localStorage.setItem(PREFERENCE_KEYS.ACCOUNTING_PERIOD_FROM, JSON.stringify('2026-09-01'))
-    window.localStorage.setItem(PREFERENCE_KEYS.ACCOUNTING_PERIOD_TO, JSON.stringify('2026-09-30'))
-
-    renderWithProviders(<TransactionsPage />)
+describe('TransactionList without an account period, filters and pagination', () => {
+  it('requests the transactions of the period it is given', () => {
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     expect(mockUseTransactions).toHaveBeenLastCalledWith(
       'workspace-test',
       { dateFrom: '2026-09-01', dateTo: '2026-09-30' },
       { page: 0, size: 50 },
     )
+  })
+
+  it('applies the type filter at once', async () => {
+    renderWithProviders(<TransactionList {...journalProps} />)
+
+    await userEvent.click(within(screen.getByTestId('journal-type-filter')).getByRole('combobox'))
+    await userEvent.click(await screen.findByRole('option', { name: 'Journal Entry' }))
+
+    await waitFor(() => expect(mockUseTransactions).toHaveBeenLastCalledWith(
+      'workspace-test',
+      { dateFrom: '2026-09-01', dateTo: '2026-09-30', transactionTypeId: 'tt-1' },
+      { page: 0, size: 50 },
+    ))
+  })
+
+  it('reports the account picked in the account picker', async () => {
+    renderWithProviders(<TransactionList {...journalProps} />)
+
+    await userEvent.click(within(screen.getByTestId('journal-account-picker')).getByRole('combobox'))
+    await userEvent.click(await screen.findByRole('option', { name: /100 — Assets/ }))
+
+    expect(onAccountSelect).toHaveBeenCalledWith('acc-1')
+  })
+
+  it('reports the account clicked in a transaction item', async () => {
+    renderWithProviders(<TransactionList {...journalProps} />)
+
+    await userEvent.click(screen.getByTestId('item-account-txn-1-0'))
+
+    expect(onAccountSelect).toHaveBeenCalledWith('acc-1')
   })
 
   it('shows the total count and requests the next page', async () => {
@@ -431,7 +513,7 @@ describe('TransactionsPage date range and pagination', () => {
       error: null,
     } as ReturnType<typeof useTransactions>)
 
-    renderWithProviders(<TransactionsPage />)
+    renderWithProviders(<TransactionList {...journalProps} />)
 
     expect(screen.getByText('1–50 of 120')).toBeInTheDocument()
 
@@ -446,7 +528,7 @@ describe('TransactionsPage date range and pagination', () => {
     })
   })
 
-  it('returns to the first page when filters are applied', async () => {
+  it('returns to the first page when the period changes', async () => {
     mockUseTransactions.mockReturnValue({
       data: pageOf(sampleTransactions, 120),
       isLoading: false,
@@ -454,27 +536,19 @@ describe('TransactionsPage date range and pagination', () => {
       error: null,
     } as ReturnType<typeof useTransactions>)
 
-    renderWithProviders(<TransactionsPage />)
+    const { rerender } = renderWithProviders(<TransactionList {...journalProps} />)
 
     await userEvent.click(screen.getByRole('button', { name: /next page/i }))
     await waitFor(() => expect(mockUseTransactions).toHaveBeenLastCalledWith(
       'workspace-test', expect.any(Object), { page: 1, size: 50 },
     ))
 
-    await userEvent.click(screen.getByTestId('apply-filters-btn'))
+    rerender(<TransactionList {...journalProps} from="2026-10-01" to="2026-10-31" />)
 
     await waitFor(() => expect(mockUseTransactions).toHaveBeenLastCalledWith(
-      'workspace-test', expect.any(Object), { page: 0, size: 50 },
-    ))
-  })
-
-  it('clearing filters requests all transactions without a date range', async () => {
-    renderWithProviders(<TransactionsPage />)
-
-    await userEvent.click(screen.getByTestId('clear-filters-btn'))
-
-    await waitFor(() => expect(mockUseTransactions).toHaveBeenLastCalledWith(
-      'workspace-test', {}, { page: 0, size: 50 },
+      'workspace-test',
+      { dateFrom: '2026-10-01', dateTo: '2026-10-31' },
+      { page: 0, size: 50 },
     ))
   })
 })

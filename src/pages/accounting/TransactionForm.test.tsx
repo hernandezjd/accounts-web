@@ -774,4 +774,16 @@ describe('TransactionForm', () => {
       expect(screen.getAllByTestId('form-item-row')).toHaveLength(2)
     })
   })
+
+  it('reports the form as dirty only after the user changes something', async () => {
+    const onDirtyChange = vi.fn()
+    renderWithProviders(<TransactionForm {...defaultProps} onDirtyChange={onDirtyChange} />)
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false)
+
+    await userEvent.type(screen.getByLabelText(/description/i), 'Rent')
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true)
+
+    await userEvent.clear(screen.getByLabelText(/description/i))
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false)
+  })
 })

@@ -19,7 +19,6 @@
     "accounts": "Cuentas",
     "thirdParties": "Terceros",
     "initialBalances": "Saldos Iniciales",
-    "transactions": "Transacciones",
     "transactionTypes": "Tipos de Transacción",
     "reports": "Informes",
     "closing": "Cierre",
@@ -70,6 +69,10 @@
     "closingTransactionTypeNotConfigured": "No se ha configurado un tipo de transacción de cierre. Configure un tipo de transacción de cierre en la página de Configuración antes de ejecutar un cierre."
   },
   "accounting": {
+    "tabs": {
+      "accounts": "Cuentas",
+      "transactions": "Movimientos"
+    },
     "title": "Contabilidad",
     "loading": "Cargando datos contables...",
     "error": "Error al cargar los datos contables.",
@@ -246,23 +249,8 @@
     "noTransactionTypes": "No se encontraron tipos de transacción."
   },
   "transactionsPage": {
-    "title": "Transacciones",
-    "newTransaction": "Nueva Transacción",
-    "dateFrom": "Fecha Desde",
-    "dateTo": "Fecha Hasta",
     "transactionType": "Tipo de Transacción",
     "account": "Cuenta",
-    "applyFilters": "Aplicar",
-    "clearFilters": "Limpiar",
-    "date": "Fecha",
-    "type": "Tipo",
-    "number": "Número",
-    "description": "Descripción",
-    "items": "Líneas",
-    "actions": "Acciones",
-    "loading": "Cargando transacciones...",
-    "error": "Error al cargar las transacciones.",
-    "noTransactions": "No se encontraron transacciones.",
     "rowsPerPage": "Filas por página",
     "initialDateNotConfiguredWarning": "La fecha inicial del sistema debe configurarse en Configuración antes de ingresar transacciones."
   },
@@ -481,6 +469,9 @@
     "draftBannerMessage": "Tienes un borrador no guardado. ¿Deseas restaurarlo?",
     "draftRestore": "Restaurar",
     "draftDiscard": "Descartar",
+    "discardChangesTitle": "¿Descartar los cambios?",
+    "discardChangesMessage": "Los cambios que hizo en esta transacción se perderán.",
+    "keepEditing": "Seguir editando",
     "initialDateNotConfiguredWarning": "La fecha inicial del sistema debe configurarse en Configuración antes de ingresar transacciones.",
     "dateBeforeInitialDate": "La fecha debe ser igual o posterior a la fecha inicial del sistema ({{ date }})."
   },
@@ -520,7 +511,7 @@
     "title": "Ayuda",
     "gettingStarted": {
       "title": "Comenzar",
-      "description": "Aquí te mostramos cómo poner en funcionamiento tu sistema de contabilidad:\n\n1. Crear un Espacio de Trabajo\nComienza creando tu primer espacio de trabajo. Esto aísla tus datos contables. Haz clic en \"Crear tu Primer Espacio de Trabajo\" en la pantalla principal e ingresa los detalles de tu organización.\n\n2. Establecer la Fecha Inicial del Sistema\nUna vez en tu espacio de trabajo, ve a Configuración → Configuración Contable y establece tu fecha inicial del sistema. Esto marca el comienzo de tu período contable.\n\n3. Crear tu Catálogo de Cuentas\nVe a Cuentas y crea tu estructura de cuentas. Comienza con categorías principales (Activos, Pasivos, Patrimonio, Ingresos, Gastos) y añade subcuentas según sea necesario. Recuerda usar códigos de cuenta únicos.\n\n4. Crear Tipos de Transacciones\nVe a Tipos de Transacciones y crea los tipos de transacciones que utiliza tu negocio (por ejemplo, Factura, Pago, Transferencia, Asiento de Diario).\n\n5. Ingresar Saldos Iniciales (Opcional)\nSi estás comenzando con saldos de cuenta existentes, ve a Saldos Iniciales e ingresa el saldo de apertura para cada cuenta.\n\n6. Registrar Transacciones\nVe a Transacciones y comienza a registrar tus transacciones comerciales. Cada transacción debe estar balanceada (débitos totales = créditos totales).\n\n7. Revisar Saldos e Informes\nVe a la página de Contabilidad para ver tu árbol de cuentas con saldos actuales. Usa la sección Informes para ver reportes de período, saldo a fecha y saldo por nivel.\n\n¡Eso es todo! Ahora estás listo para administrar tus registros contables."
+      "description": "Aquí te mostramos cómo poner en funcionamiento tu sistema de contabilidad:\n\n1. Crear un Espacio de Trabajo\nComienza creando tu primer espacio de trabajo. Esto aísla tus datos contables. Haz clic en \"Crear tu Primer Espacio de Trabajo\" en la pantalla principal e ingresa los detalles de tu organización.\n\n2. Establecer la Fecha Inicial del Sistema\nUna vez en tu espacio de trabajo, ve a Configuración → Configuración Contable y establece tu fecha inicial del sistema. Esto marca el comienzo de tu período contable.\n\n3. Crear tu Catálogo de Cuentas\nVe a Cuentas y crea tu estructura de cuentas. Comienza con categorías principales (Activos, Pasivos, Patrimonio, Ingresos, Gastos) y añade subcuentas según sea necesario. Recuerda usar códigos de cuenta únicos.\n\n4. Crear Tipos de Transacciones\nVe a Tipos de Transacciones y crea los tipos de transacciones que utiliza tu negocio (por ejemplo, Factura, Pago, Transferencia, Asiento de Diario).\n\n5. Ingresar Saldos Iniciales (Opcional)\nSi estás comenzando con saldos de cuenta existentes, ve a Saldos Iniciales e ingresa el saldo de apertura para cada cuenta.\n\n6. Registrar Transacciones\nVe a Contabilidad, pestaña Movimientos, y comienza a registrar tus transacciones comerciales. Cada transacción debe estar balanceada (débitos totales = créditos totales).\n\n7. Revisar Saldos e Informes\nVe a la página de Contabilidad para ver tu árbol de cuentas con saldos actuales. Usa la sección Informes para ver reportes de período, saldo a fecha y saldo por nivel.\n\n¡Eso es todo! Ahora estás listo para administrar tus registros contables."
     },
     "workspaces": {
       "title": "Espacios de trabajo",
